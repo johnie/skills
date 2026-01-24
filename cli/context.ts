@@ -15,7 +15,7 @@ export function buildContext(proc: typeof process): LocalContext {
   return {
     process: proc,
     colors: createColors(),
-    skillsDir: "./skills",
+    skillsDir: join(import.meta.dir, "..", "skills"),
     targetDir: join(homedir(), ".claude", "skills"),
   };
 }

@@ -5,7 +5,6 @@ import { buildContext } from "./context";
 
 const args = process.argv.slice(2);
 
-// Default to interactive mode when no args provided
 const commandArgs = args.length === 0 ? ["interactive"] : args;
 
 await run(app, commandArgs, buildContext(process));

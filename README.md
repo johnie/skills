@@ -1,6 +1,6 @@
 # Skills
 
-A collection of specialized skills for Claude Code that extend its capabilities with domain-specific knowledge and workflows.
+Production-ready AI agent skills for development workflows. Each skill is a specialized prompt template that teaches AI agents domain-specific workflows and best practices.
 
 ## Installation
 

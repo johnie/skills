@@ -1006,7 +1006,133 @@ test("create project", () => {
 });
 ```
 
-## Example 7: Integration with Existing Tools
+## Example 7: Shell Auto-Completion
+
+Add shell completion support with `@stricli/auto-complete`.
+
+### Installation
+
+```bash
+bun add @stricli/auto-complete
+```
+
+### src/commands/completion.ts
+
+```typescript
+import { buildCommand } from "@stricli/core";
+import { generateCompletionScript, CompletionSpec } from "@stricli/auto-complete";
+
+// Define custom completions
+const spec: CompletionSpec = {
+    commands: {
+        deploy: {
+            flags: {
+                env: {
+                    completions: ["dev", "staging", "prod"]
+                },
+                region: {
+                    completions: ["us-east-1", "us-west-2", "eu-west-1"]
+                }
+            }
+        },
+        project: {
+            commands: {
+                create: {
+                    flags: {
+                        template: {
+                            completions: ["react", "vue", "svelte", "solid"]
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+
+export const completionCommand = buildCommand({
+    docs: {
+        brief: "Generate shell completion script",
+        description: `Install completion with:
+  bash: eval "$(my-cli completion --shell bash)"
+  zsh:  eval "$(my-cli completion --shell zsh)"
+  fish: my-cli completion --shell fish > ~/.config/fish/completions/my-cli.fish`
+    },
+    parameters: {
+        flags: {
+            shell: {
+                kind: "enum",
+                values: ["bash", "zsh", "fish"] as const,
+                brief: "Target shell",
+                default: "bash"
+            }
+        }
+    },
+    func(flags) {
+        const script = generateCompletionScript({
+            name: "my-cli",
+            shell: flags.shell,
+            spec
+        });
+
+        console.log(script);
+    }
+});
+```
+
+### Add to Route Map
+
+```typescript
+import { buildRouteMap } from "@stricli/core";
+import { completionCommand } from "./commands/completion";
+import { deployCommand } from "./commands/deploy";
+import { projectRoutes } from "./routes/project";
+
+export const routes = buildRouteMap({
+    routes: {
+        completion: completionCommand,
+        deploy: deployCommand,
+        project: projectRoutes
+    }
+});
+```
+
+### Usage
+
+```bash
+# Install bash completion
+eval "$(my-cli completion --shell bash)"
+
+# Test completions
+my-cli deploy --env <TAB>
+# Shows: dev  staging  prod
+
+my-cli project create --template <TAB>
+# Shows: react  vue  svelte  solid
+```
+
+### Dynamic Completions
+
+For dynamic completions (e.g., from API or file):
+
+```typescript
+const spec: CompletionSpec = {
+    commands: {
+        deploy: {
+            flags: {
+                project: {
+                    async completions() {
+                        // Read from local file or API
+                        const projects = await loadProjects();
+                        return projects.map(p => p.name);
+                    }
+                }
+            }
+        }
+    }
+};
+```
+
+## Example 8: Integration with Existing Tools
 
 Using Stricli as a wrapper for existing tools.
 

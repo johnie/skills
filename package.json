@@ -1,5 +1,5 @@
 {
-  "name": "skills",
+  "name": "@johnie/skills",
   "module": "index.ts",
   "type": "module",
   "private": true,

@@ -38,7 +38,7 @@ export function getSymlinkStatus(
   context: LocalContext
 ): Skill {
   const targetPath = join(context.targetDir, skillName);
-  const sourcePath = join(context.process.cwd(), context.skillsDir, skillName);
+  const sourcePath = join(context.skillsDir, skillName);
 
   let isLinked = false;
   let isBroken = false;
@@ -71,7 +71,7 @@ export function ensureTargetDir(context: LocalContext): void {
 export function linkSkill(skillName: string, context: LocalContext): void {
   ensureTargetDir(context);
 
-  const sourcePath = join(context.process.cwd(), context.skillsDir, skillName);
+  const sourcePath = join(context.skillsDir, skillName);
   const targetPath = join(context.targetDir, skillName);
 
   if (!existsSync(sourcePath)) {
@@ -126,4 +126,14 @@ export function unlinkSkill(skillName: string, context: LocalContext): void {
   context.process.stdout.write(
     `${context.colors.icons.unlinked} Unlinked: ${skillName}\n`
   );
+}
+
+export function getIcon(skill: Skill, context: LocalContext): string {
+  if (skill.isLinked) {
+    return context.colors.icons.linked;
+  }
+  if (skill.isBroken) {
+    return context.colors.icons.broken;
+  }
+  return context.colors.icons.unlinked;
 }

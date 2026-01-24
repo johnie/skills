@@ -1,17 +1,6 @@
 import { buildCommand } from "@stricli/core";
 import type { LocalContext } from "../context";
-import type { Skill } from "../shared";
-import { getAvailableSkills, getSymlinkStatus } from "../shared";
-
-function getIcon(status: Skill, ctx: LocalContext): string {
-  if (status.isLinked) {
-    return ctx.colors.icons.linked;
-  }
-  if (status.isBroken) {
-    return ctx.colors.icons.broken;
-  }
-  return ctx.colors.icons.unlinked;
-}
+import { getAvailableSkills, getIcon, getSymlinkStatus } from "../shared";
 
 export const listCommand = buildCommand({
   docs: {

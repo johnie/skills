@@ -162,6 +162,35 @@ WordPress CLI operations for database management, plugins, themes, users, conten
 
 </details>
 
+## Development
+
+This repository includes a CLI for managing skill symlinks during local development. When developing or testing skills, you need to symlink them to `~/.claude/skills/` where Claude Code discovers them.
+
+```bash
+# Interactive mode (default) - toggle skills with number keys
+bun skills
+
+# List all skills with their link status
+bun skills list
+
+# Link a specific skill
+bun skills link <name>
+
+# Unlink a specific skill
+bun skills unlink <name>
+
+# Show help
+bun skills --help
+```
+
+**Commands:**
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `list` | `ls` | List all skills with their symlink status |
+| `link <name>` | - | Create symlink for a skill to ~/.claude/skills/ |
+| `unlink <name>` | - | Remove symlink for a skill |
+| `interactive` | `i` | Interactive TUI mode (default when no args) |
+
 ## License
 
 MIT

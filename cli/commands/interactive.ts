@@ -2,46 +2,27 @@ import { buildCommand } from "@stricli/core";
 import type { LocalContext } from "../context";
 import {
   getAvailableSkills,
+  getIcon,
   getSymlinkStatus,
   linkSkill,
   type Skill,
   unlinkSkill,
 } from "../shared";
 
+const TOGGLE_DELAY_MS = 500;
+
 async function readLine(ctx: LocalContext, message: string): Promise<string> {
   ctx.process.stdout.write(message);
 
-  const reader = ctx.process.stdin.stream().getReader();
-  const decoder = new TextDecoder();
-  let input = "";
-
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) {
-      break;
-    }
-    input += decoder.decode(value);
-    if (input.includes("\n")) {
-      break;
-    }
+  for await (const line of console) {
+    return line.trim();
   }
 
-  reader.releaseLock();
-  return input.trim();
-}
-
-function getIcon(skill: Skill, ctx: LocalContext): string {
-  if (skill.isLinked) {
-    return ctx.colors.icons.linked;
-  }
-  if (skill.isBroken) {
-    return ctx.colors.icons.broken;
-  }
-  return ctx.colors.icons.unlinked;
+  return "";
 }
 
 function displaySkills(ctx: LocalContext, statusList: Skill[]): void {
-  console.clear();
+  ctx.process.stdout.write("\x1Bc");
   ctx.process.stdout.write("Skill Manager - Claude\n");
   ctx.process.stdout.write(ctx.colors.dim(`Target: ${ctx.targetDir}\n\n`));
 
@@ -87,7 +68,7 @@ export const interactiveCommand = buildCommand({
       }
 
       toggleSkill(statusList[choice - 1], this);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, TOGGLE_DELAY_MS));
     }
   },
 });

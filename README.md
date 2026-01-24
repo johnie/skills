@@ -50,6 +50,44 @@ Create semantically correct, granular git commits by analyzing staged and unstag
 </details>
 
 <details>
+<summary><b>/pr</b> - GitHub PR management</summary>
+
+<br>
+
+Create, update, and review GitHub PRs with structured templates and comprehensive workflows.
+
+**Features:**
+- Structured PR templates with What/Why/How sections
+- Smart generation from commits and diffs
+- Update existing PRs while preserving user edits
+- Code review analysis with quality feedback
+- Draft PR support for work-in-progress changes
+
+**Commands:**
+- `/pr create` - Create PR with structured template
+- `/pr create -v` - Preview draft before creating
+- `/pr create --draft` - Create as draft PR (WIP)
+- `/pr update` - Update existing PR after new commits
+- `/pr update -v` - Preview changes before updating
+- `/pr review <pr>` - Review PR by number or URL
+
+**Workflows:**
+- **Create**: Analyzes commits and diffs to generate comprehensive PR descriptions with proper formatting
+- **Update**: Regenerates What/How/Changes sections while preserving Testing, Screenshots, and Deployment notes
+- **Review**: Provides structured feedback on code quality, testing, security, and performance
+
+**Template Sections:**
+- What - Concise summary of changes
+- Why - Context and motivation
+- How - Implementation approach
+- Changes - Bullet list of modifications
+- Testing - Checklist for test coverage
+- Deployment - Special deployment considerations
+- Screenshots - Visual proof for UI changes
+
+</details>
+
+<details>
 <summary><b>/stricli</b> - TypeScript CLI framework expertise</summary>
 
 <br>

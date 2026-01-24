@@ -16,6 +16,7 @@
     "typescript": "^5"
   },
   "scripts": {
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "manage-skills": "bun manage-skills.ts"
   }
 }

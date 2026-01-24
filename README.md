@@ -4,11 +4,25 @@ A collection of specialized skills for Claude Code that extend its capabilities 
 
 ## Installation
 
+Install skills for your AI agent using the [skills.sh](https://skills.sh/) CLI:
+
 ```bash
-bun install
+# Install all skills
+npx skills add johnie/skills
+
+# Install a specific skill
+npx skills add johnie/skills --skill <skillName>
 ```
 
-## Available Skills
+**Available skills:** `commit` • `stricli` • `wp-cli`
+
+**Example:**
+
+```bash
+npx skills add johnie/skills --skill commit
+```
+
+## Skills
 
 ### `/commit`
 

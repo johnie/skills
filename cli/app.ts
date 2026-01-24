@@ -1,4 +1,5 @@
 import { buildApplication, buildRouteMap } from "@stricli/core";
+import packageJson from "../package.json" with { type: "json" };
 import { interactiveCommand } from "./commands/interactive";
 import { linkCommand } from "./commands/link";
 import { listCommand } from "./commands/list";
@@ -21,6 +22,6 @@ export const routes = buildRouteMap({
 export const app = buildApplication(routes, {
   name: "skills",
   versionInfo: {
-    currentVersion: "1.0.0",
+    currentVersion: packageJson.version,
   },
 });

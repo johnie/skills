@@ -16,6 +16,10 @@
   },
   "scripts": {
     "prepare": "lefthook install",
-    "skills": "bun manage-skills.ts"
+    "skills": "bun cli/index.ts"
+  },
+  "dependencies": {
+    "@stricli/core": "^1.2.5",
+    "kleur": "^4.1.5"
   }
 }

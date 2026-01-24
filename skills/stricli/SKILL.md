@@ -7,6 +7,8 @@ description: Build type-safe CLI applications with Stricli. Use when creating co
 
 Stricli is Bloomberg's type-safe CLI framework for TypeScript. It provides compile-time type checking for command parameters, automatic help generation, and flexible command routing.
 
+**Multi-Runtime Support:** Works with Node.js, Bun, and Deno.
+
 ## Quick Start
 
 Create a minimal single-command CLI:
@@ -14,9 +16,12 @@ Create a minimal single-command CLI:
 ### 1. Installation
 
 ```bash
-npm install @stricli/core
-# or
 bun add @stricli/core
+```
+
+Optional packages:
+```bash
+bun add @stricli/auto-complete  # Shell completion support
 ```
 
 ### 2. Project Structure
@@ -63,7 +68,7 @@ export const greet = buildCommand({
         }
     },
     func(flags: GreetFlags) {
-        const message = `Hello, ${flags.name}!`;
+        const message = "Hello, " + flags.name + "!";
         console.log(flags.shout ? message.toUpperCase() : message);
     }
 });
@@ -101,14 +106,15 @@ await run(app, process.argv.slice(2));
   "version": "1.0.0",
   "type": "module",
   "bin": {
-    "my-cli": "./dist/index.js"
+    "my-cli": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "bun run src/index.ts"
   }
 }
 ```
+
+**Note:** With Bun, you can run TypeScript directly without compilation. For distribution, use `bun build` to create a standalone executable.
 
 ## Core Concepts
 
@@ -473,7 +479,12 @@ test("greet with default name", () => {
 
 For detailed API documentation and complete examples, see:
 
-- **[API Reference](./references/api.md)** - Complete API for buildCommand, buildRouteMap, buildApplication, all parameter kinds, and parsers
+- **[Commands](./references/commands.md)** - buildCommand, func signature, aliases, type safety
+- **[Parameters](./references/parameters.md)** - Flag types (boolean, counter, enum, parsed, variadic) and positional types (tuple, array)
+- **[Parsers](./references/parsers.md)** - Built-in parsers, custom parsers, error handling
+- **[Routing](./references/routing.md)** - buildRouteMap, buildApplication, run, lazy loading, scanner config
+- **[Context](./references/context.md)** - Custom context, LocalContext, exit codes
+- **[Auto-Complete](./references/auto-complete.md)** - Shell completion with @stricli/auto-complete
 - **[Examples](./references/examples.md)** - Complete working examples including multi-command CLIs, custom parsers, and advanced patterns
 
 ## Additional Resources

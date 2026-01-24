@@ -14,17 +14,12 @@ npx skills add johnie/skills
 npx skills add johnie/skills --skill <skillName>
 ```
 
-**Available skills:** `commit` • `stricli` • `wp-cli`
-
-**Example:**
-
-```bash
-npx skills add johnie/skills --skill commit
-```
-
 ## Skills
 
-### `/commit`
+<details>
+<summary><b>/commit</b> - Semantic git commit automation</summary>
+
+<br>
 
 Create semantically correct, granular git commits by analyzing staged and unstaged changes.
 
@@ -52,7 +47,12 @@ Create semantically correct, granular git commits by analyzing staged and unstag
 - `style` - Formatting, whitespace
 - `perf` - Performance improvement
 
-### `/stricli`
+</details>
+
+<details>
+<summary><b>/stricli</b> - TypeScript CLI framework expertise</summary>
+
+<br>
 
 Build type-safe CLI applications with Stricli, Bloomberg's TypeScript CLI framework.
 
@@ -82,7 +82,12 @@ Build type-safe CLI applications with Stricli, Bloomberg's TypeScript CLI framew
 - Variadic flags (multiple values)
 - Positional parameters (tuple or array)
 
-### `/wp-cli`
+</details>
+
+<details>
+<summary><b>/wp-cli</b> - WordPress CLI operations</summary>
+
+<br>
 
 WordPress CLI operations for database management, plugins, themes, users, content, and site configuration.
 
@@ -116,6 +121,8 @@ WordPress CLI operations for database management, plugins, themes, users, conten
 - Dry-run flags for testing commands
 - Explicit confirmation required for dangerous operations
 - Skip flags for performance optimization
+
+</details>
 
 ## License
 

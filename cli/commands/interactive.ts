@@ -1,45 +1,13 @@
 import { buildCommand } from "@stricli/core";
+import prompts from "prompts";
 import type { LocalContext } from "../context";
 import {
   getAvailableSkills,
   getIcon,
   getSymlinkStatus,
   linkSkill,
-  type Skill,
   unlinkSkill,
 } from "../shared";
-
-const TOGGLE_DELAY_MS = 500;
-
-async function readLine(ctx: LocalContext, message: string): Promise<string> {
-  ctx.process.stdout.write(message);
-
-  for await (const line of console) {
-    return line.trim();
-  }
-
-  return "";
-}
-
-function displaySkills(ctx: LocalContext, statusList: Skill[]): void {
-  ctx.process.stdout.write("\x1Bc");
-  ctx.process.stdout.write("Skill Manager - Claude\n");
-  ctx.process.stdout.write(ctx.colors.dim(`Target: ${ctx.targetDir}\n\n`));
-
-  for (const [index, skill] of statusList.entries()) {
-    const icon = getIcon(skill, ctx);
-    const suffix = skill.isBroken ? ctx.colors.warn(" (broken)") : "";
-    ctx.process.stdout.write(`[${index + 1}] ${icon} ${skill.name}${suffix}\n`);
-  }
-}
-
-function toggleSkill(skill: Skill, ctx: LocalContext): void {
-  if (skill.isLinked) {
-    unlinkSkill(skill.name, ctx);
-  } else {
-    linkSkill(skill.name, ctx);
-  }
-}
 
 export const interactiveCommand = buildCommand({
   docs: {
@@ -51,24 +19,45 @@ export const interactiveCommand = buildCommand({
       const skills = getAvailableSkills(this);
       const statusList = skills.map((name) => getSymlinkStatus(name, this));
 
-      displaySkills(this, statusList);
+      const choices = statusList.map((skill) => {
+        const icon = getIcon(skill, this);
+        const suffix = skill.isBroken ? this.colors.warn(" (broken)") : "";
+        return {
+          title: `${icon} ${skill.name}${suffix}`,
+          value: skill.name,
+          selected: skill.isLinked,
+        };
+      });
 
-      const input = await readLine(
-        this,
-        "\nEnter number to toggle, 'q' to quit: "
-      );
+      const response = await prompts({
+        type: "multiselect",
+        name: "skills",
+        message: `Skill Manager (${this.colors.dim(this.targetDir)})`,
+        choices,
+        hint: "Space to toggle, Enter to apply, Ctrl+C to quit",
+        instructions: false,
+      });
 
-      if (input.toLowerCase() === "q") {
+      if (response.skills === undefined) {
         break;
       }
 
-      const choice = Number.parseInt(input, 10);
-      if (Number.isNaN(choice) || choice < 1 || choice > statusList.length) {
-        continue;
+      const selectedSkills = new Set<string>(response.skills);
+      const currentlyLinked = new Set<string>(
+        statusList.filter((s) => s.isLinked).map((s) => s.name)
+      );
+
+      for (const skillName of selectedSkills) {
+        if (!currentlyLinked.has(skillName)) {
+          linkSkill(skillName, this);
+        }
       }
 
-      toggleSkill(statusList[choice - 1], this);
-      await new Promise((resolve) => setTimeout(resolve, TOGGLE_DELAY_MS));
+      for (const skillName of currentlyLinked) {
+        if (!selectedSkills.has(skillName)) {
+          unlinkSkill(skillName, this);
+        }
+      }
     }
   },
 });

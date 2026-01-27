@@ -7,6 +7,7 @@ export const linkCommand = buildCommand({
     brief: "Create a symlink for a skill",
   },
   parameters: {
+    flags: {},
     positional: {
       kind: "tuple",
       parameters: [

@@ -7,6 +7,7 @@ export const unlinkCommand = buildCommand({
     brief: "Remove a symlink for a skill",
   },
   parameters: {
+    flags: {},
     positional: {
       kind: "tuple",
       parameters: [

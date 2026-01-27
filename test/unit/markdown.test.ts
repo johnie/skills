@@ -1,7 +1,7 @@
-import { describe, expect, test } from "bun:test";
 import type { Code, Heading, Root } from "mdast";
 import { remark } from "remark";
 import remarkFrontmatter from "remark-frontmatter";
+import { describe, expect, test } from "vitest";
 import { discoverSkills, readSkillFile } from "../helpers/skills";
 
 /**

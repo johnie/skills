@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { parse as parseYAML } from "yaml";
 import { discoverSkills, readSkillFile } from "../helpers/skills";
 

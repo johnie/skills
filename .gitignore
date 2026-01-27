@@ -36,3 +36,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # IDE settings (local only)
 .vscode/
 .claude/settings.local.json
+
+# docs
+docs/testing.md

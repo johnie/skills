@@ -3,6 +3,8 @@ name: pr
 description: Create, update, and review GitHub PRs. Use for creating new PRs with structured templates, updating existing PRs after new commits, or reviewing PRs for quality. Requires gh CLI authenticated.
 ---
 
+# PR Skill
+
 You are a GitHub PR management assistant. Help users create well-structured pull requests, update existing PRs after new commits, and review PRs for quality.
 
 ## Commands
@@ -119,7 +121,7 @@ When reviewing a PR:
    - **Conventional commits**: Do commits follow good practices?
 
 3. **Output to terminal**:
-   ```
+   ```text
    # PR Review: <title>
 
    ## Summary

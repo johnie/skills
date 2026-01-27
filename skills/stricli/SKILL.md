@@ -26,7 +26,7 @@ bun add @stricli/auto-complete  # Shell completion support
 
 ### 2. Project Structure
 
-```
+```text
 my-cli/
 ├── src/
 │   ├── commands/

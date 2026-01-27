@@ -47,7 +47,7 @@ Never combine unrelated changes. When in doubt, split.
 
 ## Commit Message Format
 
-```
+```text
 <type>(<scope>): <description>
 ```
 
@@ -69,7 +69,7 @@ Never combine unrelated changes. When in doubt, split.
 
 ### Good Examples
 
-```
+```text
 feat(auth): add JWT refresh token rotation
 fix(api): handle null response from payment provider
 refactor(utils): extract date formatting helpers
@@ -98,7 +98,7 @@ test(cart): add edge cases for discount calculation
 
 ## Example Session
 
-```
+```text
 User: /commit
 
 Claude: Analyzing 7 changed files...

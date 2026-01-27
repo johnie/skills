@@ -10,14 +10,20 @@
     "@types/bun": "latest",
     "@types/prompts": "^2.4.9",
     "lefthook": "^2.0.15",
-    "ultracite": "7.0.12"
+    "remark": "^15.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-lint": "^10.0.1",
+    "ultracite": "7.0.12",
+    "unified": "^11.0.5",
+    "yaml": "^2.8.2"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "scripts": {
     "prepare": "lefthook install",
-    "skills": "bun cli/index.ts"
+    "skills": "bun cli/index.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "@stricli/core": "^1.2.5",

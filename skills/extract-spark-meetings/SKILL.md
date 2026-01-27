@@ -24,7 +24,7 @@ This skill processes Spark Mail shared meeting links and extracts key informatio
 - Next steps
 
 **Expected folder structure:**
-```
+```text
 {current-directory}/
 ├── spark-meetings/          # Output directory (auto-created)
 │   └── YYYY-MM-DD-*.md     # Extracted meeting files
@@ -35,13 +35,13 @@ This skill processes Spark Mail shared meeting links and extracts key informatio
 
 ### Single URL Mode
 Process one Spark Mail link:
-```
+```bash
 /extract-spark-meetings https://share.sparkmailapp.com/...
 ```
 
 ### Batch Mode
 Process all unchecked links from `links.md`:
-```
+```bash
 /extract-spark-meetings
 ```
 
@@ -89,7 +89,7 @@ Extract structured information:
 ### 3. Generate Output File
 
 **Filename convention:**
-```
+```text
 spark-meetings/YYYY-MM-DD-{meeting-title-slug}.md
 ```
 
@@ -217,7 +217,7 @@ After processing first URL successfully:
 ## Output Summary
 
 After processing, provide summary:
-```
+```text
 Extracted N meeting(s):
 - spark-meetings/2024-03-15-quarterly-planning.md
 - spark-meetings/2024-03-16-design-review.md

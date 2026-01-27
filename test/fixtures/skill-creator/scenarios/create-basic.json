@@ -1,0 +1,9 @@
+{
+  "name": "Create basic skill for PDF conversion",
+  "prompt": "Create a skill for converting PDF files to different formats",
+  "context": {},
+  "expected": {
+    "requiredSections": ["name", "description"],
+    "resourceTypes": ["scripts/", "references/"]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Multi-command CLI with subcommands",
+  "prompt": "Create a CLI with create, list, and delete subcommands for managing tasks",
+  "context": {},
+  "expected": {
+    "commandCount": 3,
+    "expectRouteMap": true,
+    "keywords": ["create", "list", "delete", "routes"]
+  }
+}

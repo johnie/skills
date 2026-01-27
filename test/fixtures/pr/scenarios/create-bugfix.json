@@ -1,0 +1,24 @@
+{
+  "name": "Create PR for bug fix",
+  "prompt": "Create a pull request for this bug fix",
+  "context": {
+    "branch": "fix/memory-leak",
+    "baseBranch": "main",
+    "gitStatus": "On branch fix/memory-leak\nYour branch is up to date with 'origin/fix/memory-leak'.\n\nnothing to commit, working tree clean",
+    "gitDiff": "diff --git a/src/hooks/useWebSocket.ts b/src/hooks/useWebSocket.ts\nindex abc1234..def5678 100644\n--- a/src/hooks/useWebSocket.ts\n+++ b/src/hooks/useWebSocket.ts\n@@ -5,10 +5,17 @@ export function useWebSocket(url: string) {\n   useEffect(() => {\n     const ws = new WebSocket(url);\n     \n-    ws.onmessage = (event) => {\n+    const handleMessage = (event: MessageEvent) => {\n       setData(JSON.parse(event.data));\n     };\n     \n+    ws.addEventListener('message', handleMessage);\n+    \n+    return () => {\n+      ws.removeEventListener('message', handleMessage);\n+      ws.close();\n+    };\n   }, [url]);\n   \n   return data;\n }\n\ndiff --git a/tests/hooks/useWebSocket.test.ts b/tests/hooks/useWebSocket.test.ts\nindex 1111111..2222222 100644\n--- a/tests/hooks/useWebSocket.test.ts\n+++ b/tests/hooks/useWebSocket.test.ts\n@@ -15,4 +15,20 @@ test('receives messages', () => {\n   \n   expect(result.current).toEqual({ message: 'test' });\n });\n+\n+test('cleans up on unmount', () => {\n+  const { unmount } = renderHook(() => useWebSocket('ws://localhost'));\n+  \n+  const ws = MockWebSocket.instances[0];\n+  const closeSpy = jest.spyOn(ws, 'close');\n+  const removeListenerSpy = jest.spyOn(ws, 'removeEventListener');\n+  \n+  unmount();\n+  \n+  expect(removeListenerSpy).toHaveBeenCalledWith('message', expect.any(Function));\n+  expect(closeSpy).toHaveBeenCalled();\n+  \n+  closeSpy.mockRestore();\n+  removeListenerSpy.mockRestore();\n+});\n",
+    "commits": [
+      {
+        "message": "fix(websocket): add cleanup to prevent memory leak in useWebSocket hook",
+        "files": ["src/hooks/useWebSocket.ts"]
+      },
+      {
+        "message": "test(websocket): add test for cleanup on unmount",
+        "files": ["tests/hooks/useWebSocket.test.ts"]
+      }
+    ]
+  },
+  "expected": {
+    "requiredSections": ["Summary", "Test plan"],
+    "keywords": ["memory leak", "WebSocket", "cleanup"]
+  }
+}

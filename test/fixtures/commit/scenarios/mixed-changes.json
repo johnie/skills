@@ -1,0 +1,28 @@
+{
+  "name": "Mixed feature and refactor changes",
+  "prompt": "Create commits for these changes",
+  "context": {
+    "branch": "feature/improved-auth",
+    "gitStatus": "On branch feature/improved-auth\nChanges to be committed:\n  modified:   src/auth/login.ts\n  modified:   src/auth/session.ts\n  new file:   src/auth/tokens.ts\n  modified:   src/utils/crypto.ts\n  modified:   README.md",
+    "gitDiff": "diff --git a/src/auth/login.ts b/src/auth/login.ts\nindex aaa1111..bbb2222 100644\n--- a/src/auth/login.ts\n+++ b/src/auth/login.ts\n@@ -1,15 +1,12 @@\n import { hashPassword } from '../utils/crypto';\n+import { createSession } from './session';\n+import { generateTokens } from './tokens';\n \n export async function login(username: string, password: string) {\n   const user = await db.users.findOne({ username });\n   \n   if (!user || !hashPassword(password).equals(user.passwordHash)) {\n     throw new Error('Invalid credentials');\n   }\n   \n-  // Create session\n-  const sessionId = crypto.randomUUID();\n-  await db.sessions.insert({ sessionId, userId: user.id });\n-  \n-  return { sessionId, user };\n+  const session = await createSession(user.id);\n+  const tokens = await generateTokens(user.id);\n+  \n+  return { session, tokens, user };\n }\n\ndiff --git a/src/auth/session.ts b/src/auth/session.ts\nindex ccc3333..ddd4444 100644\n--- a/src/auth/session.ts\n+++ b/src/auth/session.ts\n@@ -1,10 +1,20 @@\n+export interface Session {\n+  id: string;\n+  userId: string;\n+  createdAt: Date;\n+  expiresAt: Date;\n+}\n+\n export async function createSession(userId: string) {\n-  const sessionId = crypto.randomUUID();\n-  await db.sessions.insert({ sessionId, userId });\n-  return sessionId;\n+  const id = crypto.randomUUID();\n+  const createdAt = new Date();\n+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days\n+  \n+  const session: Session = { id, userId, createdAt, expiresAt };\n+  await db.sessions.insert(session);\n+  return session;\n }\n \n export async function getSession(sessionId: string) {\n-  return db.sessions.findOne({ sessionId });\n+  return db.sessions.findOne({ id: sessionId }) as Promise<Session | null>;\n }\n\ndiff --git a/src/auth/tokens.ts b/src/auth/tokens.ts\nnew file mode 100644\nindex 0000000..eee5555\n--- /dev/null\n+++ b/src/auth/tokens.ts\n@@ -0,0 +1,22 @@\n+import jwt from 'jsonwebtoken';\n+\n+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';\n+\n+export interface Tokens {\n+  accessToken: string;\n+  refreshToken: string;\n+}\n+\n+export async function generateTokens(userId: string): Promise<Tokens> {\n+  const accessToken = jwt.sign(\n+    { userId },\n+    JWT_SECRET,\n+    { expiresIn: '15m' }\n+  );\n+  \n+  const refreshToken = jwt.sign(\n+    { userId },\n+    JWT_SECRET,\n+    { expiresIn: '7d' }\n+  );\n+  \n+  return { accessToken, refreshToken };\n+}\n\ndiff --git a/src/utils/crypto.ts b/src/utils/crypto.ts\nindex fff6666..ggg7777 100644\n--- a/src/utils/crypto.ts\n+++ b/src/utils/crypto.ts\n@@ -1,6 +1,10 @@\n import crypto from 'crypto';\n \n+/**\n+ * Hash a password using PBKDF2\n+ */\n export function hashPassword(password: string): Buffer {\n-  return crypto.pbkdf2Sync(password, 'salt', 100000, 64, 'sha512');\n+  const salt = process.env.PASSWORD_SALT || 'default-salt';\n+  return crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512');\n }\n\ndiff --git a/README.md b/README.md\nindex hhh8888..iii9999 100644\n--- a/README.md\n+++ b/README.md\n@@ -15,6 +15,12 @@ npm start\n \n ## Authentication\n \n-This app uses session-based authentication. Users log in with username and password.\n+This app uses JWT-based authentication with refresh tokens.\n+\n+- Access tokens expire after 15 minutes\n+- Refresh tokens expire after 7 days\n+- Sessions are stored in the database\n \n See `src/auth/` for implementation details.\n+\n+Set `JWT_SECRET` environment variable in production.\n",
+    "filesChanged": [
+      "src/auth/login.ts",
+      "src/auth/session.ts",
+      "src/auth/tokens.ts",
+      "src/utils/crypto.ts",
+      "README.md"
+    ],
+    "changeType": ["feature", "refactor", "docs"]
+  },
+  "expected": {
+    "commitCount": 3,
+    "commitTypes": ["feat", "refactor", "docs"],
+    "filesMentioned": [
+      "login.ts",
+      "session.ts",
+      "tokens.ts",
+      "crypto.ts",
+      "README.md"
+    ]
+  }
+}

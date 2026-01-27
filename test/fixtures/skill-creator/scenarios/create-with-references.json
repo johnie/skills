@@ -1,0 +1,9 @@
+{
+  "name": "Create skill with schema references",
+  "prompt": "Create a skill for querying BigQuery with database schema references and example queries",
+  "context": {},
+  "expected": {
+    "requiredSections": ["name", "description"],
+    "resourceTypes": ["references/", "scripts/"]
+  }
+}

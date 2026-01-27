@@ -1,0 +1,10 @@
+{
+  "name": "Single command CLI with flag",
+  "prompt": "Create a CLI that greets users with an optional --shout flag to make the greeting uppercase",
+  "context": {},
+  "expected": {
+    "commandCount": 1,
+    "expectRouteMap": false,
+    "keywords": ["greet", "shout", "flag"]
+  }
+}

@@ -1,8 +1,19 @@
-/// <reference types="bun-types" />
 import { readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const SKILLS_DIR = join(import.meta.dir, "../../skills");
+// Get current directory (works in both Bun and Node/Vitest)
+const getCurrentDir = () => {
+  if (typeof import.meta.dir !== "undefined") {
+    // Bun runtime
+    return import.meta.dir;
+  }
+  // Node/Vitest runtime
+  return dirname(fileURLToPath(import.meta.url));
+};
+
+const CURRENT_DIR = getCurrentDir();
+const SKILLS_DIR = join(CURRENT_DIR, "../../skills");
 
 /**
  * Discover all skills by scanning the skills/ directory
@@ -33,8 +44,16 @@ export function getSkillPath(skillName: string): string {
  */
 export async function readSkillFile(skillName: string): Promise<string> {
   const skillPath = getSkillPath(skillName);
-  const skillFile = Bun.file(join(skillPath, "SKILL.md"));
-  return await skillFile.text();
+  const skillFilePath = join(skillPath, "SKILL.md");
+
+  // Use Bun.file if available (Bun runtime), otherwise use fs.readFileSync (Node/Vitest)
+  if (typeof Bun !== "undefined") {
+    const skillFile = Bun.file(skillFilePath);
+    return await skillFile.text();
+  }
+
+  const { readFileSync } = await import("node:fs");
+  return readFileSync(skillFilePath, "utf-8");
 }
 
 /**

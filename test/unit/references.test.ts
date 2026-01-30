@@ -1,9 +1,9 @@
-import { describe, expect, test } from "bun:test";
 import { readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { Link, Root } from "mdast";
 import { remark } from "remark";
 import remarkFrontmatter from "remark-frontmatter";
+import { describe, expect, test } from "vitest";
 import {
   discoverSkills,
   fileExists,

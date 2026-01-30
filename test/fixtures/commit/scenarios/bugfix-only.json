@@ -1,0 +1,19 @@
+{
+  "name": "Bugfix only changes",
+  "prompt": "Create commits for these bug fixes",
+  "context": {
+    "branch": "fix/validation-errors",
+    "gitStatus": "On branch fix/validation-errors\nChanges to be committed:\n  modified:   src/utils/validation.ts\n  modified:   tests/utils/validation.test.ts",
+    "gitDiff": "diff --git a/src/utils/validation.ts b/src/utils/validation.ts\nindex abc1234..def5678 100644\n--- a/src/utils/validation.ts\n+++ b/src/utils/validation.ts\n@@ -10,7 +10,7 @@ export function validateEmail(email: string): boolean {\n \n export function validatePhone(phone: string): boolean {\n   // Remove all non-digit characters\n-  const digits = phone.replace(/\\D/g, '');\n+  const digits = phone.replace(/[^\\d+]/g, '');\n   \n   // Check if it's a valid length (10-15 digits)\n   return digits.length >= 10 && digits.length <= 15;\n@@ -18,8 +18,12 @@ export function validatePhone(phone: string): boolean {\n \n export function validatePassword(password: string): boolean {\n   // Password must be at least 8 characters\n-  if (password.length < 8) return false;\n+  if (password.length < 8) {\n+    return false;\n+  }\n   \n+  // Check for at least one number\n+  if (!/\\d/.test(password)) return false;\n+  \n   return true;\n }\n\ndiff --git a/tests/utils/validation.test.ts b/tests/utils/validation.test.ts\nindex 1111111..2222222 100644\n--- a/tests/utils/validation.test.ts\n+++ b/tests/utils/validation.test.ts\n@@ -30,6 +30,11 @@ describe('validatePhone', () => {\n     expect(validatePhone('123')).toBe(false);\n   });\n   \n+  test('accepts international format with +', () => {\n+    expect(validatePhone('+1234567890')).toBe(true);\n+    expect(validatePhone('+44 20 1234 5678')).toBe(true);\n+  });\n+  \n   test('handles formatted numbers', () => {\n     expect(validatePhone('(123) 456-7890')).toBe(true);\n   });\n@@ -42,4 +47,9 @@ describe('validatePassword', () => {\n   test('rejects short passwords', () => {\n     expect(validatePassword('short')).toBe(false);\n   });\n+  \n+  test('requires at least one number', () => {\n+    expect(validatePassword('password')).toBe(false);\n+    expect(validatePassword('password1')).toBe(true);\n+  });\n });\n",
+    "filesChanged": [
+      "src/utils/validation.ts",
+      "tests/utils/validation.test.ts"
+    ],
+    "changeType": ["bugfix"]
+  },
+  "expected": {
+    "commitCount": 2,
+    "commitTypes": ["fix", "test"],
+    "filesMentioned": ["validation.ts", "validation.test.ts"]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Create PR for new feature",
+  "prompt": "Create a pull request for this feature",
+  "context": {
+    "branch": "feature/dark-mode",
+    "baseBranch": "main",
+    "gitStatus": "On branch feature/dark-mode\nYour branch is up to date with 'origin/feature/dark-mode'.\n\nnothing to commit, working tree clean",
+    "gitDiff": "diff --git a/src/components/ThemeProvider.tsx b/src/components/ThemeProvider.tsx\nnew file mode 100644\nindex 0000000..1111111\n--- /dev/null\n+++ b/src/components/ThemeProvider.tsx\n@@ -0,0 +1,35 @@\n+import React, { createContext, useContext, useState } from 'react';\n+\n+type Theme = 'light' | 'dark';\n+\n+interface ThemeContextType {\n+  theme: Theme;\n+  toggleTheme: () => void;\n+}\n+\n+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);\n+\n+export function ThemeProvider({ children }: { children: React.ReactNode }) {\n+  const [theme, setTheme] = useState<Theme>('light');\n+\n+  const toggleTheme = () => {\n+    setTheme(prev => prev === 'light' ? 'dark' : 'light');\n+    document.documentElement.setAttribute('data-theme', theme);\n+  };\n+\n+  return (\n+    <ThemeContext.Provider value={{ theme, toggleTheme }}>\n+      {children}\n+    </ThemeContext.Provider>\n+  );\n+}\n+\n+export function useTheme() {\n+  const context = useContext(ThemeContext);\n+  if (!context) {\n+    throw new Error('useTheme must be used within ThemeProvider');\n+  }\n+  return context;\n+}\n\ndiff --git a/src/styles/themes.css b/src/styles/themes.css\nnew file mode 100644\nindex 0000000..2222222\n--- /dev/null\n+++ b/src/styles/themes.css\n@@ -0,0 +1,20 @@\n+[data-theme='light'] {\n+  --bg-primary: #ffffff;\n+  --bg-secondary: #f5f5f5;\n+  --text-primary: #000000;\n+  --text-secondary: #666666;\n+}\n+\n+[data-theme='dark'] {\n+  --bg-primary: #1a1a1a;\n+  --bg-secondary: #2a2a2a;\n+  --text-primary: #ffffff;\n+  --text-secondary: #aaaaaa;\n+}\n+\n+body {\n+  background-color: var(--bg-primary);\n+  color: var(--text-primary);\n+  transition: background-color 0.3s, color 0.3s;\n+}\n",
+    "commits": [
+      {
+        "message": "feat(theme): add theme provider and context",
+        "files": ["src/components/ThemeProvider.tsx"]
+      },
+      {
+        "message": "feat(theme): add dark and light theme CSS variables",
+        "files": ["src/styles/themes.css"]
+      }
+    ]
+  },
+  "expected": {
+    "requiredSections": ["Summary", "Test plan"],
+    "keywords": ["dark mode", "theme", "ThemeProvider"]
+  }
+}

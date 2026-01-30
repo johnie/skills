@@ -1,0 +1,10 @@
+{
+  "name": "CLI with custom URL parser",
+  "prompt": "Create a CLI that accepts a URL and validates it using a custom parser",
+  "context": {},
+  "expected": {
+    "commandCount": 1,
+    "expectRouteMap": false,
+    "keywords": ["url", "parse", "valid"]
+  }
+}

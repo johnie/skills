@@ -1,0 +1,13 @@
+{
+  "name": "List all admin users and their last login",
+  "prompt": "List all admin users on the site and show me their last login times",
+  "context": {
+    "isDestructive": false
+  },
+  "expected": {
+    "commands": ["wp user list"],
+    "expectBackup": false,
+    "expectDryRun": false,
+    "expectWarnings": false
+  }
+}

@@ -1,6 +1,6 @@
-import { describe, expect, test } from "bun:test";
 import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { describe, expect, test } from "vitest";
 import { discoverSkills, fileExists, getSkillPath } from "../helpers/skills";
 
 const ALLOWED_SUBDIRS = ["references", "scripts", "assets"];

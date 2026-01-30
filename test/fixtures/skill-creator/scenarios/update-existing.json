@@ -1,0 +1,9 @@
+{
+  "name": "Update existing skill with new workflow",
+  "prompt": "Add a new workflow section to this skill that explains how to handle error cases",
+  "context": {},
+  "expected": {
+    "requiredSections": ["workflow", "error"],
+    "resourceTypes": []
+  }
+}

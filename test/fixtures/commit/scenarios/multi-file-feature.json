@@ -1,0 +1,28 @@
+{
+  "name": "Multi-file feature implementation",
+  "prompt": "Create commits for these changes",
+  "context": {
+    "branch": "feature/user-profile",
+    "gitStatus": "On branch feature/user-profile\nChanges to be committed:\n  modified:   src/components/UserProfile.tsx\n  modified:   src/api/users.ts\n  new file:   src/types/user.ts\n  modified:   src/styles/profile.css\n  modified:   tests/components/UserProfile.test.tsx",
+    "gitDiff": "diff --git a/src/components/UserProfile.tsx b/src/components/UserProfile.tsx\nindex 1234567..abcdefg 100644\n--- a/src/components/UserProfile.tsx\n+++ b/src/components/UserProfile.tsx\n@@ -1,10 +1,25 @@\n import React from 'react';\n+import { User } from '../types/user';\n \n-export function UserProfile({ name }: { name: string }) {\n+interface UserProfileProps {\n+  user: User;\n+  onEdit?: () => void;\n+}\n+\n+export function UserProfile({ user, onEdit }: UserProfileProps) {\n   return (\n     <div className=\"profile\">\n-      <h1>{name}</h1>\n+      <h1>{user.name}</h1>\n+      <p>{user.email}</p>\n+      <p>{user.bio}</p>\n+      {onEdit && (\n+        <button onClick={onEdit}>Edit Profile</button>\n+      )}\n     </div>\n   );\n }\n\ndiff --git a/src/api/users.ts b/src/api/users.ts\nindex 2345678..bcdefgh 100644\n--- a/src/api/users.ts\n+++ b/src/api/users.ts\n@@ -1,8 +1,18 @@\n+import { User } from '../types/user';\n+\n export async function fetchUser(id: string) {\n   const response = await fetch(`/api/users/${id}`);\n-  return response.json();\n+  return response.json() as Promise<User>;\n+}\n+\n+export async function updateUser(id: string, data: Partial<User>) {\n+  const response = await fetch(`/api/users/${id}`, {\n+    method: 'PATCH',\n+    headers: { 'Content-Type': 'application/json' },\n+    body: JSON.stringify(data),\n+  });\n+  return response.json() as Promise<User>;\n }\n\ndiff --git a/src/types/user.ts b/src/types/user.ts\nnew file mode 100644\nindex 0000000..1111111\n--- /dev/null\n+++ b/src/types/user.ts\n@@ -0,0 +1,7 @@\n+export interface User {\n+  id: string;\n+  name: string;\n+  email: string;\n+  bio?: string;\n+  avatarUrl?: string;\n+}\n\ndiff --git a/src/styles/profile.css b/src/styles/profile.css\nindex 3456789..cdefghi 100644\n--- a/src/styles/profile.css\n+++ b/src/styles/profile.css\n@@ -1,4 +1,12 @@\n .profile {\n   padding: 20px;\n+  max-width: 600px;\n+}\n+\n+.profile h1 {\n+  margin-bottom: 10px;\n+}\n+\n+.profile button {\n+  margin-top: 20px;\n }\n\ndiff --git a/tests/components/UserProfile.test.tsx b/tests/components/UserProfile.test.tsx\nindex 4567890..defghij 100644\n--- a/tests/components/UserProfile.test.tsx\n+++ b/tests/components/UserProfile.test.tsx\n@@ -1,10 +1,35 @@\n import { render } from '@testing-library/react';\n import { UserProfile } from '../../src/components/UserProfile';\n+import { User } from '../../src/types/user';\n \n-test('renders user name', () => {\n-  const { getByText } = render(<UserProfile name=\"John\" />);\n-  expect(getByText('John')).toBeInTheDocument();\n+const mockUser: User = {\n+  id: '1',\n+  name: 'John Doe',\n+  email: 'john@example.com',\n+  bio: 'Software developer',\n+};\n+\n+test('renders user information', () => {\n+  const { getByText } = render(<UserProfile user={mockUser} />);\n+  expect(getByText('John Doe')).toBeInTheDocument();\n+  expect(getByText('john@example.com')).toBeInTheDocument();\n+  expect(getByText('Software developer')).toBeInTheDocument();\n+});\n+\n+test('shows edit button when onEdit provided', () => {\n+  const onEdit = jest.fn();\n+  const { getByText } = render(\n+    <UserProfile user={mockUser} onEdit={onEdit} />\n+  );\n+  const button = getByText('Edit Profile');\n+  expect(button).toBeInTheDocument();\n+});\n+\n+test('hides edit button when onEdit not provided', () => {\n+  const { queryByText } = render(<UserProfile user={mockUser} />);\n+  expect(queryByText('Edit Profile')).not.toBeInTheDocument();\n });\n",
+    "filesChanged": [
+      "src/components/UserProfile.tsx",
+      "src/api/users.ts",
+      "src/types/user.ts",
+      "src/styles/profile.css",
+      "tests/components/UserProfile.test.tsx"
+    ],
+    "changeType": ["feature"]
+  },
+  "expected": {
+    "commitCount": 3,
+    "commitTypes": ["feat", "test"],
+    "filesMentioned": [
+      "UserProfile.tsx",
+      "users.ts",
+      "user.ts",
+      "profile.css",
+      "UserProfile.test.tsx"
+    ]
+  }
+}

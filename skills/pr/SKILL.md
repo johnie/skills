@@ -37,12 +37,15 @@ When creating a new PR:
      - Use conventional commit format if present (feat:, fix:, etc.)
      - Keep concise and descriptive
    - **Body**: Use the template from `references/templates.md`
-     - Fill "What" section with summary of changes
-     - Fill "Why" section with motivation/context
-     - Fill "How" section with implementation approach
-     - Fill "Changes" section with bullet list of key modifications
-     - Leave "Testing" as checklist for user to complete
-     - Leave "Deployment" and "Screenshots" empty for user
+     - Fill "What" section with summary of changes (always)
+     - Fill "Why" section with motivation/context (always)
+     - Fill "How" section with implementation approach (always)
+     - Fill "Changes" section with bullet list of key modifications (always)
+     - **Conditional sections** (omit entirely if no meaningful content):
+       - "Testing": Include only if test files changed OR specific testing steps needed
+       - "Deployment": Include only if migrations, config changes, env vars, feature flags detected
+       - "Screenshots": Include only if UI components modified (tsx/jsx/vue/svelte/css files)
+     - **Never include a section header with placeholder text** - omit the section entirely
 
 5. **Confirmation** (if `-v` flag):
    - Display the draft title and body
@@ -75,14 +78,15 @@ When updating an existing PR:
    - Get full diff: `git diff origin/main...HEAD`
 
 3. **Parse existing body**:
-   - Extract each section (What, Why, How, Changes, Testing, Deployment, Screenshots)
+   - Extract each section (What, Why, How, Changes, and any conditional sections present)
    - Identify user-edited sections (Testing checkboxes, Screenshots, Deployment notes)
 
 4. **Regenerate sections**:
    - **What**: Update summary based on all commits now
    - **How**: Update implementation details from full diff
    - **Changes**: Regenerate bullet list of all changes
-   - **Preserve**: Keep Testing checkboxes, Screenshots, Deployment sections exactly as-is
+   - **Preserve**: Keep existing Testing/Screenshots/Deployment sections exactly as-is if present
+   - **Do not add** new conditional sections during update (preserve original structure)
 
 5. **Confirmation** (if `-v` flag):
    - Show side-by-side diff of old vs new for What/How/Changes sections

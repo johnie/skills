@@ -4,6 +4,8 @@ This file defines the PR body template structure and provides guidelines for fil
 
 ## Standard PR Template
 
+**Required sections** (always include):
+
 ```markdown
 ## What
 
@@ -28,7 +30,11 @@ This file defines the PR body template structure and provides guidelines for fil
 - [Bullet point list of key changes]
 - [Focus on user-facing or significant internal changes]
 - [Group related changes together]
+```
 
+**Conditional sections** (include ONLY when applicable - omit entirely otherwise):
+
+```markdown
 ## Testing
 
 - [ ] Unit tests added/updated
@@ -38,17 +44,16 @@ This file defines the PR body template structure and provides guidelines for fil
 
 ## Deployment
 
-[Any deployment considerations:
-- Database migrations?
-- Feature flags needed?
-- Configuration changes?
-- Rollback plan?
-Leave empty if standard deployment]
+[Deployment considerations:
+- Database migrations
+- Feature flags
+- Configuration changes
+- Environment variables
+- Rollback plan]
 
 ## Screenshots
 
-[If applicable, add screenshots or screen recordings for UI changes]
-[Leave empty if no visual changes]
+[Screenshots or screen recordings for UI changes]
 ```
 
 ## Section Guidelines
@@ -88,39 +93,58 @@ Leave empty if standard deployment]
   - "Add `auth.test.ts` with 15 test cases"
   - "Remove deprecated `legacyAuth` function"
 
-### Testing
+### Testing (CONDITIONAL)
 - **Purpose**: Checklist for test coverage
 - **Format**: Markdown checkboxes
-- **Content**: User fills this in before/during review
-- **Note**: Leave as unchecked template - user will check off
+- **Include when**:
+  - `*.test.*` or `*.spec.*` files in diff
+  - `__tests__/` or `tests/` directory changes
+  - Test-related imports added to existing files
+  - Changes require specific manual testing steps
+- **Omit when**: No test files changed and no special testing needed
+- **Note**: Leave checkboxes unchecked - user will check off
 
-### Deployment
+### Deployment (CONDITIONAL)
 - **Purpose**: Alert to special deployment needs
-- **When to fill**: Only if there are deployment considerations
-- **Content**: Migrations, config changes, feature flags, dependencies
-- **Default**: Leave empty for standard deployments
+- **Include when**:
+  - Migration files (db/migrations, prisma/migrations, drizzle, etc.)
+  - `.env*` files referenced or changed
+  - Config files (docker-compose, k8s, terraform, Dockerfile)
+  - `package.json` scripts changes
+  - CI/CD workflow changes (.github/workflows, .gitlab-ci)
+  - Infrastructure or environment variable changes
+- **Omit when**: Standard code changes with no deployment considerations
 
-### Screenshots
+### Screenshots (CONDITIONAL)
 - **Purpose**: Visual proof for UI changes
-- **When to fill**: Any user-facing visual changes
-- **Format**: Drag-and-drop images or paste links
-- **Default**: Leave empty for backend-only changes
+- **Include when**:
+  - `*.tsx`, `*.jsx`, `*.vue`, `*.svelte` component files modified
+  - CSS/SCSS/Tailwind/styled-components changes
+  - Image assets added/modified
+  - Any user-facing visual changes
+- **Omit when**: Backend-only changes, non-visual code changes
+- **Format**: Prompt user to add screenshots
 
 ## Filling the Template
 
 ### For `create` command:
-1. Generate What/Why/How/Changes based on commits and diff
+1. Generate What/Why/How/Changes based on commits and diff (always include)
 2. Make educated guesses about Why if not obvious from commits
-3. Leave Testing/Deployment/Screenshots as template for user to fill
+3. **Evaluate conditional sections**:
+   - Check diff for test files → include Testing if found
+   - Check diff for migrations/config/env → include Deployment if found
+   - Check diff for UI components/CSS → include Screenshots if found
+4. **Omit sections entirely** if detection criteria not met - never include headers with placeholder text
 
 ### For `update` command:
 1. Regenerate What/How/Changes based on ALL commits (not just new ones)
 2. Preserve Why section (usually doesn't change)
-3. **Never modify** Testing/Deployment/Screenshots sections (user-edited)
+3. **Preserve existing conditional sections** exactly as-is if present
+4. **Do not add** new conditional sections during update
 
 ## Template Variations
 
-### Small Bug Fix
+### Small Bug Fix (no conditional sections needed)
 ```markdown
 ## What
 Fixes null pointer exception in user profile page.
@@ -134,7 +158,25 @@ Adds null check before accessing avatar URL property. Returns default avatar if 
 ## Changes
 - Add null check in `ProfileCard.tsx`
 - Add default avatar constant
-- Add test case for null avatar
+```
+
+Note: No Testing/Deployment/Screenshots sections - simple fix with no test files changed, no deployment needs, backend-only change.
+
+### Bug Fix with Tests (includes Testing section)
+```markdown
+## What
+Fixes null pointer exception in user profile page.
+
+## Why
+Users reported crashes when viewing profiles with missing avatar data.
+
+## How
+Adds null check before accessing avatar URL property. Returns default avatar if null.
+
+## Changes
+- Add null check in `ProfileCard.tsx`
+- Add default avatar constant
+- Add test case for null avatar scenario
 
 ## Testing
 - [ ] Unit tests added
@@ -142,7 +184,9 @@ Adds null check before accessing avatar URL property. Returns default avatar if 
 - [ ] Edge cases considered
 ```
 
-### Feature Addition
+Note: Testing section included because test files were added/modified.
+
+### Feature Addition with UI (includes Testing + Screenshots)
 ```markdown
 ## What
 Adds dark mode support to the application.
@@ -165,9 +209,14 @@ Implements theme context with CSS custom properties. Uses localStorage to persis
 - [ ] Manual testing in both themes
 - [ ] Verified localStorage persistence
 - [ ] Tested theme toggle animation
+
+## Screenshots
+[Add before/after screenshots of light and dark modes]
 ```
 
-### Refactoring
+Note: Testing included (test files added), Screenshots included (UI components modified). No Deployment section (no config/migration changes).
+
+### Backend Refactoring (no conditional sections)
 ```markdown
 ## What
 Refactors API client to use modern fetch API instead of deprecated request library.
@@ -184,11 +233,31 @@ Replaces all `request` calls with `fetch`. Adds error handling wrapper. Updates 
 - Add `apiClient` wrapper with error handling
 - Update response type definitions
 - Add retry logic for transient failures
-- Update all tests to mock fetch
-
-## Testing
-- [ ] All existing tests pass
-- [ ] Integration tests with real API
-- [ ] Error scenarios tested
-- [ ] Retry logic verified
 ```
+
+Note: No Testing (existing tests updated but no new test files), no Screenshots (backend), no Deployment (standard code change).
+
+### Database Migration (includes Deployment)
+```markdown
+## What
+Adds user preferences table for storing notification settings.
+
+## Why
+Users need granular control over notification types. Current all-or-nothing approach causes unsubscribes.
+
+## How
+Creates new `user_preferences` table with foreign key to users. Adds migration with safe rollback. Updates user service to read/write preferences.
+
+## Changes
+- Add migration `20240115_add_user_preferences.sql`
+- Add `UserPreferences` model and repository
+- Update `UserService` with preference methods
+- Add preference endpoints to API
+
+## Deployment
+- Run database migration before deploying: `bun run migrate`
+- Migration is backwards compatible - no downtime required
+- Rollback: `bun run migrate:rollback` removes table
+```
+
+Note: Deployment included (migration files detected). No Testing/Screenshots (no test files, backend-only).

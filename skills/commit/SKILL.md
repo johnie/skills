@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Create semantically correct, granular git commits by analyzing staged and unstaged changes
+description: Create semantically correct, granular git commits by analyzing staged and unstaged changes. Use when committing code, splitting changes into atomic commits, or preparing commits before a PR.
 allowed-tools:
   - Bash
 ---
@@ -9,7 +9,11 @@ allowed-tools:
 
 Create semantically correct, granular git commits by analyzing staged and unstaged changes.
 
-**Auto-staging**: All tracked changes are staged automatically. Use `--dry-run` to preview first.
+**Auto-staging behavior:**
+- **Already staged files**: Respected as-is. Commit them first (as their own group) unless they logically belong with unstaged changes.
+- **Unstaged tracked files**: Auto-staged and grouped with related changes.
+- **Untracked files**: Grouped with related tracked changes if applicable; otherwise offered separately.
+- Use `--dry-run` to preview the plan before any staging/committing.
 
 ## Model
 
@@ -20,7 +24,7 @@ Use `haiku` for all operations unless complex reasoning is required.
 - `(none)`: Auto-commit without confirmation
 - `-v` or `--verify`: Show plan and ask for confirmation before committing
 - `--dry-run`: Show commit plan without executing
-- `--amend`: Amend last commit (always requires -v verification for safety)
+- `--amend`: Amend the last commit only. Shows current last commit contents. Always requires `-v` verification for safety.
 - `push`: After committing, push to current remote branch
 - `push -v` / `push --verify`: Push with verification prompt
 
@@ -44,6 +48,8 @@ Prefer **more commits over fewer**. Group by:
 - **Nature**: Refactors separate from features separate from fixes
 
 Never combine unrelated changes. When in doubt, split.
+
+See `references/grouping-guide.md` for the full decision tree, scope derivation, type disambiguation, and good/bad grouping examples.
 
 ## Commit Message Format
 
@@ -94,34 +100,72 @@ test(cart): add edge cases for discount calculation
    git commit --amend -m "<message>"
    ```
 6. **Push** (only if `push` argument): Run `git push origin HEAD`
-   - On failure: show git error, stop (user handles manually)
+   - On failure, suggest action based on error:
+     - **Authentication error**: Check credentials / SSH keys
+     - **Branch protection**: Create PR instead of direct push
+     - **Diverged branches**: Suggest `git pull --rebase` then retry
+     - **Other errors**: Show error, stop (user handles manually)
 
 ## Example Session
+
+### Auto-commit (no flags)
 
 ```text
 User: /commit
 
 Claude: Analyzing 7 changed files...
 
+Grouping rationale:
+- preferences route + types are one feature
+- test file is a separate commit (different type)
+- zod dep was added to support preferences validation -> groups with feature
+- package-lock.json always goes with package.json
+
 ✓ feat(api): add user preferences endpoint
-  - src/routes/preferences.ts, src/types/preferences.ts
+  - src/routes/preferences.ts, src/types/preferences.ts, package.json, bun.lock
 
 ✓ test(api): add preferences endpoint tests
   - tests/preferences.test.ts
 
-✓ chore: add zod dependency
-  - package.json, package-lock.json
-
-4 commits created.
+2 commits created.
 ```
 
-**With `-v`**: Shows plan, asks "Proceed? (y/n/edit)" before executing
+### With `-v` (verification)
 
-**With `--dry-run`**: Shows plan, exits without executing
+```text
+User: /commit -v
 
-**With `--amend -v`**: Shows plan to amend last commit, asks for confirmation
+Claude: Analyzing 4 changed files...
 
-**With `push`**: Adds "Pushing to origin/main... ✓ Pushed successfully." at end
+Commit plan:
+
+1. fix(auth): handle expired refresh tokens gracefully
+   - src/auth/refresh.ts, src/auth/errors.ts
+
+2. chore(deps): upgrade vitest to 2.0
+   - package.json, bun.lock
+
+Proceed? (y/n/edit)
+
+User: y
+
+✓ fix(auth): handle expired refresh tokens gracefully
+✓ chore(deps): upgrade vitest to 2.0
+
+2 commits created.
+```
+
+**With `--dry-run`**: Same as `-v` but exits after showing plan without executing.
+
+**With `--amend -v`**: Shows contents of last commit, proposed amended state, asks for confirmation.
+
+**With `push`**: Adds "Pushing to origin/feature-branch... Pushed." at end.
+
+See `references/examples.md` for more scenarios (simple, medium, complex, edge cases, anti-patterns).
+
+## Pre-commit Hooks
+
+Pre-commit hooks (e.g., ultracite, prettier, eslint) will run on each `git commit`. If a hook modifies files, those modifications are automatically included in the commit. If a hook fails, the commit is aborted -- fix the issue and retry.
 
 ## Edge Cases
 
@@ -130,4 +174,8 @@ Claude: Analyzing 7 changed files...
 - **Single file**: Still analyze if it contains multiple logical changes
 - **Large refactors**: May warrant a single commit if truly atomic
 - **Mixed changes**: Always split features from fixes from refactors
-- **Already staged files**: Respect existing staging, offer to commit separately or include
+- **Already staged files**: Respect existing staging (see auto-staging behavior above)
+- **File renames/moves**: Check `git diff --stat` for rename detection. Group rename with import path updates.
+- **Binary files**: Group with the feature that uses them. Don't describe binary diffs.
+- **Untracked files**: Group with related tracked changes; standalone untracked files get their own commit
+- **Empty diff after staging**: Can happen if changes were already committed. Check `git log` before proceeding.

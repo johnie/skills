@@ -21,12 +21,12 @@ const CURRENT_DIR = getCurrentDir();
  * Base scenario context shared by all skills
  */
 export interface ScenarioContext {
-  /** Git status output */
-  gitStatus?: string;
-  /** Git diff output */
-  gitDiff?: string;
   /** Current branch name */
   branch?: string;
+  /** Git diff output */
+  gitDiff?: string;
+  /** Git status output */
+  gitStatus?: string;
   /** Additional context */
   [key: string]: unknown;
 }
@@ -35,10 +35,6 @@ export interface ScenarioContext {
  * Commit skill scenario
  */
 export interface CommitScenario {
-  /** Scenario name/description */
-  name: string;
-  /** User prompt to the skill */
-  prompt: string;
   /** Git context */
   context: ScenarioContext & {
     /** Files changed in this scenario */
@@ -55,16 +51,16 @@ export interface CommitScenario {
     /** Files that should be mentioned */
     filesMentioned?: string[];
   };
+  /** Scenario name/description */
+  name: string;
+  /** User prompt to the skill */
+  prompt: string;
 }
 
 /**
  * PR skill scenario
  */
 export interface PRScenario {
-  /** Scenario name/description */
-  name: string;
-  /** User prompt to the skill */
-  prompt: string;
   /** Git context */
   context: ScenarioContext & {
     /** Commits included in the PR */
@@ -82,16 +78,16 @@ export interface PRScenario {
     /** Keywords that should appear */
     keywords?: string[];
   };
+  /** Scenario name/description */
+  name: string;
+  /** User prompt to the skill */
+  prompt: string;
 }
 
 /**
  * Skill Creator scenario
  */
 export interface SkillCreatorScenario {
-  /** Scenario name/description */
-  name: string;
-  /** User prompt to the skill */
-  prompt: string;
   /** Context (usually empty for skill creator) */
   context: ScenarioContext;
   /** Expected characteristics of the output */
@@ -101,16 +97,16 @@ export interface SkillCreatorScenario {
     /** Resource types that should be mentioned */
     resourceTypes?: string[];
   };
+  /** Scenario name/description */
+  name: string;
+  /** User prompt to the skill */
+  prompt: string;
 }
 
 /**
  * Stricli skill scenario
  */
 export interface StricliScenario {
-  /** Scenario name/description */
-  name: string;
-  /** User prompt to the skill */
-  prompt: string;
   /** Context (usually empty for stricli) */
   context: ScenarioContext;
   /** Expected characteristics of the output */
@@ -122,16 +118,16 @@ export interface StricliScenario {
     /** Keywords that should appear */
     keywords?: string[];
   };
+  /** Scenario name/description */
+  name: string;
+  /** User prompt to the skill */
+  prompt: string;
 }
 
 /**
  * WP-CLI skill scenario
  */
 export interface WPCLIScenario {
-  /** Scenario name/description */
-  name: string;
-  /** User prompt to the skill */
-  prompt: string;
   /** Context */
   context: ScenarioContext & {
     /** Whether the operation is destructive */
@@ -148,6 +144,10 @@ export interface WPCLIScenario {
     /** Whether safety warnings should appear */
     expectWarnings?: boolean;
   };
+  /** Scenario name/description */
+  name: string;
+  /** User prompt to the skill */
+  prompt: string;
 }
 
 /**

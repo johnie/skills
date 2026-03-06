@@ -11,9 +11,9 @@ import { join } from "node:path";
 import type { LocalContext } from "./context";
 
 export interface Skill {
-  name: string;
-  isLinked: boolean;
   isBroken: boolean;
+  isLinked: boolean;
+  name: string;
 }
 
 export function getAvailableSkills(context: LocalContext): string[] {

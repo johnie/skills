@@ -1,6 +1,6 @@
 ---
 name: extract-spark-meetings
-description: Extract meeting summaries and action items from Spark Mail shared links. Processes single URLs (pass as argument) or batch processes unchecked links from links.md. Use when working with Spark Mail shared meeting links.
+description: Extract meeting summaries from Spark Mail shared links. Use as `/extract-spark-meetings <url>` for single link or `/extract-spark-meetings` to batch-process unchecked links from links.md.
 allowed-tools:
   - Bash
   - Read
@@ -11,17 +11,6 @@ allowed-tools:
 ---
 
 # Extract Spark Meetings
-
-Extracts structured meeting summaries and action items from Spark Mail shared links. Saves organized markdown files with YAML frontmatter for easy searching and filtering.
-
-## Overview
-
-This skill processes Spark Mail shared meeting links and extracts key information:
-- Meeting metadata (date, participants, duration)
-- Summary and key discussion points
-- Action items with owners
-- Decisions made
-- Next steps
 
 **Expected folder structure:**
 ```text
@@ -48,8 +37,7 @@ Process all unchecked links from `links.md`:
 The `links.md` file should contain checkboxes:
 ```markdown
 - [ ] https://share.sparkmailapp.com/link1
-- [ ] https://share.sparkmailapp.com/link2
-- [x] https://share.sparkmailapp.com/link3  # Already processed
+- [x] https://share.sparkmailapp.com/link2  # Already processed
 ```
 
 ## Workflow
@@ -60,20 +48,11 @@ For each URL:
 
 ### 1. Content Extraction
 
-**Preferred: Puppeteer MCP (if available)**
-```javascript
-// Navigate and extract text
-await page.goto(url);
-await page.waitForSelector('body');
-const text = await page.evaluate(() => {
-  return document.body.innerText.substring(0, 8000);
-});
-```
-
-**Fallback: WebFetch tool**
-Use WebFetch with prompt: "Extract all meeting content including participants, discussion points, and action items. Return as much raw text as possible."
+Use Puppeteer MCP if available. Fallback: WebFetch with prompt "Extract all meeting content including participants, discussion points, and action items."
 
 ### 2. Parse Content
+
+Extract in the original language of the meeting content. Use English for section headings.
 
 Extract structured information:
 - **Date**: Meeting date (YYYY-MM-DD format)
@@ -93,9 +72,11 @@ Extract structured information:
 spark-meetings/YYYY-MM-DD-{meeting-title-slug}.md
 ```
 
+If a file with the same name exists, append `-2`, `-3`, etc. before the extension.
+
 Examples:
 - `2024-03-15-quarterly-planning.md`
-- `2024-03-15-design-review.md`
+- `2024-03-15-quarterly-planning-2.md`
 
 **File format:**
 ```yaml
@@ -155,81 +136,13 @@ Common tags:
 - **Topic**: `engineering`, `design`, `product`, `strategy`, `hiring`, `budget`
 - **Cadence**: `weekly`, `monthly`, `quarterly`, `annual`
 
-### 5. Update Links File (if applicable)
+### 5. Update Links File
 
-**Single URL mode:**
-- If `links.md` exists and contains the URL, mark it as checked: `- [x]`
-- If `links.md` doesn't exist or doesn't contain the URL, skip this step
+Mark URL as checked (`- [x]`) in `links.md` only after both content extraction AND file write succeed. Never mark a URL as processed if either step failed.
 
-**Batch mode:**
-- Only mark URL as checked (`- [x]`) after successful extraction
-- If extraction fails, leave unchecked and report error
-- Continue processing remaining URLs
-
-## Error Handling
-
-- **URL unreachable**: Log error, skip URL, continue with next
-- **Content extraction fails**: Try fallback method, then skip if still failing
-- **Parsing issues**: Extract what's possible, note limitations in summary
-- **File write fails**: Report error, don't mark URL as processed
-
-**Never mark a URL as processed unless:**
-1. Content was successfully extracted
-2. File was successfully written to `spark-meetings/`
-
-## Links File Management
-
-### Checkbox Format
-- Unchecked: `- [ ] URL` → Pending processing
-- Checked: `- [x] URL` → Successfully processed
-
-### Update Rules
-
-**Single URL mode:**
-1. Check if `links.md` exists
-2. If exists, search for exact URL match
-3. If found, update checkbox to `- [x]` after successful extraction
-4. If not found or file doesn't exist, no action needed
-
-**Batch mode:**
-1. Read `links.md` (error if missing)
-2. Parse all unchecked (`- [ ]`) URLs
-3. Process each URL sequentially
-4. Update checkbox to `- [x]` only after successful extraction
-5. Write updated `links.md` after each successful extraction
-
-### Example Updates
-
-Before:
-```markdown
-- [ ] https://share.sparkmailapp.com/abc123
-- [ ] https://share.sparkmailapp.com/def456
-- [x] https://share.sparkmailapp.com/old789
-```
-
-After processing first URL successfully:
-```markdown
-- [x] https://share.sparkmailapp.com/abc123
-- [ ] https://share.sparkmailapp.com/def456
-- [x] https://share.sparkmailapp.com/old789
-```
+- **Single URL mode**: If `links.md` exists and contains the URL, update it. Otherwise skip.
+- **Batch mode**: Read `links.md`, parse unchecked (`- [ ]`) URLs. Update checkbox after each successful extraction. If extraction fails, leave unchecked and continue.
 
 ## Output Summary
 
-After processing, provide summary:
-```text
-Extracted N meeting(s):
-- spark-meetings/2024-03-15-quarterly-planning.md
-- spark-meetings/2024-03-16-design-review.md
-
-Skipped M link(s) due to errors:
-- https://share.sparkmailapp.com/failed123 (reason)
-```
-
-## Tips
-
-- **Sequential processing prevents rate limiting** and makes debugging easier
-- **Rich frontmatter enables filtering**: Search by date, participant, or tag
-- **Consistent naming** makes meetings easy to find chronologically
-- **Action item checkboxes** can be checked off as tasks complete
-- **Keep original Spark URL** in frontmatter for reference
+Report files created with paths and any URLs skipped with reasons.

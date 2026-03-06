@@ -1,16 +1,16 @@
 import kleur from "kleur";
 
 export interface Colors {
-  success: (text: string) => string;
-  error: (text: string) => string;
-  warn: (text: string) => string;
-  info: (text: string) => string;
   dim: (text: string) => string;
+  error: (text: string) => string;
   icons: {
     linked: string;
     unlinked: string;
     broken: string;
   };
+  info: (text: string) => string;
+  success: (text: string) => string;
+  warn: (text: string) => string;
 }
 
 export function createColors(): Colors {

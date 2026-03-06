@@ -1,7 +1,9 @@
 ---
 name: pr
-description: Create, update, and review GitHub PRs. Commands: create [-v] [--draft], update [-v], review <number|url>. Generates structured PR bodies with conditional sections (Testing, Deployment, Screenshots). Requires gh CLI.
+description: "Create, update, and review GitHub PRs. Commands: create [-v] [--draft], update [-v], review <number|url>. Generates structured PR bodies with conditional sections (Testing, Deployment, Screenshots). Requires gh CLI."
 ---
+
+# PR
 
 ## Commands
 

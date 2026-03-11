@@ -125,7 +125,7 @@ export const command = buildCommand({
 LocalContext is especially useful for testing, where you can mock stdio:
 
 ```typescript
-import { test, expect } from "bun:test";
+import { test, expect } from "vitest";
 import { greet } from "./commands/greet";
 
 test("greet outputs to console", () => {
@@ -176,9 +176,7 @@ export const deploy = buildCommand({
     },
     async func(flags) {
         try {
-            // Deployment logic
             await deployApp(flags.env);
-
             console.log("✓ Deployment successful");
             process.exit(ExitCode.Success);
         } catch (error) {
@@ -189,89 +187,7 @@ export const deploy = buildCommand({
 });
 ```
 
-### Exit Code Best Practices
-
-**Use `ExitCode.Success` (0) for:**
-- Successful command execution
-- Expected outcomes
-- No errors occurred
-
-**Use `ExitCode.CommandRunError` (1) for:**
-- Errors during command execution
-- Business logic failures
-- External service failures
-- File operation errors
-
-**Use `ExitCode.InvalidArgument` (-4) for:**
-- Invalid parameter values
-- Failed validation
-- Missing required parameters
-
-**Example with validation:**
-
-```typescript
-import { buildCommand, ExitCode } from "@stricli/core";
-
-export const backup = buildCommand({
-    docs: {
-        brief: "Create a backup"
-    },
-    parameters: {
-        flags: {
-            path: {
-                kind: "parsed",
-                parse: String,
-                brief: "Backup directory path"
-            }
-        }
-    },
-    async func(flags) {
-        // Validate required parameter
-        if (!flags.path) {
-            console.error("Error: --path is required");
-            process.exit(ExitCode.InvalidArgument);
-        }
-
-        try {
-            // Create backup
-            await createBackup(flags.path);
-            console.log("✓ Backup created");
-            process.exit(ExitCode.Success);
-        } catch (error) {
-            console.error(`Backup failed: ${error.message}`);
-            process.exit(ExitCode.CommandRunError);
-        }
-    }
-});
-```
-
-### Implicit Exit Handling
-
-If you don't explicitly call `process.exit()`, Stricli will:
-- Return `ExitCode.Success` (0) if the command completes without throwing
-- Return `ExitCode.CommandRunError` (1) if the command throws an error
-
-```typescript
-export const simple = buildCommand({
-    docs: {
-        brief: "Simple command"
-    },
-    func(flags) {
-        console.log("Running command");
-        // Implicitly exits with ExitCode.Success
-    }
-});
-
-export const failing = buildCommand({
-    docs: {
-        brief: "Failing command"
-    },
-    func(flags) {
-        throw new Error("Something went wrong");
-        // Implicitly exits with ExitCode.CommandRunError
-    }
-});
-```
+If you don't explicitly call `process.exit()`, Stricli returns `ExitCode.Success` (0) on completion or `ExitCode.CommandRunError` (1) if the command throws.
 
 ## Combining Context Patterns
 

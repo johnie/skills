@@ -163,6 +163,36 @@ WordPress CLI operations for database management, plugins, themes, users, conten
 </details>
 
 <details>
+<summary><b>/typescript-engineer</b> - Advanced TypeScript type design and error resolution</summary>
+
+<br>
+
+Designs complex generic types, refactors `any` to strict alternatives, creates type guards and utility types, resolves TypeScript compiler errors, and explains type-level concepts.
+
+**Intent Paths:**
+- **Fix errors** - Run `tsc`, diagnose root cause, apply fix, verify
+- **Design types** - Clarify shape, pick technique, build incrementally
+- **Refactor for safety** - Audit `any` usage, plan replacements, apply file-by-file
+- **Explain/teach** - Identify concept, load relevant rule, explain with examples
+
+**Topics Covered:**
+- Generics, constraints, and type inference
+- Conditional types and `infer` keyword
+- Mapped types and template literal types
+- Brand/opaque types and nominal typing
+- `as const`, `typeof`, and `satisfies`
+- Type narrowing, type guards, and assertion functions
+- Function overloads and declaration merging
+- Utility types including `NoInfer<T>` (TS 5.4+)
+- Deep inference with `const` type parameters (TS 5.0+)
+- Error diagnosis strategies
+
+**Rule Files:**
+15 reference documents covering core patterns, advanced generics, type-level programming, type safety patterns, and debugging — with a keyword routing table for fast lookup.
+
+</details>
+
+<details>
 <summary><b>/extract-spark-meetings</b> - Extract meeting summaries from Spark Mail</summary>
 
 <br>

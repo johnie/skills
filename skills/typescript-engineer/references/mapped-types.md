@@ -1,8 +1,6 @@
 ---
 name: mapped-types
 description: Creating new types by transforming existing type properties
-metadata:
-  tags: mapped-types, key-remapping, property-modifiers, index-signatures
 ---
 
 # Mapped Types

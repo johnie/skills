@@ -1,8 +1,6 @@
 ---
 name: builder-pattern
 description: Type-safe builder pattern with chainable methods
-metadata:
-  tags: builder-pattern, fluent-api, chaining, generics-in-classes
 ---
 
 # Type-Safe Builder Pattern

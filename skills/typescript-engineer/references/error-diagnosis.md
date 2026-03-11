@@ -1,8 +1,6 @@
 ---
 name: error-diagnosis
 description: Strategies for diagnosing and understanding TypeScript type errors
-metadata:
-  tags: errors, debugging, diagnosis, troubleshooting
 ---
 
 # Diagnosing TypeScript Errors

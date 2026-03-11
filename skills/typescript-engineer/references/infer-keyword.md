@@ -1,8 +1,6 @@
 ---
 name: infer-keyword
 description: Using infer to extract types within conditional types
-metadata:
-  tags: infer, conditional-types, type-extraction, pattern-matching
 ---
 
 # The `infer` Keyword

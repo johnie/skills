@@ -1,9 +1,9 @@
 ---
 name: typescript-engineer
 description: Designs complex generic types, refactors `any` to strict alternatives, creates type guards and utility types, resolves TypeScript compiler errors, and explains type-level concepts. Use when the user asks about TypeScript (TS) types, generics, type inference, type guards, removing `any` types, strict typing, type errors, `infer`, `extends`, conditional types, mapped types, template literal types, branded/opaque types, `satisfies`, `unknown`, function overloads, declaration merging, strict mode, or utility types like `Partial`, `Record`, `ReturnType`, `Awaited`, and `NoInfer`.
-metadata:
-  tags: typescript, types, generics, type-safety, advanced-typescript
 ---
+
+# TypeScript Engineer
 
 ## When to use
 
@@ -49,21 +49,21 @@ Match keywords in the user's request to load the right rule file.
 
 | Keyword / topic | Rule file |
 |---|---|
-| `as const`, `typeof`, `satisfies`, enum alternative, derive types from values | [as-const-typeof.md](rules/as-const-typeof.md) |
-| array element type, `[number]` index | [array-index-access.md](rules/array-index-access.md) |
-| `Partial`, `Record`, `Omit`, `Pick`, `ReturnType`, `Parameters`, `Awaited`, `NoInfer`, utility type | [utility-types.md](rules/utility-types.md) |
-| generic, constraint, `extends`, type parameter | [generics-basics.md](rules/generics-basics.md) |
-| builder pattern, chainable, fluent API | [builder-pattern.md](rules/builder-pattern.md) |
-| deep inference, `const` type parameter, `F.Narrow`, preserve literal types | [deep-inference.md](rules/deep-inference.md) |
-| conditional type, `extends ? :`, distribute | [conditional-types.md](rules/conditional-types.md) |
-| `infer`, extract inner type | [infer-keyword.md](rules/infer-keyword.md) |
-| template literal type, string manipulation at type level | [template-literal-types.md](rules/template-literal-types.md) |
-| mapped type, `in keyof`, transform properties | [mapped-types.md](rules/mapped-types.md) |
-| brand type, opaque type, nominal typing, validated ID | [opaque-types.md](rules/opaque-types.md) |
-| narrowing, `typeof`, `instanceof`, `in`, discriminated union, type guard, `is` | [type-narrowing.md](rules/type-narrowing.md) |
-| assertion function, `asserts value is`, validate-and-throw | [assertion-functions.md](rules/assertion-functions.md) |
-| overload, multiple signatures | [function-overloads.md](rules/function-overloads.md) |
-| type error, diagnostic, `ts(…)`, "not assignable" | [error-diagnosis.md](rules/error-diagnosis.md) |
+| `as const`, `typeof`, `satisfies`, enum alternative, derive types from values | [as-const-typeof.md](references/as-const-typeof.md) |
+| array element type, `[number]` index | [array-index-access.md](references/array-index-access.md) |
+| `Partial`, `Record`, `Omit`, `Pick`, `ReturnType`, `Parameters`, `Awaited`, `NoInfer`, utility type | [utility-types.md](references/utility-types.md) |
+| generic, constraint, `extends`, type parameter | [generics-basics.md](references/generics-basics.md) |
+| builder pattern, chainable, fluent API | [builder-pattern.md](references/builder-pattern.md) |
+| deep inference, `const` type parameter, `F.Narrow`, preserve literal types | [deep-inference.md](references/deep-inference.md) |
+| conditional type, `extends ? :`, distribute | [conditional-types.md](references/conditional-types.md) |
+| `infer`, extract inner type | [infer-keyword.md](references/infer-keyword.md) |
+| template literal type, string manipulation at type level | [template-literal-types.md](references/template-literal-types.md) |
+| mapped type, `in keyof`, transform properties | [mapped-types.md](references/mapped-types.md) |
+| brand type, opaque type, nominal typing, validated ID | [opaque-types.md](references/opaque-types.md) |
+| narrowing, `typeof`, `instanceof`, `in`, discriminated union, type guard, `is` | [type-narrowing.md](references/type-narrowing.md) |
+| assertion function, `asserts value is`, validate-and-throw | [assertion-functions.md](references/assertion-functions.md) |
+| overload, multiple signatures | [function-overloads.md](references/function-overloads.md) |
+| type error, diagnostic, `ts(…)`, "not assignable" | [error-diagnosis.md](references/error-diagnosis.md) |
 
 ## Quick Examples
 
@@ -142,26 +142,26 @@ palette.red; // readonly [255, 0, 0] — literals preserved, shape enforced ✓
 Read individual rule files for detailed explanations and code examples:
 
 ### Core Patterns
-- [rules/as-const-typeof.md](rules/as-const-typeof.md) — Deriving types from runtime values using `as const`, `typeof`, and `satisfies`
-- [rules/array-index-access.md](rules/array-index-access.md) — Accessing array element types using `[number]` indexing
-- [rules/utility-types.md](rules/utility-types.md) — Built-in utility types: Parameters, ReturnType, Awaited, Omit, Partial, Record, NoInfer
+- [references/as-const-typeof.md](references/as-const-typeof.md) — Deriving types from runtime values using `as const`, `typeof`, and `satisfies`
+- [references/array-index-access.md](references/array-index-access.md) — Accessing array element types using `[number]` indexing
+- [references/utility-types.md](references/utility-types.md) — Built-in utility types: Parameters, ReturnType, Awaited, Omit, Partial, Record, NoInfer
 
 ### Advanced Generics
-- [rules/generics-basics.md](rules/generics-basics.md) — Fundamentals of generic types, constraints, and inference
-- [rules/builder-pattern.md](rules/builder-pattern.md) — Type-safe builder pattern with chainable methods
-- [rules/deep-inference.md](rules/deep-inference.md) — Achieving deep type inference with `const` type parameters and `F.Narrow`
+- [references/generics-basics.md](references/generics-basics.md) — Fundamentals of generic types, constraints, and inference
+- [references/builder-pattern.md](references/builder-pattern.md) — Type-safe builder pattern with chainable methods
+- [references/deep-inference.md](references/deep-inference.md) — Achieving deep type inference with `const` type parameters and `F.Narrow`
 
 ### Type-Level Programming
-- [rules/conditional-types.md](rules/conditional-types.md) — Conditional types for type-level if/else logic
-- [rules/infer-keyword.md](rules/infer-keyword.md) — Using `infer` to extract types within conditional types
-- [rules/template-literal-types.md](rules/template-literal-types.md) — String manipulation at the type level
-- [rules/mapped-types.md](rules/mapped-types.md) — Creating new types by transforming existing type properties
+- [references/conditional-types.md](references/conditional-types.md) — Conditional types for type-level if/else logic
+- [references/infer-keyword.md](references/infer-keyword.md) — Using `infer` to extract types within conditional types
+- [references/template-literal-types.md](references/template-literal-types.md) — String manipulation at the type level
+- [references/mapped-types.md](references/mapped-types.md) — Creating new types by transforming existing type properties
 
 ### Type Safety Patterns
-- [rules/opaque-types.md](rules/opaque-types.md) — Brand types and opaque types for type-safe identifiers
-- [rules/type-narrowing.md](rules/type-narrowing.md) — Narrowing types through control flow analysis
-- [rules/assertion-functions.md](rules/assertion-functions.md) — Assertion functions that validate and narrow types
-- [rules/function-overloads.md](rules/function-overloads.md) — Using function overloads for complex function signatures
+- [references/opaque-types.md](references/opaque-types.md) — Brand types and opaque types for type-safe identifiers
+- [references/type-narrowing.md](references/type-narrowing.md) — Narrowing types through control flow analysis
+- [references/assertion-functions.md](references/assertion-functions.md) — Assertion functions that validate and narrow types
+- [references/function-overloads.md](references/function-overloads.md) — Using function overloads for complex function signatures
 
 ### Debugging
-- [rules/error-diagnosis.md](rules/error-diagnosis.md) — Strategies for diagnosing and understanding TypeScript type errors
+- [references/error-diagnosis.md](references/error-diagnosis.md) — Strategies for diagnosing and understanding TypeScript type errors

@@ -1,8 +1,6 @@
 ---
 name: as-const-typeof
 description: Deriving types from runtime values using as const and typeof
-metadata:
-  tags: as-const, typeof, literal-types, inference, const-assertion
 ---
 
 # Deriving Types from Runtime with `as const` and `typeof`

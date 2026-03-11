@@ -1,8 +1,6 @@
 ---
 name: conditional-types
 description: Conditional types for type-level if/else logic
-metadata:
-  tags: conditional-types, extends, ternary, type-narrowing
 ---
 
 # Conditional Types

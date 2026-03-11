@@ -1,8 +1,6 @@
 ---
 name: array-index-access
 description: Accessing array element types using number indexing
-metadata:
-  tags: arrays, tuples, indexed-access, number-index
 ---
 
 # Array Index Access with `[number]`

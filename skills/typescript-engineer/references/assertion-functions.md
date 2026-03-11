@@ -1,8 +1,6 @@
 ---
 name: assertion-functions
 description: Assertion functions that validate and narrow types by throwing on invalid input
-metadata:
-  tags: assertion-functions, asserts, narrowing, validation, type-safety
 ---
 
 # Assertion Functions

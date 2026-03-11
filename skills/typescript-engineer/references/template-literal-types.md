@@ -1,8 +1,6 @@
 ---
 name: template-literal-types
 description: String manipulation at the type level with template literals
-metadata:
-  tags: template-literals, string-types, type-manipulation
 ---
 
 # Template Literal Types

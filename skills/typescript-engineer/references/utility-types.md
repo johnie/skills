@@ -1,8 +1,6 @@
 ---
 name: utility-types
 description: Built-in TypeScript utility types for type manipulation
-metadata:
-  tags: utility-types, parameters, returntype, awaited, omit, partial, record
 ---
 
 # TypeScript Utility Types

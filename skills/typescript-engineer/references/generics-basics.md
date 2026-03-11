@@ -1,8 +1,6 @@
 ---
 name: generics-basics
 description: Fundamentals of generic types and functions in TypeScript
-metadata:
-  tags: generics, type-parameters, constraints, inference
 ---
 
 # Generics Fundamentals

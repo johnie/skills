@@ -1,8 +1,6 @@
 ---
 name: opaque-types
 description: Brand types and opaque types for type-safe identifiers
-metadata:
-  tags: opaque-types, brand-types, nominal-typing, type-safety
 ---
 
 # Opaque Types (Brand Types)

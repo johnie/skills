@@ -1,8 +1,6 @@
 ---
 name: type-narrowing
 description: Narrowing types through control flow analysis
-metadata:
-  tags: narrowing, type-guards, control-flow, discriminated-unions
 ---
 
 # Type Narrowing

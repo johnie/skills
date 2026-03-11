@@ -1,8 +1,6 @@
 ---
 name: deep-inference
 description: Achieving deep type inference with const type parameters and as const
-metadata:
-  tags: inference, narrow, deep-inference, const-type-parameter
 ---
 
 # Deep Type Inference

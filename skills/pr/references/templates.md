@@ -1,6 +1,4 @@
-# PR Templates and Guidelines
-
-This file defines the PR body template structure and provides guidelines for filling each section.
+# PR Templates
 
 ## Standard PR Template
 
@@ -56,91 +54,28 @@ This file defines the PR body template structure and provides guidelines for fil
 [Screenshots or screen recordings for UI changes]
 ```
 
-## Section Guidelines
+## Review Output Template
 
-### What
-- **Purpose**: Quick summary for reviewers to understand at a glance
-- **Length**: 1-3 sentences
-- **Content**: Focus on the end result, not implementation details
-- **Examples**:
-  - "Adds user authentication with JWT tokens"
-  - "Fixes race condition in payment processing that caused duplicate charges"
-  - "Refactors database queries to improve performance by 40%"
+```text
+## Summary
+[Brief overview of what the PR does]
 
-### Why
-- **Purpose**: Provide context and justification
-- **Length**: 2-5 sentences or bullet points
-- **Content**: Business value, user impact, or technical necessity
-- **Examples**:
-  - "Users reported confusion when logging in with social providers. This adds clear visual feedback during the OAuth flow."
-  - "Current queries scan entire tables, causing timeouts for large datasets. Optimizing now before user base grows."
+## Size
+[small/medium/large] - X files changed, +X/-X lines
 
-### How
-- **Purpose**: Explain the technical approach
-- **Length**: 3-7 sentences or bullet points
-- **Content**: Architecture decisions, key components, trade-offs
-- **Examples**:
-  - "Implements caching layer using Redis with 5-minute TTL. Cache is invalidated on writes. Chose Redis over in-memory for horizontal scaling."
-  - "Extracts payment logic into separate service class. Adds idempotency keys to prevent duplicate charges. Uses database transactions for atomicity."
+## Highlights
+- [Notable positive aspects]
+- [Good patterns observed]
 
-### Changes
-- **Purpose**: Itemized list of modifications
-- **Format**: Bullet points, grouped by area if large PR
-- **Content**: File changes, new features, bug fixes, refactors
-- **Examples**:
-  - "Add `AuthService` class for token management"
-  - "Update `LoginForm` component with loading states"
-  - "Add `auth.test.ts` with 15 test cases"
-  - "Remove deprecated `legacyAuth` function"
+## Suggestions
+- [blocker] [Description of blocking issue]
+- [should-fix] [Description of recommended fix]
+- [nit] [Minor style or preference suggestion]
 
-### Testing (CONDITIONAL)
-- **Purpose**: Checklist for test coverage
-- **Format**: Markdown checkboxes
-- **Include when**:
-  - `*.test.*` or `*.spec.*` files in diff
-  - `__tests__/` or `tests/` directory changes
-  - Test-related imports added to existing files
-  - Changes require specific manual testing steps
-- **Omit when**: No test files changed and no special testing needed
-- **Note**: Leave checkboxes unchecked - user will check off
-
-### Deployment (CONDITIONAL)
-- **Purpose**: Alert to special deployment needs
-- **Include when**:
-  - Migration files (db/migrations, prisma/migrations, drizzle, etc.)
-  - `.env*` files referenced or changed
-  - Config files (docker-compose, k8s, terraform, Dockerfile)
-  - `package.json` scripts changes
-  - CI/CD workflow changes (.github/workflows, .gitlab-ci)
-  - Infrastructure or environment variable changes
-- **Omit when**: Standard code changes with no deployment considerations
-
-### Screenshots (CONDITIONAL)
-- **Purpose**: Visual proof for UI changes
-- **Include when**:
-  - `*.tsx`, `*.jsx`, `*.vue`, `*.svelte` component files modified
-  - CSS/SCSS/Tailwind/styled-components changes
-  - Image assets added/modified
-  - Any user-facing visual changes
-- **Omit when**: Backend-only changes, non-visual code changes
-- **Format**: Prompt user to add screenshots
-
-## Filling the Template
-
-### For `create` command:
-1. Generate What/Why/How/Changes based on commits and diff (always include)
-2. Make educated guesses about Why if not obvious from commits
-3. **Evaluate conditional sections**:
-   - Check diff for test files → include Testing if found
-   - Check diff for migrations/config/env → include Deployment if found
-   - Check diff for UI components/CSS → include Screenshots if found
-4. **Omit sections entirely** if detection criteria not met - never include headers with placeholder text
-
-### For `update` command:
-1. Regenerate What/How/Changes based on ALL commits (not just new ones)
-2. Preserve Why section (usually doesn't change)
-3. **Preserve existing conditional sections** exactly as-is if present
-4. **Do not add** new conditional sections during update
+## Questions
+- [Clarifications needed]
+- [Discussion points]
+```
 
 ## Template Variations
 
@@ -159,8 +94,6 @@ Adds null check before accessing avatar URL property. Returns default avatar if 
 - Add null check in `ProfileCard.tsx`
 - Add default avatar constant
 ```
-
-Note: No Testing/Deployment/Screenshots sections - simple fix with no test files changed, no deployment needs, backend-only change.
 
 ### Bug Fix with Tests (includes Testing section)
 ```markdown
@@ -183,8 +116,6 @@ Adds null check before accessing avatar URL property. Returns default avatar if 
 - [ ] Manual testing completed
 - [ ] Edge cases considered
 ```
-
-Note: Testing section included because test files were added/modified.
 
 ### Feature Addition with UI (includes Testing + Screenshots)
 ```markdown
@@ -214,8 +145,6 @@ Implements theme context with CSS custom properties. Uses localStorage to persis
 [Add before/after screenshots of light and dark modes]
 ```
 
-Note: Testing included (test files added), Screenshots included (UI components modified). No Deployment section (no config/migration changes).
-
 ### Backend Refactoring (no conditional sections)
 ```markdown
 ## What
@@ -234,8 +163,6 @@ Replaces all `request` calls with `fetch`. Adds error handling wrapper. Updates 
 - Update response type definitions
 - Add retry logic for transient failures
 ```
-
-Note: No Testing (existing tests updated but no new test files), no Screenshots (backend), no Deployment (standard code change).
 
 ### Database Migration (includes Deployment)
 ```markdown
@@ -259,5 +186,3 @@ Creates new `user_preferences` table with foreign key to users. Adds migration w
 - Migration is backwards compatible - no downtime required
 - Rollback: `bun run migrate:rollback` removes table
 ```
-
-Note: Deployment included (migration files detected). No Testing/Screenshots (no test files, backend-only).

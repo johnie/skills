@@ -34,11 +34,6 @@ flags: {
         kind: "boolean",
         brief: "Enable verbose logging",
         default: false
-    },
-    interactive: {
-        kind: "boolean",
-        brief: "Run in interactive mode",
-        default: true
     }
 }
 ```
@@ -104,12 +99,6 @@ flags: {
         values: ["json", "yaml", "toml", "xml"] as const,
         brief: "Output format",
         default: "json"
-    },
-    logLevel: {
-        kind: "enum",
-        values: ["debug", "info", "warn", "error"] as const,
-        brief: "Logging level",
-        default: "info"
     }
 }
 ```
@@ -140,24 +129,6 @@ flags: {
         brief: "Server port",
         default: 3000,
         placeholder: "PORT"
-    },
-    timeout: {
-        kind: "parsed",
-        parse: (input) => {
-            const ms = Number.parseInt(input, 10);
-            if (Number.isNaN(ms) || ms < 0) {
-                throw new Error("Timeout must be a positive number");
-            }
-            return ms;
-        },
-        brief: "Timeout in milliseconds",
-        default: 5000
-    },
-    date: {
-        kind: "parsed",
-        parse: (input) => new Date(input),
-        brief: "Start date",
-        placeholder: "YYYY-MM-DD"
     }
 }
 ```
@@ -194,17 +165,6 @@ flags: {
         parse: String,
         brief: "Directories to include",
         default: []
-    },
-    exclude: {
-        kind: "variadic",
-        parse: String,
-        brief: "Patterns to exclude"
-    },
-    tag: {
-        kind: "variadic",
-        parse: String,
-        brief: "Tags to apply",
-        placeholder: "TAG"
     }
 }
 
@@ -309,19 +269,6 @@ func(flags, files) {
 **Usage:**
 ```bash
 my-cli process file1.txt file2.txt file3.txt
-```
-
-**Optional Array:**
-
-```typescript
-positional: {
-    kind: "array",
-    parameter: {
-        brief: "Optional files to include",
-        parse: String
-    },
-    optional: true
-}
 ```
 
 ## Advanced Patterns

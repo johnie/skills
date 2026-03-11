@@ -21,19 +21,19 @@ const WHITESPACE_SPLIT_REGEX = /\s+/;
  * Validation result
  */
 export interface ValidationResult {
-  valid: boolean;
   errors: string[];
+  valid: boolean;
 }
 
 /**
  * Extracted commit message
  */
 export interface CommitMessage {
-  type: string;
-  scope?: string;
-  subject: string;
   body?: string;
   files: string[];
+  scope?: string;
+  subject: string;
+  type: string;
 }
 
 /**

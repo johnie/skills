@@ -5,21 +5,21 @@ import { getJudgeModelInstance, getModel } from "./providers.ts";
 const JSON_CODE_BLOCK_REGEX = /```(?:json)?\s*(\{[\s\S]*\})\s*```/;
 
 export interface TestSkillOptions {
-  /** Git status output to inject as context */
-  gitStatus?: string;
-  /** Git diff output to inject as context */
-  gitDiff?: string;
   /** Current branch name */
   branch?: string;
   /** Additional context to inject */
   context?: Record<string, string>;
+  /** Git diff output to inject as context */
+  gitDiff?: string;
+  /** Git status output to inject as context */
+  gitStatus?: string;
 }
 
 export interface EvaluationCriteria {
-  /** Description of what should be evaluated */
-  description: string;
   /** Specific criteria to check (array of strings) */
   criteria: string[];
+  /** Description of what should be evaluated */
+  description: string;
 }
 
 export interface EvaluationResult {

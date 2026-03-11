@@ -75,23 +75,7 @@ tags:
   - quarterly
 ```
 
-### Example 3: Design Review
-```yaml
-tags:
-  - review
-  - design
-  - product
-```
-
-### Example 4: Weekly 1:1
-```yaml
-tags:
-  - one-on-one
-  - weekly
-  - performance
-```
-
-### Example 5: Post-Incident Review
+### Example 3: Post-Incident Review
 ```yaml
 tags:
   - retrospective

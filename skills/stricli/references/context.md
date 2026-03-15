@@ -1,219 +1,167 @@
 # Context
 
-Pass shared state and dependencies to commands.
+Pass runtime dependencies and shared services through `CommandContext`.
 
-## Custom Context
+## `CommandContext`
 
-Context allows you to share configuration, services, and dependencies across all commands in your CLI.
+Stricli's public context model is based on `CommandContext`.
 
-### Define Context Interface
+At minimum, it includes a `process` object with writable streams used by Stricli for help text and errors.
 
 ```typescript
-interface AppContext {
-    readonly config: AppConfig;
+import type { CommandContext } from "@stricli/core";
+
+interface AppContext extends CommandContext {
     readonly logger: Logger;
-    readonly db: Database;
+    readonly config: AppConfig;
 }
 ```
 
-### Type Commands with Context
+In Node-compatible runtimes, `{ process }` is the normal base context.
+
+## Accessing Context in Commands
+
+Commands receive runtime context through `this`.
 
 ```typescript
-import { buildCommand } from "@stricli/core";
-import type { AppContext } from "./context";
+import { buildCommand, type CommandContext } from "@stricli/core";
 
-export const createUser = buildCommand<
-    CreateUserFlags,
-    [username: string],
-    AppContext
->({
+interface AppContext extends CommandContext {
+    readonly logger: Logger;
+}
+
+export const statusCommand = buildCommand<{}, [], AppContext>({
     docs: {
-        brief: "Create a new user"
+        brief: "Print status information"
     },
-    parameters: {
-        positional: {
-            kind: "tuple",
-            parameters: [
-                { brief: "Username", parse: String }
-            ]
-        }
-    },
-    async func(flags, [username], context) {
-        // Access context properties
-        context.logger.info(`Creating user: ${username}`);
-        await context.db.users.create({ username });
-        context.logger.info("User created successfully");
+    func(this) {
+        this.logger.info("Running status command");
+        this.process.stdout.write("ok\n");
     }
 });
 ```
 
-### Initialize and Run
+Notes:
+
+- prefer `this.process.stdout.write()` and `this.process.stderr.write()` for output you want to test precisely
+- using `console.log()` or global `process` is still possible, but injected context is easier to test
+
+## Running with Custom Context
 
 ```typescript
 import { run } from "@stricli/core";
 import { app } from "./app";
-import { createLogger } from "./logger";
-import { connectDatabase } from "./db";
-import { loadConfig } from "./config";
 
-// Initialize context
+interface AppContext extends CommandContext {
+    readonly process: typeof process;
+    readonly config: AppConfig;
+    readonly logger: Logger;
+    readonly db: Database;
+}
+
 const context: AppContext = {
+    process,
     config: loadConfig(),
     logger: createLogger(),
     db: await connectDatabase()
 };
 
-// Run application with context
 await run(app, process.argv.slice(2), context);
 ```
 
-### Context Best Practices
+## What Belongs in Context
 
-**Use context for:**
-- Configuration objects
-- Logging services
-- Database connections
-- HTTP clients
-- Shared state across commands
+Use context for shared runtime dependencies such as:
 
-**Don't use context for:**
-- Flag values (use parameters instead)
-- Command-specific data
-- Values that should be passed via CLI arguments
+- config objects
+- loggers
+- database clients
+- API clients
+- authenticated user/session data
 
-## LocalContext
+Do not use context for:
 
-Commands can access `this` context for stdio operations.
+- normal CLI flags
+- positional arguments
+- command-local values that should be explicit inputs
+
+## Testing with Context
+
+Stricli is designed to make command testing easier by injecting context rather than requiring global process mutation.
+
+### Test the Whole Application
 
 ```typescript
-interface LocalContext {
-    readonly stdin: NodeJS.ReadableStream;
-    readonly stdout: NodeJS.WritableStream;
-    readonly stderr: NodeJS.WritableStream;
-    readonly console: Console;
+import { run } from "@stricli/core";
+import { app } from "../src/app";
+
+const context = buildContextForTest();
+
+await run(app, ["echo", "hello"], context);
+expect(context.stdout).toContain("hello");
+```
+
+### Test the Implementation Directly
+
+This works best when using the lazy `loader` pattern and testing the exported implementation function.
+
+```typescript
+import func from "../src/commands/echo/impl";
+
+const context = buildContextForTest();
+
+await func.call(context, {}, "hello");
+expect(context.stdout).toContain("hello");
+```
+
+`buildContextForTest()` is application-specific, but the basic shape captures writes into string buffers so assertions can inspect output:
+
+```typescript
+function buildContextForTest() {
+    let out = "";
+    let err = "";
+    return {
+        process: {
+            stdout: { write: (s: string) => { out += s; return true; } },
+            stderr: { write: (s: string) => { err += s; return true; } }
+        },
+        // add your custom context fields here (logger, db, etc.)
+        get stdout() { return out; },
+        get stderr() { return err; }
+    };
 }
 ```
 
-### Accessing LocalContext
+## Error Handling and Exit Codes
+
+Prefer throwing errors from command implementations and letting Stricli format them for CLI output.
 
 ```typescript
-import { buildCommand } from "@stricli/core";
-
-export const command = buildCommand({
+export const deployCommand = buildCommand({
     docs: {
-        brief: "Example command"
+        brief: "Deploy the current release"
     },
-    func() {
-        // Access stdio via this
-        this.console.log("Standard output");
-        this.console.error("Error output");
-
-        // Direct stream access
-        this.stdout.write("Direct write\n");
-        this.stderr.write("Error write\n");
-
-        // Read from stdin
-        this.stdin.on("data", (chunk) => {
-            console.log("Received:", chunk.toString());
-        });
-    }
-});
-```
-
-### Testing with LocalContext
-
-LocalContext is especially useful for testing, where you can mock stdio:
-
-```typescript
-import { test, expect } from "vitest";
-import { greet } from "./commands/greet";
-
-test("greet outputs to console", () => {
-    const output: string[] = [];
-    const mockConsole = {
-        log: (msg: string) => output.push(msg),
-        error: (msg: string) => output.push(`ERROR: ${msg}`)
-    };
-
-    // Call command with mocked LocalContext
-    greet.func.call(
-        { console: mockConsole },
-        { name: "World", shout: false },
-        undefined,
-        undefined
-    );
-
-    expect(output).toEqual(["Hello, World!"]);
-});
-```
-
-## Exit Codes
-
-Use proper exit codes to indicate command success or failure.
-
-### Exit Code Constants
-
-```typescript
-import { ExitCode } from "@stricli/core";
-
-ExitCode.Success = 0          // Command succeeded
-ExitCode.CommandRunError = 1  // Error during command execution
-ExitCode.InternalError = -1   // Internal framework error
-ExitCode.CommandLoadError = -2  // Error loading command
-ExitCode.ContextLoadError = -3  // Error loading context
-ExitCode.InvalidArgument = -4   // Invalid argument provided
-ExitCode.UnknownCommand = -5    // Unknown command specified
-```
-
-### Using Exit Codes
-
-```typescript
-import { buildCommand, ExitCode } from "@stricli/core";
-
-export const deploy = buildCommand({
-    docs: {
-        brief: "Deploy application"
-    },
-    async func(flags) {
-        try {
-            await deployApp(flags.env);
-            console.log("✓ Deployment successful");
-            process.exit(ExitCode.Success);
-        } catch (error) {
-            console.error(`Deployment failed: ${error.message}`);
-            process.exit(ExitCode.CommandRunError);
+    async func(this) {
+        const ok = await deploy();
+        if (!ok) {
+            throw new Error("Deployment failed");
         }
     }
 });
 ```
 
-If you don't explicitly call `process.exit()`, Stricli returns `ExitCode.Success` (0) on completion or `ExitCode.CommandRunError` (1) if the command throws.
-
-## Combining Context Patterns
-
-You can use both custom context and LocalContext together:
+If you need custom exit codes, configure them at the application level with `determineExitCode`:
 
 ```typescript
-interface AppContext {
-    readonly db: Database;
-    readonly logger: Logger;
-}
-
-export const query = buildCommand<QueryFlags, never, AppContext>({
-    docs: {
-        brief: "Query database"
-    },
-    async func(flags, _positional, context) {
-        // Access custom context
-        context.logger.info("Running query...");
-
-        const results = await context.db.query(flags.sql);
-
-        // Access LocalContext via this
-        this.console.log(JSON.stringify(results, null, 2));
-
-        // Exit with success
-        process.exit(ExitCode.Success);
+export const app = buildApplication(routes, {
+    name: "my-cli",
+    determineExitCode(exc) {
+        if (exc instanceof ValidationError) {
+            return 2;
+        }
+        return 1;
     }
 });
 ```
+
+This is usually preferable to calling `process.exit()` inside command functions, because it keeps commands easier to compose and test.

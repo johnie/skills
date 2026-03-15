@@ -5,289 +5,208 @@ description: Build type-safe CLI applications with Stricli. Use when creating Ty
 
 # Stricli CLI Framework
 
-Stricli is Bloomberg's type-safe CLI framework for TypeScript. It provides compile-time type checking for command parameters, automatic help generation, and flexible command routing.
+Stricli is Bloomberg's type-safe CLI framework for TypeScript. It focuses on strongly typed flags and positional arguments, explicit command routing, automatic help generation, and isolated command context.
 
-**Multi-Runtime Support:** Works with Node.js, Bun, and Deno.
+Prefer current upstream APIs and terminology:
+
+- `buildCommand({ func | loader, parameters, docs })`
+- `buildRouteMap({ routes, docs, aliases?, defaultCommand? })`
+- `buildApplication(rootCommandOrRouteMap, config)`
+- `run(app, inputs, context)`
+- `CommandContext` for runtime context
+
+## Upstream Orientation
+
+Stricli's official quick start is Node and npm oriented. Follow that by default, but keep install and execution guidance package-manager agnostic when helpful.
+
+### Install Packages
+
+```bash
+npm install @stricli/core              # required
+npm install @stricli/auto-complete     # optional, bash completion support
+# pnpm add / bun add also work
+```
+
+### Generate a New App
+
+Prefer the upstream generator when scaffolding from scratch:
+
+```bash
+npx @stricli/create-app@latest my-app
+# pnpm dlx / bunx also work
+```
 
 ## Quick Start
 
-Create a minimal single-command CLI:
+Create a minimal single-command CLI.
 
-### 1. Installation
-
-```bash
-npm install @stricli/core
-```
-
-Optional packages:
-```bash
-npm install @stricli/auto-complete  # Shell completion support
-```
-
-### 2. Project Structure
-
-```text
-my-cli/
-├── src/
-│   ├── commands/
-│   │   └── greet.ts      # Command implementation
-│   ├── app.ts            # Application entry point
-│   └── index.ts          # CLI runner
-├── package.json
-└── tsconfig.json
-```
-
-### 3. Define a Command (src/commands/greet.ts)
+### 1. Define a Command
 
 ```typescript
 import { buildCommand } from "@stricli/core";
 
-export interface GreetFlags {
-    readonly name: string;
-    readonly shout: boolean;
+interface GreetFlags {
+    readonly shout?: boolean;
 }
 
-export const greet = buildCommand({
+export const greetCommand = buildCommand({
     docs: {
-        brief: "Greet a user",
-        description: "Prints a greeting message to the console"
+        brief: "Print a greeting"
     },
     parameters: {
         flags: {
-            name: {
-                kind: "parsed",
-                brief: "Name to greet",
-                parse: String,
-                default: "World"
-            },
             shout: {
                 kind: "boolean",
-                brief: "Use uppercase",
-                default: false
+                brief: "Uppercase the greeting",
+                optional: true
             }
+        },
+        positional: {
+            kind: "tuple",
+            parameters: [
+                {
+                    brief: "Name to greet",
+                    parse: String,
+                    placeholder: "name"
+                }
+            ]
         }
     },
-    func(flags: GreetFlags) {
-        const message = "Hello, " + flags.name + "!";
-        console.log(flags.shout ? message.toUpperCase() : message);
+    func(this, flags: GreetFlags, name: string) {
+        const message = `Hello, ${name}!`;
+        this.process.stdout.write(
+            `${flags.shout ? message.toUpperCase() : message}\n`
+        );
     }
 });
 ```
 
-### 4. Build Application (src/app.ts)
+### 2. Build the Application
 
 ```typescript
 import { buildApplication } from "@stricli/core";
-import { name, version, description } from "../package.json";
-import { greet } from "./commands/greet";
+import { version } from "../package.json";
+import { greetCommand } from "./commands/greet";
 
-export const app = buildApplication({
-    name,
-    version,
-    description,
-    command: greet
+export const app = buildApplication(greetCommand, {
+    name: "my-cli",
+    versionInfo: {
+        currentVersion: version
+    }
 });
 ```
 
-### 5. Run CLI (src/index.ts)
+### 3. Run the CLI
 
 ```typescript
 import { run } from "@stricli/core";
 import { app } from "./app";
 
-await run(app, process.argv.slice(2));
+await run(app, process.argv.slice(2), { process });
 ```
-
-### 6. Configure package.json
-
-```json
-{
-  "name": "my-cli",
-  "version": "1.0.0",
-  "type": "module",
-  "bin": {
-    "my-cli": "./src/index.ts"
-  },
-  "scripts": {
-    "start": "npx tsx src/index.ts"
-  }
-}
-```
-
-**Note:** With Bun, you can run TypeScript directly. With Node.js, use `tsx` or compile with `tsc` first.
 
 ## Core Concepts
 
-- `buildCommand(config)` — creates a command with typed parameters and a `func` handler
-- `buildRouteMap(config)` — organizes commands/sub-routes into a hierarchy
-- `buildApplication(config)` — wraps a command or route map into an executable app (name, version, description)
-- `run(app, args, context?)` — executes the application with CLI arguments
+- `buildCommand()` creates a command from either an inline `func` or a lazy `loader`
+- `buildRouteMap()` organizes commands into nested subcommands
+- `buildApplication()` wraps a root command or route map with runtime configuration
+- `run()` executes the application with already-tokenized CLI input and a runtime context
 
-See [Commands, Routing, and Applications](./references/routing.md) for full API details and interfaces.
+See [Commands, Routing, and Applications](references/routing.md) for current API details.
 
 ## Parameter Types
 
-Stricli supports five flag kinds (`boolean`, `counter`, `enum`, `parsed`, `variadic`) and two positional kinds (`tuple` for fixed args, `array` for variable-length). All flags support `brief`, `description?`, `default?`, and `hidden?`.
+Stricli supports four flag kinds and two positional modes:
 
-See [Parameters](./references/parameters.md) for full interface definitions, examples, and advanced patterns.
+- Flags: `parsed`, `enum`, `boolean`, `counter`
+- Positionals: `tuple`, `array`
 
-## Workflow
+Variadic behavior is configured with `variadic`, not a separate flag kind.
 
-### Building a Single-Command CLI
+See [Parameters](references/parameters.md).
 
-1. **Define command** - Create command file with `buildCommand`
-2. **Implement function** - Add business logic in `func` property
-3. **Build application** - Wrap command with `buildApplication`
-4. **Run** - Execute with `run(app, args)`
+## Recommended Workflow
 
-### Building a Multi-Command CLI
+### Single-Command CLI
 
-1. **Define commands** - Create multiple command files
-2. **Create route map** - Organize commands with `buildRouteMap`
-3. **Build application** - Pass route map to `buildApplication`
-4. **Run** - Execute with command routing: `my-cli create ...`
+1. Define a command with `buildCommand`
+2. Add typed flags and positional arguments in `parameters`
+3. Wrap it with `buildApplication(command, config)`
+4. Run with `run(app, process.argv.slice(2), { process })`
 
-### Adding Custom Parsers
+### Multi-Command CLI
 
-```typescript
-const urlParser = (input: string): URL => {
-    try {
-        return new URL(input);
-    } catch (error) {
-        throw new Error(`Invalid URL: ${input}`);
-    }
-};
+1. Define commands independently
+2. Organize them with `buildRouteMap`
+3. Add route aliases or a `defaultCommand` if needed
+4. Wrap the root route map with `buildApplication(routes, config)`
 
-flags: {
-    endpoint: {
-        kind: "parsed",
-        parse: urlParser,
-        brief: "API endpoint URL"
-    }
-}
-```
+### Large CLIs
 
-### Using Custom Context
-
-Pass shared state/dependencies to all commands:
+Prefer the lazy `loader` pattern for heavy commands:
 
 ```typescript
-interface AppContext {
-    readonly config: Config;
-    readonly logger: Logger;
-}
+import { buildCommand, numberParser } from "@stricli/core";
 
-// In func
-func(flags, positional, context: AppContext) {
-    context.logger.info("Running command...");
-}
-
-// When running
-await run(app, args, { config, logger });
-```
-
-## Multi-Command Structure
-
-### Nested Routes
-
-```typescript
-const projectRoutes = buildRouteMap({
-    routes: {
-        create: createProjectCommand,
-        delete: deleteProjectCommand,
-        list: listProjectsCommand
+export const analyzeCommand = buildCommand({
+    docs: {
+        brief: "Analyze a report"
     },
-    docs: { brief: "Manage projects" }
-});
-
-const taskRoutes = buildRouteMap({
-    routes: {
-        add: addTaskCommand,
-        complete: completeTaskCommand
-    },
-    docs: { brief: "Manage tasks" }
-});
-
-const rootRoutes = buildRouteMap({
-    routes: {
-        project: projectRoutes,
-        task: taskRoutes
-    }
-});
-
-const app = buildApplication({
-    name: "pm",
-    version: "1.0.0",
-    command: rootRoutes
-});
-```
-
-Usage:
-- `pm project create myapp`
-- `pm project list`
-- `pm task add "Write docs"`
-
-### Lazy Loading
-
-For large CLIs, use lazy loading to improve startup time:
-
-```typescript
-const routes = buildRouteMap({
-    routes: {
-        heavy: {
-            lazy: async () => {
-                const mod = await import("./commands/heavy");
-                return mod.heavyCommand;
-            },
-            brief: "Heavy operation"
+    parameters: {
+        flags: {
+            depth: {
+                kind: "parsed",
+                parse: numberParser,
+                brief: "Traversal depth",
+                optional: true,
+                default: "1"
+            }
         }
-    }
+    },
+    loader: async () => import("./impl")
 });
 ```
 
-## Built-in Features
+## Context and Testing
 
-Stricli auto-generates `--help` (from `docs.brief`/`docs.description`) and `--version` for all commands and route maps.
+- Stricli command context is based on `CommandContext`
+- Command implementations receive runtime context through `this`
+- Extend `CommandContext` to inject custom services or shared state
+- Test either by calling `run(app, inputs, context)` or by importing the command implementation directly
 
-## Testing Commands
+See [Context](references/context.md) and [Examples](references/examples.md).
 
-Commands are pure functions - easy to test:
+## Auto-Complete
 
-```typescript
-// Use your preferred test runner (vitest, bun:test, jest, etc.)
-import { test, expect } from "vitest";
-import { greet } from "./commands/greet";
+`@stricli/auto-complete` currently supports bash. The current public integration is based on:
 
-test("greet with default name", () => {
-    const output: string[] = [];
-    const mockConsole = {
-        log: (msg: string) => output.push(msg)
-    };
+- the standalone install/uninstall flow via `@stricli/auto-complete`
+- built-in `buildInstallCommand()` / `buildUninstallCommand()` commands for your app
 
-    greet.func.call(
-        { console: mockConsole },
-        { name: "World", shout: false },
-        undefined,
-        undefined
-    );
+See [Auto-Complete](references/auto-complete.md).
 
-    expect(output[0]).toBe("Hello, World!");
-});
-```
+## Important Upstream Guidance
+
+- Prefer `strict: true` in `tsconfig.json`; Stricli relies on TypeScript inference
+- `--version` is available only when `versionInfo` is configured on the application
+- `--helpAll` is built in and reveals hidden commands and flags
+- `-h` is reserved for help, `-H` for help-all, and `-v` for version when version info is enabled
+- Official upstream docs and generator are Node/npm oriented; mention `pnpm` and `bun` alternatives when useful, but keep `npm` examples first
+
+Only use APIs documented in this skill and its reference files. Stricli is a niche library with a narrow public API surface — do not invent flag kinds, parsers, application config fields, or auto-complete features that are not shown here. If something is not documented, assume it does not exist.
 
 ## Reference Documentation
 
-For detailed API documentation and complete examples, see:
-
-- **[Commands, Routing, and Applications](./references/routing.md)** - buildCommand, buildRouteMap, buildApplication, run, func signature, aliases, lazy loading, scanner config
-- **[Parameters](./references/parameters.md)** - Flag types (boolean, counter, enum, parsed, variadic) and positional types (tuple, array)
-- **[Parsers](./references/parsers.md)** - Built-in parsers, custom parsers, error handling
-- **[Context](./references/context.md)** - Custom context, LocalContext, exit codes
-- **[Auto-Complete](./references/auto-complete.md)** - Shell completion with @stricli/auto-complete
-- **[Examples](./references/examples.md)** - Complete working examples including custom parsers, variadic flags, lazy loading, and testing
+- **[Commands, Routing, and Applications](references/routing.md)** - `buildCommand`, `buildRouteMap`, `buildApplication`, `run`, lazy loaders, route aliases, default commands
+- **[Parameters](references/parameters.md)** - current flag and positional parameter patterns
+- **[Parsers](references/parsers.md)** - built-in parsers, custom parsers, async parsing
+- **[Context](references/context.md)** - `CommandContext`, custom context, testing, exit-code handling
+- **[Auto-Complete](references/auto-complete.md)** - bash auto-complete with `@stricli/auto-complete`
+- **[Examples](references/examples.md)** - updated examples for common Stricli patterns
 
 ## Additional Resources
 
 - [Stricli GitHub](https://github.com/bloomberg/stricli)
 - [Official Documentation](https://bloomberg.github.io/stricli/)
-- [NPM Package](https://www.npmjs.com/package/@stricli/core)
+- [Core Package](https://www.npmjs.com/package/@stricli/core)
+- [Create App](https://www.npmjs.com/package/@stricli/create-app)

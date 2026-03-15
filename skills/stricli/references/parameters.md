@@ -1,336 +1,376 @@
 # Parameters
 
-Flag and positional parameter types for command configuration.
+Define typed flags and positional arguments for commands.
 
-## Flag Parameter Types
+## Type Inference
 
-Flags are named parameters using `--flag-name` or `-f` syntax.
+Stricli infers parameter configuration from the TypeScript function signature and flag types you provide.
 
-### Boolean Flag
+Use `strict: true` in `tsconfig.json` whenever possible. Upstream docs strongly recommend it because optionality and parameter inference rely on strict TypeScript behavior.
 
-On/off switch with automatic negation support.
+## Flag Kinds
+
+Stricli currently supports four flag kinds:
+
+- `parsed`
+- `enum`
+- `boolean`
+- `counter`
+
+There is no separate `kind: "variadic"`. Variadic behavior is configured on supported flag kinds with `variadic`.
+
+## Parsed Flags
+
+Use `kind: "parsed"` when a flag should parse string input into a custom type.
 
 ```typescript
-interface BooleanFlagConfig {
-    kind: "boolean";
-    brief: string;               // Required: short description
-    description?: string;        // Optional: detailed description
-    default?: boolean;           // Default value (false if omitted)
-    hidden?: boolean;           // Hide from help output
+import { buildCommand, numberParser } from "@stricli/core";
+
+interface Flags {
+    readonly port?: number;
 }
-```
 
-**Usage:**
-```bash
---verbose          # Sets to true
---no-verbose       # Sets to false
-```
-
-**Example:**
-
-```typescript
-flags: {
-    verbose: {
-        kind: "boolean",
-        brief: "Enable verbose logging",
-        default: false
+export const serveCommand = buildCommand({
+    docs: {
+        brief: "Start the server"
+    },
+    parameters: {
+        flags: {
+            port: {
+                kind: "parsed",
+                parse: numberParser,
+                brief: "Port to bind",
+                placeholder: "port",
+                optional: true,
+                default: "3000"
+            }
+        }
+    },
+    func(this, flags: Flags) {
+        const port = flags.port ?? 3000;
+        this.process.stdout.write(`Listening on ${port}\n`);
     }
-}
+});
 ```
 
-### Counter Flag
+Important details:
 
-Counts the number of times a flag is provided.
+- `default` for parsed flags is a raw string, not the already-parsed value
+- `parse` can be sync or async
+- `optional: true` must match the flag type being optional
+
+## Enum Flags
+
+Use `kind: "enum"` when valid values are known string literals.
 
 ```typescript
-interface CounterFlagConfig {
-    kind: "counter";
-    brief: string;
-    description?: string;
-    hidden?: boolean;
-}
-```
-
-**Usage:**
-```bash
--v                 # Returns 1
--vv                # Returns 2
--vvv               # Returns 3
-```
-
-**Example:**
-
-```typescript
-flags: {
-    verbose: {
-        kind: "counter",
-        brief: "Verbosity level (use -v, -vv, -vvv)"
-    }
+interface Flags {
+    readonly format: "json" | "yaml" | "toml";
 }
 
-func(flags) {
-    if (flags.verbose >= 2) {
-        console.log("Debug mode enabled");
-    }
-}
-```
-
-### Enum Flag
-
-Restricts values to a predefined set of strings.
-
-```typescript
-interface EnumFlagConfig<T extends string> {
-    kind: "enum";
-    values: readonly T[];        // Array of valid values
-    brief: string;
-    description?: string;
-    default?: T;                 // Default value (must be in values)
-    hidden?: boolean;
-}
-```
-
-**Example:**
-
-```typescript
 flags: {
     format: {
         kind: "enum",
-        values: ["json", "yaml", "toml", "xml"] as const,
+        values: ["json", "yaml", "toml"] as const,
         brief: "Output format",
         default: "json"
     }
 }
 ```
 
-### Parsed Flag
+Enum flags:
 
-Transforms string input using a parser function.
+- validate inputs against `values`
+- show choices in help output
+- feed values into completion proposals automatically
+
+## Boolean Flags
+
+Use `kind: "boolean"` for on/off flags.
 
 ```typescript
-interface ParsedFlagConfig<T> {
-    kind: "parsed";
-    parse: (input: string) => T | Error;  // Parser function (can return Error)
-    brief: string;
-    description?: string;
-    default?: T;                  // Default value (already parsed)
-    placeholder?: string;         // Placeholder in help text
-    hidden?: boolean;
+interface Flags {
+    readonly quiet?: boolean;
 }
-```
 
-**Example:**
-
-```typescript
 flags: {
-    port: {
-        kind: "parsed",
-        parse: Number,
-        brief: "Server port",
-        default: 3000,
-        placeholder: "PORT"
+    quiet: {
+        kind: "boolean",
+        brief: "Suppress normal output",
+        optional: true,
+        withNegated: true
     }
 }
 ```
 
-See [Parsers](./parsers.md) for built-in parsers and custom parser patterns.
+Notes:
 
-### Variadic Flag
+- when `withNegated` is omitted or `true`, Stricli supports a negated flag like `--noQuiet`
+- scanner/documentation case style may display that as `--no-quiet`
+- use `withNegated: false` if the negated form is not desirable
 
-Accepts multiple values for the same flag.
+## Counter Flags
+
+Use `kind: "counter"` when repeated appearances should increment a number.
 
 ```typescript
-interface VariadicFlagConfig<T> {
-    kind: "variadic";
-    parse: (input: string) => T;  // Parser for each value
-    brief: string;
-    description?: string;
-    default?: readonly T[];       // Default array of values
-    placeholder?: string;
-    hidden?: boolean;
+interface Flags {
+    readonly verbose: number;
+}
+
+flags: {
+    verbose: {
+        kind: "counter",
+        brief: "Increase verbosity"
+    }
+}
+
+aliases: {
+    V: "verbose"
 }
 ```
 
-**Usage:**
+Typical usage:
+
 ```bash
---include src --include tests --include docs
+my-cli -V
+my-cli -VV
+my-cli -VVV
 ```
 
-**Example:**
+## Common Flag Variants
+
+### Optional
+
+If the TypeScript flag property is optional or nullable in a way Stricli recognizes, the flag config should include `optional: true`.
 
 ```typescript
+interface Flags {
+    readonly host?: string;
+}
+
+flags: {
+    host: {
+        kind: "parsed",
+        parse: String,
+        brief: "Host to connect to",
+        optional: true
+    }
+}
+```
+
+Do not rely on undocumented "all flags are optional" behavior. Current Stricli typing expects optionality to be explicit.
+
+### Defaults
+
+Defaults depend on the flag kind:
+
+- `parsed`: string or string array for variadic parsed flags
+- `enum`: enum value or enum value array for variadic enum flags
+- `boolean`: boolean
+
+```typescript
+flags: {
+    region: {
+        kind: "parsed",
+        parse: String,
+        brief: "Target region",
+        optional: true,
+        default: "eu-west-1"
+    }
+}
+```
+
+### Variadic
+
+Variadic flags collect multiple values into an array.
+
+```typescript
+interface Flags {
+    readonly include?: readonly string[];
+}
+
 flags: {
     include: {
-        kind: "variadic",
+        kind: "parsed",
         parse: String,
-        brief: "Directories to include",
-        default: []
+        brief: "Glob(s) to include",
+        optional: true,
+        variadic: true
     }
 }
-
-func(flags) {
-    // flags.include is string[]
-    console.log(`Processing ${flags.include.length} directories`);
-}
 ```
 
-## Positional Parameter Types
+This accepts repeated flags:
 
-Positional parameters are unnamed arguments passed by position.
+```bash
+my-cli --include src --include test
+```
 
-### Tuple Positional
-
-Fixed number of positional arguments in specific order.
+You can also provide a separator string:
 
 ```typescript
-interface TuplePositionalConfig<T extends readonly unknown[]> {
-    kind: "tuple";
-    parameters: readonly [
-        PositionalParameterConfig<T[0]>,
-        PositionalParameterConfig<T[1]>,
-        // ... more parameters
-    ];
-}
-
-interface PositionalParameterConfig<T> {
-    parse: (input: string) => T;
-    brief: string;
-    description?: string;
-    placeholder?: string;
+include: {
+    kind: "parsed",
+    parse: String,
+    brief: "Glob(s) to include",
+    optional: true,
+    variadic: ","
 }
 ```
 
-**Example:**
+This accepts comma-separated input:
+
+```bash
+my-cli --include src,test,docs
+```
+
+### `inferEmpty`
+
+Parsed flags can distinguish between `--flag` and `--flag value` by inferring an empty string when no explicit value is provided.
+
+```typescript
+flags: {
+    message: {
+        kind: "parsed",
+        parse: String,
+        brief: "Optional message",
+        optional: true,
+        inferEmpty: true
+    }
+}
+```
+
+### Hidden Flags
+
+Hidden flags do not appear in normal help or standard completion proposals.
+
+```typescript
+flags: {
+    debugToken: {
+        kind: "parsed",
+        parse: String,
+        brief: "Internal debug token",
+        optional: true,
+        hidden: true
+    }
+}
+```
+
+Users can still reveal hidden flags with `--helpAll`.
+
+## Flag Aliases
+
+Aliases are defined in `parameters.aliases`.
+
+```typescript
+parameters: {
+    flags: {
+        output: {
+            kind: "parsed",
+            parse: String,
+            brief: "Output file",
+            optional: true
+        }
+    },
+    aliases: {
+        o: "output"
+    }
+}
+```
+
+Rules:
+
+- aliases are single characters
+- aliases can be batched, such as `-abc`
+- reserve `-h`, `-H`, and `-v` as described in upstream docs
+
+## Positional Arguments
+
+Stricli supports two positional modes:
+
+- `tuple` - fixed shape
+- `array` - repeated values of one shape
+
+### Tuple Positionals
+
+Use `kind: "tuple"` for a fixed ordered argument list.
 
 ```typescript
 positional: {
     kind: "tuple",
     parameters: [
         {
-            brief: "Source file path",
+            brief: "Source path",
             parse: String,
-            placeholder: "SOURCE"
+            placeholder: "source"
         },
         {
-            brief: "Destination file path",
+            brief: "Destination path",
             parse: String,
-            placeholder: "DEST"
+            placeholder: "dest"
         }
     ]
 }
-
-func(flags, [source, dest]) {
-    console.log(`Copying ${source} to ${dest}`);
-}
 ```
 
-**Usage:**
-```bash
-my-cli copy file.txt backup.txt
-```
-
-### Array Positional
-
-Variable number of positional arguments (all parsed the same way).
+Command implementation:
 
 ```typescript
-interface ArrayPositionalConfig<T> {
-    kind: "array";
-    parameter: {
-        parse: (input: string) => T;
-        brief: string;
-        description?: string;
-        placeholder?: string;
-    };
-    optional?: boolean;         // Allow zero arguments
+func(this, flags, source: string, dest: string) {
+    this.process.stdout.write(`Copying ${source} to ${dest}\n`);
 }
 ```
 
-**Example:**
+### Array Positionals
+
+Use `kind: "array"` for a repeated positional value.
 
 ```typescript
 positional: {
     kind: "array",
     parameter: {
-        brief: "Files to process",
+        brief: "Input file",
         parse: String,
-        placeholder: "FILE"
-    }
-}
-
-func(flags, files) {
-    // files is string[]
-    for (const file of files) {
-        console.log(`Processing ${file}`);
+        placeholder: "file"
     }
 }
 ```
 
-**Usage:**
-```bash
-my-cli process file1.txt file2.txt file3.txt
-```
-
-## Advanced Patterns
-
-### Required vs Optional Flags
-
-All flags are technically optional (use `default` or check for `undefined`):
+Command implementation:
 
 ```typescript
-flags: {
-    required: {
-        kind: "parsed",
-        parse: String,
-        brief: "Required parameter"
-        // No default - will be undefined if not provided
-    },
-    optional: {
-        kind: "parsed",
-        parse: String,
-        brief: "Optional parameter",
-        default: "default-value"
-    }
-}
-
-func(flags) {
-    if (!flags.required) {
-        throw new Error("--required flag is mandatory");
-    }
+func(this, flags, ...files: string[]) {
+    this.process.stdout.write(`Received ${files.length} file(s)\n`);
 }
 ```
 
-### Mutually Exclusive Flags
+## Practical Patterns
 
-Validate flag combinations in the function:
+### Cross-Argument Validation
+
+Use command logic for constraints that Stricli does not model directly.
 
 ```typescript
-func(flags) {
-    const exclusiveFlags = [flags.create, flags.update, flags.delete];
-    const count = exclusiveFlags.filter(Boolean).length;
-
-    if (count === 0) {
-        throw new Error("Must specify one of: --create, --update, --delete");
-    }
-    if (count > 1) {
-        throw new Error("Flags --create, --update, --delete are mutually exclusive");
+func(this, flags) {
+    const selected = [flags.create, flags.update, flags.remove].filter(Boolean);
+    if (selected.length !== 1) {
+        throw new Error("Choose exactly one of --create, --update, or --remove");
     }
 }
 ```
 
-### Conditional Parameters
+### Camel Case + Kebab Case
 
-Use TypeScript type narrowing for conditional logic:
+Use camelCase in TypeScript and enable app-level scanning when you want users to type kebab-case flags.
 
 ```typescript
-interface Flags {
-    readonly format: "json" | "csv";
-    readonly pretty: boolean;
-}
-
-func(flags: Flags) {
-    if (flags.format === "json" && flags.pretty) {
-        // Pretty-print JSON
+const app = buildApplication(routes, {
+    name: "my-cli",
+    scanner: {
+        caseStyle: "allow-kebab-for-camel"
     }
-}
+});
 ```
+
+Then `dryRun` can be passed as `--dry-run`.

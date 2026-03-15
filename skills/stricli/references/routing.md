@@ -1,506 +1,352 @@
 # Commands, Routing, and Applications
 
-Define commands, organize them into route maps, and build executable CLI applications.
+Define commands, group them into route maps, and wrap them in an application.
 
-## buildCommand
+## `buildCommand`
 
-Creates a command with typed parameters and execution logic.
+`buildCommand()` creates a command from either:
 
-```typescript
-function buildCommand<
-    Flags extends CommandFlagsBase,
-    Positional extends CommandPositionalBase,
-    Context
->(config: CommandConfig<Flags, Positional, Context>): Command<Flags, Positional, Context>
-```
+- `func` - inline implementation
+- `loader` - lazy async loader for the implementation
 
-### CommandConfig Interface
+Both forms require `docs`, and usually `parameters`.
+
+### Inline `func`
 
 ```typescript
-interface CommandConfig<Flags, Positional, Context> {
-    // Documentation
+import { buildCommand, numberParser, type CommandContext } from "@stricli/core";
+
+interface Flags {
+    readonly count?: number;
+}
+
+export const echoCommand = buildCommand<Flags, [text: string], CommandContext>({
     docs: {
-        brief: string;              // Short one-line description
-        description?: string;        // Detailed multi-line description
-        hideFromHelp?: boolean;     // Hide from help output
-    };
-
-    // Parameters (optional)
-    parameters?: {
-        flags?: FlagParametersConfig<Flags>;
-        positional?: PositionalParametersConfig<Positional>;
-        aliases?: Record<string, string>;  // Short aliases: { v: "verbose" }
-    };
-
-    // Execution function
-    func(
-        this: LocalContext,
-        flags: Flags,
-        positional: Positional,
-        context: Context
-    ): void | Promise<void>;
-}
+        brief: "Echo text to stdout"
+    },
+    parameters: {
+        flags: {
+            count: {
+                kind: "parsed",
+                parse: numberParser,
+                brief: "Repeat count",
+                optional: true,
+                default: "1"
+            }
+        },
+        positional: {
+            kind: "tuple",
+            parameters: [
+                {
+                    brief: "Text to print",
+                    parse: String,
+                    placeholder: "text"
+                }
+            ]
+        }
+    },
+    func(this, flags, text) {
+        for (let i = 0; i < (flags.count ?? 1); i += 1) {
+            this.process.stdout.write(`${text}\n`);
+        }
+    }
+});
 ```
 
-### func Signature
+### Lazy `loader`
 
-The command execution function receives three parameters plus `this`:
-
-- **flags** - Typed object containing all flag values
-- **positional** - Typed positional arguments (tuple or array)
-- **context** - Custom context object passed from `run()`
-- **this** - LocalContext with stdio streams (stdin, stdout, stderr, console)
+Use `loader` when the implementation is heavy or should be code-split.
 
 ```typescript
-func(flags, positional, context) {
-    // Access flags
-    console.log(flags.verbose);
+import { buildCommand } from "@stricli/core";
 
-    // Access positional args
-    console.log(positional[0]);
+export const analyzeCommand = buildCommand({
+    docs: {
+        brief: "Analyze a large project"
+    },
+    parameters: {
+        positional: {
+            kind: "tuple",
+            parameters: [
+                {
+                    brief: "Project path",
+                    parse: String,
+                    placeholder: "path"
+                }
+            ]
+        }
+    },
+    loader: async () => import("./impl")
+});
+```
 
-    // Access context
-    context.logger.info("Running command");
+The loaded module can export either:
 
-    // Access this context for stdio
-    this.console.log("Standard output");
-    this.console.error("Error output");
+- a default command implementation
+- a named implementation returned explicitly from the loader
+
+### Command Documentation
+
+Current command docs use:
+
+- `brief` - required short description
+- `fullDescription` - optional multi-line help text shown on command help
+- `customUsage` - optional replacement or extension for usage lines
+
+```typescript
+docs: {
+    brief: "Deploy an app",
+    fullDescription: [
+        "Deploys the selected application.",
+        "Use --dryRun to preview changes before execution."
+    ].join("\n"),
+    customUsage: [
+        "--env prod app-name",
+        {
+            input: "--env staging app-name --dryRun",
+            brief: "Validate deployment without applying changes"
+        }
+    ]
 }
 ```
 
-### Aliases
+### Flag Aliases
 
-Define short aliases for flag names in the `aliases` field:
+Flag aliases live under `parameters.aliases`.
 
 ```typescript
 parameters: {
     flags: {
         verbose: {
             kind: "boolean",
-            brief: "Verbose output"
-        },
-        output: {
-            kind: "parsed",
-            parse: String,
-            brief: "Output file"
+            brief: "Verbose output",
+            optional: true
         }
     },
     aliases: {
-        v: "verbose",
-        o: "output"
+        V: "verbose"
     }
 }
 ```
 
-Usage: `-v` maps to `--verbose`, `-o` maps to `--output`
+Notes:
 
-### Command Example
+- aliases are single characters
+- `-h` is reserved for help
+- `-H` is reserved for help-all
+- `-v` is reserved for version when `versionInfo` is configured
 
-```typescript
-import { buildCommand } from "@stricli/core";
+## `buildRouteMap`
 
-export interface DeployFlags {
-    readonly env: "dev" | "staging" | "prod";
-    readonly dryRun: boolean;
-}
+`buildRouteMap()` groups commands and nested route maps.
 
-export const deploy = buildCommand({
-    docs: {
-        brief: "Deploy application",
-        description: "Deploys the application to the specified environment"
-    },
-    parameters: {
-        flags: {
-            env: {
-                kind: "enum",
-                values: ["dev", "staging", "prod"],
-                brief: "Target environment",
-                default: "dev"
-            },
-            dryRun: {
-                kind: "boolean",
-                brief: "Simulate deployment without making changes",
-                default: false
-            }
-        },
-        aliases: {
-            e: "env",
-            d: "dryRun"
-        }
-    },
-    async func(flags) {
-        console.log(`Deploying to ${flags.env}...`);
-        if (flags.dryRun) {
-            console.log("(dry run mode)");
-        }
-        // Deployment logic
-    }
-});
-```
+Route maps currently accept:
 
-## buildRouteMap
-
-Organizes multiple commands or nested route maps into a hierarchical structure.
-
-```typescript
-function buildRouteMap<Context>(
-    config: RouteMapConfig<Context>
-): RouteMap<Context>
-```
-
-### RouteMapConfig Interface
-
-```typescript
-interface RouteMapConfig<Context> {
-    routes: {
-        [routeName: string]:
-            | Command<any, any, Context>
-            | RouteMap<Context>
-            | LazyRouteMap<Context>;
-    };
-    docs?: {
-        brief?: string;
-        description?: string;
-    };
-}
-```
+- `routes` - required mapping of route names to commands or route maps
+- `docs` - required route-map documentation
+- `aliases` - optional route aliases
+- `defaultCommand` - optional fallback command route
 
 ### Basic Example
 
 ```typescript
 import { buildRouteMap } from "@stricli/core";
+import { createCommand } from "./create";
+import { listCommand } from "./list";
 
-export const dbRoutes = buildRouteMap({
+export const projectRoutes = buildRouteMap({
     routes: {
-        migrate: migrateCommand,
-        seed: seedCommand,
-        reset: resetCommand,
-        backup: backupCommand
+        create: createCommand,
+        list: listCommand
     },
     docs: {
-        brief: "Database operations",
-        description: "Manage database migrations, seeding, and backups"
+        brief: "Manage projects"
     }
 });
 ```
 
-Usage: `my-cli db migrate`, `my-cli db seed`
-
-### Nested Routes
-
-Route maps can be nested for deep command hierarchies:
+### Nested Route Maps
 
 ```typescript
-const projectRoutes = buildRouteMap({
-    routes: {
-        create: createProjectCommand,
-        delete: deleteProjectCommand,
-        list: listProjectsCommand
-    },
-    docs: { brief: "Manage projects" }
-});
-
 const taskRoutes = buildRouteMap({
     routes: {
         add: addTaskCommand,
-        complete: completeTaskCommand
+        done: doneTaskCommand
     },
-    docs: { brief: "Manage tasks" }
+    docs: {
+        brief: "Manage tasks"
+    }
 });
 
-const rootRoutes = buildRouteMap({
+export const rootRoutes = buildRouteMap({
     routes: {
         project: projectRoutes,
         task: taskRoutes
+    },
+    docs: {
+        brief: "Project management CLI"
     }
 });
 ```
 
-Usage:
-- `my-cli project create myapp`
-- `my-cli task add "Write docs"`
-
-### Lazy Loading
-
-Improve startup time by loading commands only when needed:
+### Route Aliases
 
 ```typescript
-const routes = buildRouteMap({
+export const routes = buildRouteMap({
     routes: {
-        // Eagerly loaded (imported immediately)
-        quick: quickCommand,
-
-        // Lazy loaded (imported only when invoked)
-        analyze: {
-            lazy: async () => {
-                const { analyzeCommand } = await import("./commands/analyze");
-                return analyzeCommand;
-            },
-            brief: "Analyze code complexity"
-        },
-
-        bundle: {
-            lazy: async () => {
-                const { bundleCommand } = await import("./commands/bundle");
-                return bundleCommand;
-            },
-            brief: "Bundle application"
-        }
+        remove: removeCommand,
+        list: listCommand
+    },
+    aliases: {
+        rm: "remove",
+        ls: "list"
+    },
+    docs: {
+        brief: "Manage records"
     }
 });
 ```
 
-**Benefits:**
-- Faster CLI startup for common commands
-- Reduced memory usage
-- Ideal for commands with heavy dependencies
+### `defaultCommand`
 
-**When to use lazy loading:**
-- Commands with large dependencies (bundlers, analyzers)
-- CLIs with many commands where users typically use only a few
-- Commands with expensive initialization
-
-## buildApplication
-
-Wraps a command or route map into an executable application.
+Use `defaultCommand` when navigating to a route map should run one specific command instead of printing help.
 
 ```typescript
-function buildApplication<Context>(
-    config: ApplicationConfig<Context>
-): Application<Context>
+export const routes = buildRouteMap({
+    routes: {
+        old: oldCommand,
+        modern: modernCommand
+    },
+    defaultCommand: "old",
+    docs: {
+        brief: "Migration commands"
+    }
+});
 ```
 
-### ApplicationConfig Interface
+### Route-Map Documentation
+
+Current route-map docs support:
+
+- `brief` - required
+- `fullDescription` - optional multi-line help text
+- `hideRoute` - optional per-route hiding from normal help output
 
 ```typescript
-interface ApplicationConfig<Context> {
-    name: string;                    // CLI name (used in help text)
-    version: string;                 // Version string
-    description?: string;            // App description
-    command: Command | RouteMap;     // Root command or route map
-    versionFlags?: string[];         // Custom version flags (default: ["version"])
-    helpFlags?: string[];            // Custom help flags (default: ["help"])
-    versionInfo?: {
-        currentVersion: string;      // Current version (overrides version)
-        upgradeVersion?: string;     // Available version for update notifications
-    };
-    scanner?: {
-        caseStyle?: "allow-kebab-for-camel";  // Allow --my-flag for myFlag
-    };
+docs: {
+    brief: "Application commands",
+    fullDescription: "Additional details about the command tree.",
+    hideRoute: {
+        install: true,
+        uninstall: true
+    }
 }
 ```
 
-### Basic Example
+## `buildApplication`
+
+Current public API takes the root target first, then configuration:
+
+```typescript
+buildApplication(rootCommandOrRouteMap, config)
+```
+
+Do not use the older object form `buildApplication({ command, name, version })` — it was replaced by the positional-first-argument API shown here.
+
+### Single Command
 
 ```typescript
 import { buildApplication } from "@stricli/core";
-import { name, version, description } from "../package.json";
-import { rootRoutes } from "./routes";
+import { version } from "../package.json";
+import { echoCommand } from "./commands/echo";
 
-export const app = buildApplication({
-    name,
-    version,
-    description,
-    command: rootRoutes
-});
-```
-
-### Custom Flags
-
-```typescript
-export const app = buildApplication({
+export const app = buildApplication(echoCommand, {
     name: "my-cli",
-    version: "1.0.0",
-    command: rootRoutes,
-    versionFlags: ["version", "v"],      // Allow both --version and -v
-    helpFlags: ["help", "h", "?"]        // Allow --help, -h, and -?
-});
-```
-
-### Version Info with Upgrades
-
-Display update notifications when a newer version is available:
-
-```typescript
-export const app = buildApplication({
-    name: "my-cli",
-    version: "1.0.0",
-    command: rootRoutes,
     versionInfo: {
-        currentVersion: "1.0.0",
-        upgradeVersion: "2.0.0"    // Shows "Update available: 2.0.0"
+        currentVersion: version
     }
 });
 ```
 
-### Scanner Configuration
-
-#### Case Style: Kebab to Camel Conversion
-
-Allow kebab-case flags to map to camelCase parameter names:
+### Route Map
 
 ```typescript
-export const app = buildApplication({
+import { buildApplication } from "@stricli/core";
+import { version } from "../package.json";
+import { rootRoutes } from "./routes";
+
+export const app = buildApplication(rootRoutes, {
     name: "my-cli",
-    version: "1.0.0",
-    command: rootRoutes,
+    versionInfo: {
+        currentVersion: version
+    },
     scanner: {
         caseStyle: "allow-kebab-for-camel"
     }
 });
 ```
 
-With this configuration:
-- `--dry-run` maps to `dryRun`
-- `--api-key` maps to `apiKey`
-- `--max-retries` maps to `maxRetries`
+### Useful Application Config
 
-**Example:**
+- `name` - required CLI name
+- `versionInfo` - enables `--version` and version awareness
+- `scanner` - input scanning config such as `caseStyle`
+- `documentation` - help text formatting config
+- `completion` - completion proposal config
+- `localization` - localized text config (rarely used; consult upstream docs if needed)
+- `determineExitCode` - custom error-to-exit-code mapping
 
-```typescript
-// Define command with camelCase flags
-const command = buildCommand({
-    parameters: {
-        flags: {
-            dryRun: {
-                kind: "boolean",
-                brief: "Simulate without making changes"
-            },
-            apiKey: {
-                kind: "parsed",
-                parse: String,
-                brief: "API key"
-            }
-        }
-    },
-    func(flags) {
-        console.log(flags.dryRun, flags.apiKey);
-    }
-});
+## `run`
 
-// Users can use kebab-case
-// $ my-cli --dry-run --api-key abc123
-```
-
-**Note:** This is a scanner-level setting and affects all commands in the application.
-
-## run
-
-Executes an application with provided arguments and context.
-
-```typescript
-async function run<Context>(
-    app: Application<Context>,
-    args: string[],
-    context?: Context
-): Promise<void>
-```
-
-### Parameters
-
-- **app** - Application built with `buildApplication`
-- **args** - Array of CLI arguments (typically `process.argv.slice(2)`)
-- **context** - Optional context object passed to all commands
-
-### Basic Usage
+`run()` executes an already-built application:
 
 ```typescript
 import { run } from "@stricli/core";
 import { app } from "./app";
 
-await run(app, process.argv.slice(2));
+await run(app, process.argv.slice(2), { process });
 ```
+
+Important details:
+
+- `inputs` should already be tokenized, like `process.argv.slice(2)`
+- current public API expects a runtime context object
+- in Node-compatible environments, `{ process }` is the normal starting point
 
 ### With Custom Context
 
 ```typescript
-import { run } from "@stricli/core";
-import { app } from "./app";
+interface AppContext extends CommandContext {
+    readonly process: typeof process;
+    readonly config: AppConfig;
+    readonly logger: Logger;
+}
 
-const context = {
+const context: AppContext = {
+    process,
     config: loadConfig(),
-    logger: createLogger(),
-    db: await connectDatabase()
+    logger: createLogger()
 };
 
 await run(app, process.argv.slice(2), context);
 ```
 
-### Programmatic Usage
-
-You can invoke the CLI programmatically with custom arguments:
+### Programmatic Testing
 
 ```typescript
-import { run } from "@stricli/core";
-import { app } from "./app";
-
-// Invoke with custom args
-await run(app, ["project", "create", "--name", "my-project"]);
-
-// Test different scenarios
-await run(app, ["--version"]);
-await run(app, ["--help"]);
+await run(app, ["project", "create", "demo"], testContext);
+await run(app, ["--help"], testContext);
+await run(app, ["--version"], testContext);
 ```
 
-## Multi-Runtime Support
+## Built-In Help and Version Behavior
 
-Stricli works with Node.js, Bun, and Deno:
+- `--help` is built in
+- `--helpAll` is built in and reveals hidden flags and routes
+- `--version` is built in only when `versionInfo` is configured
 
-**Node.js:**
-```typescript
-import { run } from "@stricli/core";
-await run(app, process.argv.slice(2));
-```
+## Runtime Notes
 
-**Bun:**
-```typescript
-import { run } from "@stricli/core";
-await run(app, process.argv.slice(2));
-```
-
-**Deno:**
-```typescript
-import { run } from "@stricli/core";
-await run(app, Deno.args);
-```
-
-## Built-in Features
-
-### Automatic Help
-
-Stricli generates help text from `docs.brief` and `docs.description`:
-
-```bash
-my-cli --help                # Show root help
-my-cli command --help        # Show command help
-my-cli db --help            # Show route map help
-```
-
-### Version Display
-
-```bash
-my-cli --version            # Show version
-my-cli -v                   # If configured with versionFlags: ["version", "v"]
-```
-
-### Error Messages
-
-Stricli provides clear error messages:
-
-```bash
-# Unknown command
-$ my-cli unknown
-Error: Unknown command: unknown
-
-# Unknown flag
-$ my-cli --invalid
-Error: Unknown flag: --invalid
-
-# Missing required positional
-$ my-cli copy file.txt
-Error: Missing required argument: <DEST>
-
-# Too many arguments
-$ my-cli deploy extra
-Error: Unexpected argument: extra
-```
+- Official quick start and generator are Node/npm oriented
+- `pnpm` and `bun` work fine for package installation and script execution in many setups
+- Keep package-manager examples flexible, but default to `npm` when following upstream guidance

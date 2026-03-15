@@ -1,532 +1,212 @@
 # Stricli Examples
 
-Complete working examples demonstrating common Stricli patterns.
+Patterns that complement the reference files. For parsers, context, routing, and auto-complete, see the dedicated reference files — this page covers composite scenarios and patterns not shown elsewhere.
 
-## Example 1: Custom Parsers
+## Variadic Flags
 
-Advanced parsing with validation.
-
-### URL Parser with Validation
+Variadic flags collect multiple values into an array. Use `variadic: true` for repeated flags or a separator string like `variadic: ","` for comma-delimited input.
 
 ```typescript
 import { buildCommand } from "@stricli/core";
 
-const urlParser = (input: string): URL => {
-    try {
-        const url = new URL(input);
-
-        // Validate protocol
-        if (!["http:", "https:"].includes(url.protocol)) {
-            throw new Error("URL must use HTTP or HTTPS protocol");
-        }
-
-        return url;
-    } catch (error) {
-        if (error instanceof TypeError) {
-            throw new Error(`Invalid URL: ${input}`);
-        }
-        throw error;
-    }
-};
-
-export const fetch = buildCommand({
-    docs: {
-        brief: "Fetch data from URL"
-    },
-    parameters: {
-        flags: {
-            url: {
-                kind: "parsed",
-                parse: urlParser,
-                brief: "URL to fetch",
-                placeholder: "URL"
-            }
-        }
-    },
-    async func(flags) {
-        if (!flags.url) {
-            throw new Error("--url is required");
-        }
-
-        console.log(`Fetching ${flags.url.href}...`);
-        // Fetch logic here
-    }
-});
-```
-
-### Date Range Parser
-
-```typescript
-interface DateRange {
-    start: Date;
-    end: Date;
+interface Flags {
+    readonly include?: readonly string[];
+    readonly exclude?: readonly string[];
 }
 
-const dateRangeParser = (input: string): DateRange => {
-    const [startStr, endStr] = input.split("..");
-
-    if (!startStr || !endStr) {
-        throw new Error(
-            `Invalid date range format. Use: YYYY-MM-DD..YYYY-MM-DD`
-        );
-    }
-
-    const start = new Date(startStr);
-    const end = new Date(endStr);
-
-    if (Number.isNaN(start.getTime())) {
-        throw new Error(`Invalid start date: ${startStr}`);
-    }
-    if (Number.isNaN(end.getTime())) {
-        throw new Error(`Invalid end date: ${endStr}`);
-    }
-    if (start > end) {
-        throw new Error("Start date must be before end date");
-    }
-
-    return { start, end };
-};
-
-export const report = buildCommand({
+export const buildFilesCommand = buildCommand({
     docs: {
-        brief: "Generate report for date range"
-    },
-    parameters: {
-        flags: {
-            range: {
-                kind: "parsed",
-                parse: dateRangeParser,
-                brief: "Date range (YYYY-MM-DD..YYYY-MM-DD)",
-                placeholder: "RANGE"
-            }
-        }
-    },
-    func(flags) {
-        if (!flags.range) {
-            throw new Error("--range is required");
-        }
-
-        console.log(`Generating report from ${flags.range.start} to ${flags.range.end}`);
-    }
-});
-```
-
-### File Path Parser with Existence Check
-
-```typescript
-import { resolve } from "node:path";
-import { access, constants } from "node:fs/promises";
-
-// Note: Stricli doesn't natively support async parsers
-// Validate inside the func instead:
-
-export const process = buildCommand({
-    docs: {
-        brief: "Process a file"
-    },
-    parameters: {
-        flags: {
-            file: {
-                kind: "parsed",
-                parse: String,
-                brief: "File path",
-                placeholder: "PATH"
-            }
-        }
-    },
-    async func(flags) {
-        if (!flags.file) {
-            throw new Error("--file is required");
-        }
-
-        // Validate file exists and is readable
-        const path = resolve(flags.file);
-        try {
-            await access(path, constants.R_OK);
-        } catch {
-            throw new Error(`File not readable: ${flags.file}`);
-        }
-
-        console.log(`Processing ${path}...`);
-        // Process file
-    }
-});
-```
-
-## Example 2: Variadic Flags and Array Positionals
-
-Handling multiple values.
-
-### Variadic Flags
-
-```typescript
-import { buildCommand } from "@stricli/core";
-
-export interface BuildFlags {
-    readonly include: readonly string[];
-    readonly exclude: readonly string[];
-    readonly env: readonly string[];
-}
-
-export const build = buildCommand({
-    docs: {
-        brief: "Build the project",
-        description: "Builds the project with specified includes, excludes, and environment variables"
+        brief: "Build with include and exclude filters"
     },
     parameters: {
         flags: {
             include: {
-                kind: "variadic",
+                kind: "parsed",
                 parse: String,
-                brief: "Directories to include in build",
-                default: [],
-                placeholder: "DIR"
+                brief: "Path(s) to include",
+                optional: true,
+                variadic: true
             },
             exclude: {
-                kind: "variadic",
+                kind: "parsed",
                 parse: String,
-                brief: "Patterns to exclude from build",
-                default: [],
-                placeholder: "PATTERN"
-            },
-            env: {
-                kind: "variadic",
-                parse: String,
-                brief: "Environment variables (KEY=VALUE)",
-                default: [],
-                placeholder: "VAR"
+                brief: "Glob(s) to exclude",
+                optional: true,
+                variadic: ","
             }
         }
     },
-    func(flags) {
-        console.log("Building project...\n");
-
-        if (flags.include.length > 0) {
-            console.log("Including:");
-            for (const dir of flags.include) {
-                console.log(`  • ${dir}`);
-            }
-            console.log();
-        }
-
-        if (flags.exclude.length > 0) {
-            console.log("Excluding:");
-            for (const pattern of flags.exclude) {
-                console.log(`  • ${pattern}`);
-            }
-            console.log();
-        }
-
-        if (flags.env.length > 0) {
-            console.log("Environment:");
-            for (const envVar of flags.env) {
-                console.log(`  • ${envVar}`);
-            }
-            console.log();
-        }
-
-        console.log("✓ Build complete");
+    func(this, flags: Flags) {
+        this.process.stdout.write(
+            JSON.stringify(
+                {
+                    include: flags.include ?? [],
+                    exclude: flags.exclude ?? []
+                },
+                null,
+                2
+            ) + "\n"
+        );
     }
 });
 ```
 
-**Usage:**
+Usage:
 
 ```bash
-build --include src --include lib --exclude "**/*.test.ts" --env NODE_ENV=production --env API_KEY=xyz
+my-cli --include src --include test --exclude "*.spec.ts,*.test.ts"
 ```
 
-### Array Positionals
+## Multi-Command Application with Aliases
+
+Combines `buildRouteMap` aliases, scanner case style, and version info into a realistic application entry point.
 
 ```typescript
-import { buildCommand } from "@stricli/core";
+import { buildApplication, buildRouteMap } from "@stricli/core";
+import { version } from "../package.json";
+import { createCommand } from "./commands/create";
+import { listCommand } from "./commands/list";
+import { removeCommand } from "./commands/remove";
 
-export const concat = buildCommand({
+const projectRoutes = buildRouteMap({
+    routes: {
+        create: createCommand,
+        list: listCommand,
+        remove: removeCommand
+    },
+    aliases: {
+        ls: "list",
+        rm: "remove"
+    },
     docs: {
-        brief: "Concatenate multiple files",
-        description: "Reads multiple files and concatenates them into one output file"
+        brief: "Manage projects"
+    }
+});
+
+export const app = buildApplication(projectRoutes, {
+    name: "pm",
+    versionInfo: {
+        currentVersion: version
+    },
+    scanner: {
+        caseStyle: "allow-kebab-for-camel"
+    }
+});
+```
+
+Usage:
+
+```bash
+pm create my-app
+pm ls
+pm rm my-app
+pm --version
+```
+
+## End-to-End: Command with Custom Context and Testing
+
+Shows the full lifecycle — command definition, application wiring, context setup, and tests — in one place. Individual pieces are covered in more detail in [Context](context.md) and [Commands, Routing, and Applications](routing.md).
+
+### Command
+
+```typescript
+// src/commands/deploy.ts
+import { buildCommand, type CommandContext } from "@stricli/core";
+
+interface DeployContext extends CommandContext {
+    readonly logger: Logger;
+    readonly deployer: Deployer;
+}
+
+interface DeployFlags {
+    readonly dryRun?: boolean;
+}
+
+export const deployCommand = buildCommand<DeployFlags, [env: string], DeployContext>({
+    docs: {
+        brief: "Deploy to an environment"
     },
     parameters: {
         flags: {
-            output: {
-                kind: "parsed",
-                parse: String,
-                brief: "Output file path",
-                placeholder: "FILE"
+            dryRun: {
+                kind: "boolean",
+                brief: "Preview without applying",
+                optional: true
             }
         },
         positional: {
-            kind: "array",
-            parameter: {
-                brief: "Input files to concatenate",
-                parse: String,
-                placeholder: "FILE"
-            }
+            kind: "tuple",
+            parameters: [
+                {
+                    brief: "Target environment",
+                    parse: String,
+                    placeholder: "env"
+                }
+            ]
         }
     },
-    async func(flags, inputFiles) {
-        if (!flags.output) {
-            throw new Error("--output is required");
+    async func(this, flags, env) {
+        this.logger.info(`Deploying to ${env}`);
+        if (!flags.dryRun) {
+            await this.deployer.deploy(env);
         }
-
-        if (inputFiles.length === 0) {
-            throw new Error("At least one input file is required");
-        }
-
-        console.log(`Concatenating ${inputFiles.length} file(s)...`);
-
-        for (const file of inputFiles) {
-            console.log(`  • ${file}`);
-        }
-
-        // Concatenation logic here
-        console.log(`\n✓ Written to ${flags.output}`);
+        this.process.stdout.write(`Done (dry=${!!flags.dryRun})\n`);
     }
 });
 ```
 
-**Usage:**
-
-```bash
-concat --output combined.txt file1.txt file2.txt file3.txt
-```
-
-## Example 3: Lazy Loading for Large CLIs
-
-Improve startup time by lazy-loading heavy commands.
-
-### src/routes/index.ts
+### Application
 
 ```typescript
-import { buildRouteMap } from "@stricli/core";
-import { quickCommand } from "../commands/quick";
+// src/app.ts
+import { buildApplication } from "@stricli/core";
+import { version } from "../package.json";
+import { deployCommand } from "./commands/deploy";
 
-export const routes = buildRouteMap({
-    routes: {
-        // Eagerly loaded (fast, small)
-        quick: quickCommand,
-
-        // Lazy loaded (slow, large dependencies)
-        analyze: {
-            lazy: async () => {
-                const { analyzeCommand } = await import("../commands/analyze");
-                return analyzeCommand;
-            },
-            brief: "Analyze code complexity"
-        },
-
-        bundle: {
-            lazy: async () => {
-                const { bundleCommand } = await import("../commands/bundle");
-                return bundleCommand;
-            },
-            brief: "Bundle application"
-        },
-
-        deploy: {
-            lazy: async () => {
-                const { deployCommand } = await import("../commands/deploy");
-                return deployCommand;
-            },
-            brief: "Deploy to production"
-        }
-    }
+export const app = buildApplication(deployCommand, {
+    name: "deploy-cli",
+    versionInfo: { currentVersion: version }
 });
 ```
 
-This pattern is especially useful when:
-- Some commands import heavy dependencies (bundlers, analyzers, etc.)
-- You want fast startup for common commands
-- The CLI has many commands but users typically use only a few
-
-## Example 4: Testing Commands
-
-Commands are pure functions that are easy to test.
-
-### test/greet.test.ts
+### Entry point
 
 ```typescript
-import { test, expect } from "vitest";
-import { greet } from "../src/commands/greet";
+// src/index.ts
+import { run } from "@stricli/core";
+import { app } from "./app";
 
-test("greet with default name", () => {
-    const output: string[] = [];
-    const mockConsole = {
-        log: (msg: string) => output.push(msg)
-    };
-
-    greet.func.call(
-        { console: mockConsole },
-        { name: "World", shout: false },
-        undefined,
-        undefined
-    );
-
-    expect(output).toEqual(["Hello, World!"]);
-});
-
-test("greet with custom name", () => {
-    const output: string[] = [];
-    const mockConsole = {
-        log: (msg: string) => output.push(msg)
-    };
-
-    greet.func.call(
-        { console: mockConsole },
-        { name: "Alice", shout: false },
-        undefined,
-        undefined
-    );
-
-    expect(output).toEqual(["Hello, Alice!"]);
-});
-
-test("greet with shout enabled", () => {
-    const output: string[] = [];
-    const mockConsole = {
-        log: (msg: string) => output.push(msg)
-    };
-
-    greet.func.call(
-        { console: mockConsole },
-        { name: "Bob", shout: true },
-        undefined,
-        undefined
-    );
-
-    expect(output).toEqual(["HELLO, BOB!"]);
+await run(app, process.argv.slice(2), {
+    process,
+    logger: createLogger(),
+    deployer: createDeployer()
 });
 ```
 
-### Testing with Context
+### Test
 
 ```typescript
-import { test, expect } from "vitest";
-import { createProject } from "../src/commands/project/create";
-import type { AppContext } from "../src/context";
+import { run } from "@stricli/core";
+import { app } from "../src/app";
 
-test("create project", () => {
-    const context: AppContext = {
-        db: {
-            projects: new Map(),
-            tasks: new Map()
+function buildContextForTest() {
+    let out = "";
+    let err = "";
+    return {
+        process: {
+            stdout: { write: (s: string) => { out += s; return true; } },
+            stderr: { write: (s: string) => { err += s; return true; } }
         },
-        configPath: ".test-config.json"
+        logger: { info: () => {} },
+        deployer: { deploy: async () => {} },
+        get stdout() { return out; },
+        get stderr() { return err; }
     };
+}
 
-    const output: string[] = [];
-    const mockConsole = {
-        log: (msg: string) => output.push(msg)
-    };
-
-    createProject.func.call(
-        { console: mockConsole },
-        { name: "Test Project", description: "Test description" },
-        undefined,
-        context
-    );
-
-    // Verify project was created
-    expect(context.db.projects.size).toBe(1);
-
-    const project = Array.from(context.db.projects.values())[0];
-    expect(project.name).toBe("Test Project");
-    expect(project.description).toBe("Test description");
-
-    // Verify output
-    expect(output[0]).toContain("Created project: Test Project");
+it("deploys in dry-run mode", async () => {
+    const ctx = buildContextForTest();
+    await run(app, ["--dryRun", "staging"], ctx);
+    expect(ctx.stdout).toContain("dry=true");
 });
 ```
-
-## Example 5: Integration with Existing Tools
-
-Using Stricli as a wrapper for existing tools.
-
-### Git Wrapper
-
-```typescript
-import { buildCommand, buildRouteMap } from "@stricli/core";
-import { execSync } from "node:child_process";
-
-const commitCommand = buildCommand({
-    docs: {
-        brief: "Create a git commit"
-    },
-    parameters: {
-        flags: {
-            message: {
-                kind: "parsed",
-                parse: String,
-                brief: "Commit message",
-                placeholder: "MESSAGE"
-            },
-            all: {
-                kind: "boolean",
-                brief: "Automatically stage all modified files",
-                default: false
-            }
-        },
-        aliases: {
-            m: "message",
-            a: "all"
-        }
-    },
-    func(flags) {
-        if (!flags.message) {
-            throw new Error("Commit message is required (--message)");
-        }
-
-        const args = ["git", "commit"];
-
-        if (flags.all) {
-            args.push("--all");
-        }
-
-        args.push("--message", flags.message);
-
-        execSync(args.join(" "), { stdio: "inherit" });
-        console.log("✓ Commit created");
-    }
-});
-
-const pushCommand = buildCommand({
-    docs: {
-        brief: "Push commits to remote"
-    },
-    parameters: {
-        flags: {
-            force: {
-                kind: "boolean",
-                brief: "Force push",
-                default: false
-            }
-        }
-    },
-    func(flags) {
-        const args = ["git", "push"];
-
-        if (flags.force) {
-            args.push("--force");
-        }
-
-        execSync(args.join(" "), { stdio: "inherit" });
-        console.log("✓ Pushed to remote");
-    }
-});
-
-export const gitRoutes = buildRouteMap({
-    routes: {
-        commit: commitCommand,
-        push: pushCommand
-    },
-    docs: {
-        brief: "Git operations"
-    }
-});
-```
-
-This pattern works well for:
-- Creating type-safe wrappers around CLI tools
-- Adding validation before calling external commands
-- Providing better error messages and help text
-- Composing multiple tool calls into workflows

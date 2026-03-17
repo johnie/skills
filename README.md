@@ -1,10 +1,20 @@
 # Skills
 
-Production-ready AI agent skills for development workflows. Each skill is a specialized prompt template that teaches AI agents domain-specific workflows and best practices.
+Opinionated dev workflows — commits, PRs, TypeScript, CLIs, and more. Each skill is a specialized prompt template that teaches AI agents domain-specific workflows and best practices.
 
 ## Installation
 
-Install skills for your AI agent using the [skills.sh](https://skills.sh/) CLI:
+### Claude Code Marketplace (recommended)
+
+```bash
+# Register the marketplace
+/plugin marketplace add johnie/skills
+
+# Install all skills
+/plugin install skills@johnie
+```
+
+### Alternative: skills.sh CLI
 
 ```bash
 # Install all skills

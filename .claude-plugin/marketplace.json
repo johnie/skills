@@ -1,0 +1,19 @@
+{
+  "name": "johnie",
+  "plugins": [
+    {
+      "name": "skills",
+      "description": "Opinionated dev workflows — commits, PRs, TypeScript, CLIs, and more.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/commit",
+        "./skills/extract-spark-meetings",
+        "./skills/pr",
+        "./skills/stricli",
+        "./skills/typescript-engineer",
+        "./skills/wp-cli"
+      ]
+    }
+  ]
+}

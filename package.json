@@ -2,29 +2,7 @@
   "name": "@johnie/skills",
   "version": "0.0.1",
   "type": "module",
-  "publishConfig": {
-    "access": "public"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.4.6",
-    "@types/bun": "latest",
-    "@types/prompts": "^2.4.9",
-    "autoevals": "^0.0.132",
-    "evalite": "^0.19.0",
-    "lefthook": "^2.1.3",
-    "remark": "^15.0.1",
-    "remark-frontmatter": "^5.0.0",
-    "remark-lint": "^10.0.1",
-    "ultracite": "7.2.5",
-    "unified": "^11.0.5",
-    "vitest": "^4.0.18",
-    "yaml": "^2.8.2"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
   "scripts": {
-    "prepare": "lefthook install",
     "skills": "bun cli/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -32,13 +10,32 @@
     "test:integration": "vitest run test/integration",
     "eval": "evalite run",
     "eval:watch": "evalite watch",
-    "eval:ui": "evalite serve"
+    "eval:ui": "evalite serve",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.10",
+    "@types/bun": "latest",
+    "@types/prompts": "^2.4.9",
+    "autoevals": "^0.0.132",
+    "evalite": "^0.19.0",
+    "lefthook": "^2.1.4",
+    "remark": "^15.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-lint": "^10.0.1",
+    "ultracite": "7.4.2",
+    "unified": "^11.0.5",
+    "vitest": "^4.1.2",
+    "yaml": "^2.8.3"
+  },
+  "peerDependencies": {
+    "typescript": "^6"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^2.0.35",
-    "@openrouter/ai-sdk-provider": "^2.2.5",
+    "@ai-sdk/openai-compatible": "^2.0.37",
+    "@openrouter/ai-sdk-provider": "^2.3.3",
     "@stricli/core": "^1.2.6",
-    "ai": "^6.0.116",
+    "ai": "^6.0.142",
     "kleur": "^4.1.5",
     "prompts": "^2.4.2"
   }

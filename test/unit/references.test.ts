@@ -38,6 +38,27 @@ function extractLinks(ast: Root): Link[] {
   return links;
 }
 
+const REFERENCES_PATH_RE = /^references\/\S+/;
+
+/**
+ * Extract file paths from inline code nodes (e.g. `references/foo.md`)
+ */
+function extractInlineCodeReferences(ast: Root): string[] {
+  const refs: string[] = [];
+  function visit(node: any) {
+    if (node.type === "inlineCode" && REFERENCES_PATH_RE.test(node.value)) {
+      refs.push(node.value);
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        visit(child);
+      }
+    }
+  }
+  visit(ast);
+  return refs;
+}
+
 /**
  * Check if a URL is external (http/https)
  */
@@ -46,13 +67,14 @@ function isExternalUrl(url: string): boolean {
 }
 
 /**
- * Get all local file references from links
+ * Get all local file references from links and inline code
  */
-function getLocalFileReferences(links: Link[]): string[] {
-  return links
+function getLocalFileReferences(links: Link[], inlineRefs: string[]): string[] {
+  const fromLinks = links
     .map((link) => link.url)
     .filter((url) => !isExternalUrl(url))
     .filter((url) => !url.startsWith("#")); // Skip anchor links
+  return [...new Set([...fromLinks, ...inlineRefs])];
 }
 
 /**
@@ -102,7 +124,8 @@ describe("Reference Validation", () => {
           ast = parseMarkdown(content);
         }
         const links = extractLinks(ast);
-        localRefs = getLocalFileReferences(links);
+        const inlineRefs = extractInlineCodeReferences(ast);
+        localRefs = getLocalFileReferences(links, inlineRefs);
 
         const missingFiles: string[] = [];
         for (const ref of localRefs) {
@@ -127,7 +150,8 @@ describe("Reference Validation", () => {
             ast = parseMarkdown(content);
           }
           const links = extractLinks(ast);
-          localRefs = getLocalFileReferences(links);
+          const inlineRefs = extractInlineCodeReferences(ast);
+          localRefs = getLocalFileReferences(links, inlineRefs);
         }
 
         const referencesFiles = getReferencesFiles(skillPath);

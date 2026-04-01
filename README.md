@@ -98,6 +98,46 @@ Create, update, and review GitHub PRs with structured templates and comprehensiv
 </details>
 
 <details>
+<summary><b>/gh-logs</b> - GitHub Actions log analysis</summary>
+
+<br>
+
+Fetch and analyze GitHub Actions logs via `gh` CLI. Diagnoses CI failures, detects flaky tests, profiles slow steps, and suggests fixes. Stop clicking through the web UI — the terminal is faster, searchable, and doesn't crash on large output.
+
+**Features:**
+- Automatic failure diagnosis with root cause analysis
+- Flaky test detection by comparing recent runs
+- Step timing profiling to find bottlenecks
+- Failure history and trend analysis
+- Real-time workflow monitoring
+- Pattern matching against 80+ known failure signatures
+
+**Commands:**
+- `/gh-logs` - Auto-detect repo + branch, diagnose latest failure
+- `/gh-logs <run-id>` - Analyze a specific run
+- `/gh-logs --flaky` - Detect flaky tests across recent runs
+- `/gh-logs --slow` - Profile step timing, find bottlenecks
+- `/gh-logs --history [n]` - Analyze last n failures (default 10)
+- `/gh-logs --watch` - Monitor a running workflow in real time
+
+**Failure Categories:**
+- Test failures (Jest, Vitest, pytest, Go, Rust)
+- Build errors (TypeScript, Webpack, esbuild, Docker)
+- Dependency issues (npm, pip, Docker registry)
+- Infrastructure (OOM, disk, runner shutdown, network)
+- Lint/format violations
+- Auth/permission failures
+- Timeouts and stuck steps
+
+**Output:**
+- Structured diagnosis with category, root cause, log excerpt, and actionable fix
+- Flaky test reports with pass/fail ratios and stabilization suggestions
+- Step timing tables sorted by duration with optimization advice
+- Failure trend analysis with recurring pattern detection
+
+</details>
+
+<details>
 <summary><b>/stricli</b> - TypeScript CLI framework expertise</summary>
 
 <br>

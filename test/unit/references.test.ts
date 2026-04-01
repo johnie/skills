@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { Link, Root } from "mdast";
 import { remark } from "remark";
@@ -39,6 +39,7 @@ function extractLinks(ast: Root): Link[] {
 }
 
 const REFERENCES_PATH_RE = /^references\/\S+/;
+const WHITESPACE_RE = /\s+/;
 
 /**
  * Extract file paths from inline code nodes (e.g. `references/foo.md`)
@@ -178,6 +179,36 @@ describe("Reference Validation", () => {
         }
 
         // Test always passes, this is just a warning
+        expect(true).toBe(true);
+      });
+
+      test("reference files are reasonably sized", () => {
+        const referencesFiles = getReferencesFiles(skillPath);
+        if (referencesFiles.length === 0) {
+          return;
+        }
+
+        const referencesPath = join(skillPath, "references");
+        for (const file of referencesFiles) {
+          const fullPath = join(referencesPath, file);
+          const content = readFileSync(fullPath, "utf-8");
+          const lines = content.split("\n");
+          const wordCount = content
+            .split(WHITESPACE_RE)
+            .filter((w) => w.length > 0).length;
+
+          if (lines.length > 300) {
+            console.warn(
+              `[${skillName}] references/${file} is ${lines.length} lines — consider adding a table of contents`
+            );
+          }
+          if (wordCount > 10_000) {
+            console.warn(
+              `[${skillName}] references/${file} is ${wordCount} words (recommended: <10,000)`
+            );
+          }
+        }
+
         expect(true).toBe(true);
       });
     });

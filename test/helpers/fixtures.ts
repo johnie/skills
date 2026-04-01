@@ -2,6 +2,12 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+declare global {
+  interface ImportMeta {
+    dir: string;
+  }
+}
+
 // Regex for removing .json extension from filenames
 const JSON_EXTENSION_REGEX = /\.json$/;
 

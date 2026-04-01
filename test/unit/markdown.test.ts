@@ -167,6 +167,17 @@ describe("Markdown Structure Validation", () => {
           throw new Error(result.error);
         }
       });
+
+      test("SKILL.md line count is reasonable", async () => {
+        const content = await readSkillFile(skillName);
+        const lineCount = content.split("\n").length;
+        if (lineCount > 500) {
+          console.warn(
+            `[${skillName}] SKILL.md is ${lineCount} lines (recommended: <500). Consider moving content to references/.`
+          );
+        }
+        expect(true).toBe(true);
+      });
     });
   }
 });

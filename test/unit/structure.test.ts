@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from "node:fs";
+import { accessSync, constants, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { discoverSkills, fileExists, getSkillPath } from "../helpers/skills";
@@ -67,6 +67,31 @@ describe("Directory Structure Validation", () => {
         if (disallowedDirs.length > 0) {
           throw new Error(
             `Disallowed directories found: ${disallowedDirs.join(", ")}. Only ${ALLOWED_SUBDIRS.join(", ")} are allowed.`
+          );
+        }
+      });
+
+      test("all scripts are executable", () => {
+        const scriptsPath = join(skillPath, "scripts");
+        const { files: scriptFiles } = getDirectoryEntries(scriptsPath);
+        if (scriptFiles.length === 0) {
+          return;
+        }
+
+        const nonExecutable: string[] = [];
+        for (const file of scriptFiles) {
+          const fullPath = join(scriptsPath, file);
+          try {
+            accessSync(fullPath, constants.X_OK);
+          } catch {
+            nonExecutable.push(file);
+          }
+        }
+
+        expect(nonExecutable).toEqual([]);
+        if (nonExecutable.length > 0) {
+          throw new Error(
+            `Scripts missing executable permission: ${nonExecutable.join(", ")}`
           );
         }
       });

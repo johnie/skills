@@ -4,11 +4,6 @@ import { fileURLToPath } from "node:url";
 
 // Get current directory (works in both Bun and Node/Vitest)
 const getCurrentDir = () => {
-  if (typeof import.meta.dir !== "undefined") {
-    // Bun runtime
-    return import.meta.dir;
-  }
-  // Node/Vitest runtime
   return dirname(fileURLToPath(import.meta.url));
 };
 

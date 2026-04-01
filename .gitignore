@@ -27,9 +27,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .cache
 *.tsbuildinfo
 
-# evalite storage
-evalite.db*
-
 # IntelliJ based IDEs
 .idea
 

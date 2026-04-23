@@ -11,16 +11,16 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.10",
+    "@biomejs/biome": "2.4.13",
     "@types/bun": "latest",
     "@types/prompts": "^2.4.9",
-    "lefthook": "^2.1.4",
+    "lefthook": "^2.1.6",
     "remark": "^15.0.1",
     "remark-frontmatter": "^5.0.0",
     "remark-lint": "^10.0.1",
-    "ultracite": "7.4.2",
+    "ultracite": "7.6.1",
     "unified": "^11.0.5",
-    "vitest": "^4.1.2",
+    "vitest": "^4.1.5",
     "yaml": "^2.8.3"
   },
   "peerDependencies": {

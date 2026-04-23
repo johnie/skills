@@ -39,3 +39,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # docs
 docs/testing.md
+
+# skill-creator eval workspaces (transient subagent outputs + snapshots)
+skills/*-workspace/

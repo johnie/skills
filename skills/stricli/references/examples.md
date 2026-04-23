@@ -210,3 +210,55 @@ it("deploys in dry-run mode", async () => {
     expect(ctx.stdout).toContain("dry=true");
 });
 ```
+
+## Testing Error Paths
+
+Stricli prints parameter errors to `stderr` and sets a non-zero exit code via the process context. Real users hit these paths often (forgotten flags, typos in enum values, parsers that throw on bad input) — your tests should cover them too, because the error message is the user's first contact with your CLI.
+
+### Missing required positional
+
+```typescript
+it("errors when the target env is missing", async () => {
+    const ctx = buildContextForTest();
+    await run(app, ["--dryRun"], ctx);
+    expect(ctx.stderr).toMatch(/env/i); // Stricli names the missing positional
+    // exit code is surfaced via process.exitCode on the context's process
+});
+```
+
+### Invalid enum value
+
+```typescript
+// flag: region: { kind: "enum", values: ["us", "eu"] as const }
+it("rejects an unknown region", async () => {
+    const ctx = buildContextForTest();
+    await run(app, ["--region", "apac", "staging"], ctx);
+    expect(ctx.stderr).toMatch(/region/);
+    expect(ctx.stderr).toMatch(/us|eu/);
+});
+```
+
+### Parser that throws
+
+Custom parsers should throw a descriptive `Error`; Stricli surfaces the message to the user. Verify both the failure and the message.
+
+```typescript
+const positiveIntParser = (raw: string) => {
+    const n = Number(raw);
+    if (!Number.isInteger(n) || n <= 0) {
+        throw new Error(`expected a positive integer, got "${raw}"`);
+    }
+    return n;
+};
+
+it("reports a helpful error from a custom parser", async () => {
+    const ctx = buildContextForTest();
+    await run(app, ["--retries", "-1", "staging"], ctx);
+    expect(ctx.stderr).toContain("positive integer");
+});
+```
+
+### Help / version are not errors
+
+`-h`, `--help`, `--helpAll`, and `-v`/`--version` (when `versionInfo` is configured) write to `stdout` and exit with code 0. If your tests assert error-on-any-stderr-output, carve these out.
+

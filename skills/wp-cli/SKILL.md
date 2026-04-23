@@ -1,177 +1,120 @@
 ---
 name: wp-cli
-description: WordPress CLI operations for database management, plugins, themes, users, content, and site configuration. Use for migrations, bulk updates, user audits, content imports, or any wp-cli commands.
+description: Drive WordPress from the command line via `wp` CLI — site migrations, search-replace, bulk plugin/theme/user/post operations, option and config edits, multisite management, and cron scheduling. Use whenever the user wants to do something to a WordPress site that a terminal can reach faster than wp-admin.
+allowed-tools:
+  - Bash
 ---
 
-# WP-CLI Skill
+# wp-cli
 
-Use this skill for WordPress command-line operations including migrations, bulk updates, database management, user audits, content imports, and site configuration.
+Terminal-first WordPress operations. Safer than wp-admin for bulk work, scriptable, SSH-friendly, and won't time out on 10k-row updates.
 
-## Prerequisites Check
+## When to use
 
-Always verify WP-CLI and WordPress installation before proceeding:
+- Site migration (local → staging → prod), including search-replace of URLs
+- Bulk plugin / theme / user / post / comment operations
+- Database export/import, optimization, repair
+- Reading or setting `wp_options`, config constants, or theme mods
+- Running or scheduling cron events
+- Multisite admin tasks (`wp site ...`)
+- Anything scripted or SSH-driven where clicking through wp-admin isn't viable
+
+## When NOT to use
+
+- One-off edits a content editor would do in 10 seconds in the admin UI. CLI is overkill and error-prone for single-row clicks.
+- Data transformations that span millions of rows — WP's ORM will be slow; consider a direct SQL migration with an explicit transaction.
+- Anything that needs to run inside a WordPress plugin's hook lifecycle (e.g., REST validation, custom post type registration) — that's PHP code, not CLI.
+- Destructive commands without a current backup. `wp db reset`, `wp db clean`, bulk deletes — always snapshot first.
+
+## Preflight
+
+Always verify before doing anything:
 
 ```bash
-wp --version                  # Check WP-CLI is installed
-wp core is-installed         # Verify WordPress is present
-wp core version              # Check WordPress version
+wp --version                  # wp-cli is installed
+wp core is-installed          # WordPress is actually set up at this path
+wp core version               # which WP version
 ```
 
-If working in a specific directory, use `--path=/path/to/wordpress` or `cd` to the WordPress root first.
+If not at the WordPress root, pass `--path=/path/to/wordpress` or `cd` there first. On remote hosts, use `--ssh=user@host/path` or a configured alias (see [Remote Execution](#remote-execution)).
 
-## Safety Patterns
+## Safety patterns
 
-### Always Backup Before Destructive Operations
+### Backup before destructive work
 
 ```bash
-# Database backup before major changes
+# Database snapshot
 wp db export backup-$(date +%Y%m%d-%H%M%S).sql
 
-# Full site backup (database + files)
+# Full site snapshot (db + content)
 tar -czf site-backup-$(date +%Y%m%d-%H%M%S).tar.gz wp-content/ backup-*.sql
 ```
 
-### Use Dry-Run Flags When Available
+### Dry-run when available
 
 ```bash
 wp plugin update --all --dry-run
 wp search-replace 'old.com' 'new.com' --dry-run
 ```
 
-### Dangerous Commands - Require Explicit Confirmation
+### Dangerous commands — confirm explicitly
 
-These commands are destructive and should be used with extreme caution:
+These are irreversible without a backup. Confirm with the user before running:
 
-- `wp db reset` - Deletes entire database
-- `wp db clean` - Removes tables
-- `wp site delete` (multisite) - Removes site and content
-- `wp user delete` without `--reassign` - Orphans content
-- `wp post delete $(wp post list --post_type=page --format=ids)` - Bulk deletions
+- `wp db reset` — drops every table
+- `wp db clean` — removes tables
+- `wp site delete` (multisite) — removes a site and its content
+- `wp user delete` without `--reassign` — orphans the user's posts (they get deleted too). Always pass `--reassign=<new_author_id>` to reassign their content first. The flag exists because orphaning content is almost never what you want — the user's posts are the institutional record, not the user row.
+- `wp post delete $(wp post list --format=ids)` and similar bulk-delete pipes — quietly turn the whole site into a blank page if the filter is wrong.
 
-**Always confirm with the user before running these commands.**
-
-## Performance Flags
-
-Use these flags to optimize speed and output:
+## Performance flags
 
 ```bash
---format=json              # Machine-readable output (faster parsing)
---format=csv              # For spreadsheet imports
---format=ids              # Space-separated IDs (for piping)
---fields=ID,post_title    # Limit returned fields
---skip-plugins            # Bypass plugin loading (faster, but may break dependencies)
---skip-themes             # Bypass theme loading
---quiet                   # Suppress informational output
+--format=json              # machine-readable
+--format=csv               # spreadsheet import
+--format=ids               # space-separated IDs, for piping
+--fields=ID,post_title     # return only what you need
+--skip-plugins             # bypass plugin load (fast, may break plugin-dependent commands)
+--skip-themes              # bypass theme load
+--quiet                    # suppress info output
 ```
 
-## Core Command Categories
+`--skip-plugins` is a scalpel: it makes `wp db export` instant, but breaks commands that rely on a plugin's hooks (e.g., ACF exporters, custom taxonomies registered by a plugin).
 
-WP-CLI commands are organized by functionality. See `references/commands.md` for detailed flag documentation.
+## Command catalog
 
-### Database Operations
-`wp db` - export, import, query, optimize, search-replace
+Full flag docs and gotchas are in [`references/commands.md`](references/commands.md). Categories:
 
-### Core WordPress
-`wp core` - install, update, verify-checksums, version
+| Category | Prefix | Typical use |
+|---|---|---|
+| Database | `wp db` | export, import, query, optimize, search-replace |
+| Core | `wp core` | install, update, verify-checksums, version |
+| Plugins | `wp plugin` | list, install, activate, update, delete |
+| Themes | `wp theme` | list, install, activate, update, delete, `theme mod` |
+| Users | `wp user` | create, list, delete (`--reassign`), update, roles, generate |
+| Posts / Pages | `wp post` | list, create, update, delete, generate, `post term` |
+| Comments | `wp comment` | list, approve, spam, trash, delete |
+| Options | `wp option` | get, update, delete, list, `pluck`/`patch` for nested values |
+| Cache | `wp cache` / `wp transient` | flush, delete, set, list |
+| Cron | `wp cron` | event list/run/schedule/delete, cron test |
+| Config | `wp config` | create, get, set, shuffle-salts |
+| Multisite | `wp site` | list, create, delete, empty, activate/archive |
 
-### Plugins & Themes
-`wp plugin` / `wp theme` - list, install, activate, update, delete
+## Workflows
 
-### Users
-`wp user` - create, list, delete, update, generate
+Full step-by-step workflows — site migration, bulk plugin updates, user audit — live in [`references/examples.md`](references/examples.md). Load that file when the user is doing one of those tasks end-to-end.
 
-### Content (Posts, Pages, Comments)
-`wp post` / `wp comment` - create, list, update, delete, generate
+## Remote execution
 
-### Options & Settings
-`wp option` - get, update, delete, list
-
-### Cache & Performance
-`wp cache` / `wp transient` - flush, delete, set
-
-### Cron & Maintenance
-`wp cron` - event, schedule, run
-
-### Configuration
-`wp config` - create, get, set, shuffle-salts
-
-### Multisite (Basic)
-`wp site` - list, create, delete, empty
-
-## Key Workflows
-
-### Site Migration (Local → Production)
-
-```bash
-# 1. Export database from source
-wp db export migration.sql
-
-# 2. Search-replace URLs (dry-run first!)
-wp search-replace 'http://localhost:8000' 'https://example.com' --dry-run
-wp search-replace 'http://localhost:8000' 'https://example.com' --skip-columns=guid
-
-# 3. Transfer files (use rsync, scp, or SFTP)
-rsync -avz wp-content/ user@server:/var/www/html/wp-content/
-
-# 4. Import database on destination
-wp db import migration.sql
-
-# 5. Flush cache and permalinks
-wp cache flush
-wp rewrite flush
-
-# 6. Verify
-wp option get siteurl
-wp option get home
-```
-
-### Bulk Plugin Updates
-
-```bash
-# 1. Check available updates
-wp plugin list --update=available
-
-# 2. Backup database
-wp db export backup-before-plugin-update.sql
-
-# 3. Update all (or specific plugins)
-wp plugin update --all --dry-run
-wp plugin update --all
-
-# 4. If issues arise, rollback
-wp plugin install plugin-name --version=1.2.3 --force
-
-# 5. Clear cache
-wp cache flush
-```
-
-### User Audit & Cleanup
-
-```bash
-# 1. List all users with roles
-wp user list --fields=ID,user_login,user_email,roles
-
-# 2. Find inactive users (requires custom query or plugin)
-wp user list --format=json | jq '.[] | select(.user_registered < "2023-01-01")'
-
-# 3. Delete user (MUST reassign content!)
-wp user delete <ID> --reassign=<new_author_id>
-
-# 4. Generate test users (for dev environments)
-wp user generate --count=10 --role=subscriber
-```
-
-## Remote Execution
-
-### SSH Execution
+### Ad-hoc SSH
 
 ```bash
 ssh user@example.com "cd /var/www/html && wp plugin list"
 ```
 
-### WP-CLI Aliases
+### Configured aliases (preferred)
 
-Define aliases in `~/.wp-cli/config.yml`:
+Define aliases once in `~/.wp-cli/config.yml`:
 
 ```yaml
 @prod:
@@ -180,57 +123,45 @@ Define aliases in `~/.wp-cli/config.yml`:
   ssh: user@staging.example.com/var/www/staging
 ```
 
-Then use:
+Then:
 
 ```bash
 wp @prod plugin list
 wp @staging db export
 ```
 
-## Common Errors & Resolution
+Aliases beat ad-hoc SSH because they compose with every wp-cli flag (`wp @prod --dry-run search-replace ...`) and don't invite shell-quoting bugs.
 
-### Error: "The site you have requested is not installed"
+## Common errors
 
-- **Cause**: Not running from WordPress root or `wp-config.php` missing
-- **Fix**: `cd` to WordPress root or use `--path=/path/to/wordpress`
+| Error | Cause | Fix |
+|---|---|---|
+| `The site you have requested is not installed` | Not at WordPress root / `wp-config.php` missing | `cd` to root or `--path=/path/to/wordpress` |
+| `MySQL connection failed` | Bad credentials or MySQL down | Check `wp-config.php`, confirm MySQL is running |
+| `Error: Can't select database` | DB doesn't exist | `wp db create` |
+| `PHP Fatal error: Allowed memory size exhausted` | Large op or heavy plugins | `php -d memory_limit=512M $(which wp) db export` |
+| `This does not seem to be a WordPress installation` | WP files not found | Check directory; confirm WP is actually installed |
+| `The \`guid\` column is often used ... but should not be updated` | Expected warning | `--skip-columns=guid` suppresses it; GUIDs are permanent IDs, not URLs |
 
-### Error: "MySQL connection failed"
+## Antipatterns — when wp-cli is the wrong tool
 
-- **Cause**: Database credentials incorrect or MySQL not running
-- **Fix**: Check `wp-config.php` credentials, verify MySQL is running
+- **Looping over millions of rows** in shell with `xargs` or `for`. Each `wp` invocation bootstraps WordPress; 1M iterations = days. Prefer a single `wp db query` with a proper SQL statement, or a PHP-side batched job.
+- **Using `wp search-replace` without `--precise` on serialized data** larger than a hobby blog. `--precise` is slower but handles PHP serialized strings correctly; without it, serialized arrays silently corrupt.
+- **Validation and domain logic.** If the logic belongs inside a WP plugin's hook lifecycle, do it there. wp-cli is for operational work, not business rules.
+- **Credential-bearing commands in your shell history.** `wp user create` with `--user_pass=...` leaks. Pipe the password in or let wp-cli prompt.
 
-### Error: "Error: Can't select database"
+## Best practices
 
-- **Cause**: Database doesn't exist
-- **Fix**: Create database first: `wp db create`
+1. **Staging first, always.** Never run an untested command on production.
+2. **Track `wp-config.php` changes in version control** when feasible (exclude secrets).
+3. **Read the output.** wp-cli warnings often precede data loss.
+4. **Document non-obvious workflows** — migrations, multisite conversions — as they happen; future-you will not remember which flags you used.
+5. **`--format=json` whenever piping to `jq` or another script.** The default human format rots.
+6. **Verify after big changes** — load the homepage, check admin, exercise critical paths.
+7. **Keep wp-cli current**: `wp cli update`.
 
-### Error: "PHP Fatal error: Allowed memory size exhausted"
+## References
 
-- **Cause**: Large database operations or heavy plugins
-- **Fix**: Increase PHP memory: `php -d memory_limit=512M $(which wp) db export`
-
-### Error: "This does not seem to be a WordPress installation"
-
-- **Cause**: WP-CLI can't find WordPress files
-- **Fix**: Verify you're in the correct directory and WordPress is installed
-
-### Warning: "The `guid` column is often used in WordPress for storing URLs but should not be updated"
-
-- **Info**: This is expected. Use `--skip-columns=guid` to suppress the warning
-- **Reason**: GUIDs are permanent identifiers and shouldn't be changed
-
-## Best Practices
-
-1. **Always test on staging first** - Never run untested commands on production
-2. **Use version control for config changes** - Track `wp-config.php` changes when safe
-3. **Monitor command output** - Don't ignore warnings or errors
-4. **Document custom workflows** - Keep notes on multi-step processes
-5. **Use `--format=json` for scripting** - Easier to parse programmatically
-6. **Verify after major changes** - Check site functionality, test critical paths
-7. **Keep WP-CLI updated** - `wp cli update` for latest features and fixes
-
-## Additional Resources
-
-- **Command reference**: See `references/commands.md` for detailed flag documentation
-- **Workflow examples**: See `references/examples.md` for complete workflow scenarios
-- **Official docs**: https://developer.wordpress.org/cli/commands/
+- [`references/commands.md`](references/commands.md) — detailed command + flag reference by category
+- [`references/examples.md`](references/examples.md) — complete workflows (migration, updates, audits)
+- Upstream docs: <https://developer.wordpress.org/cli/commands/>

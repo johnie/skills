@@ -3,9 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Get current directory (works in both Bun and Node/Vitest)
-const getCurrentDir = () => {
-  return dirname(fileURLToPath(import.meta.url));
-};
+const getCurrentDir = () => dirname(fileURLToPath(import.meta.url));
 
 const CURRENT_DIR = getCurrentDir();
 const SKILLS_DIR = join(CURRENT_DIR, "../../skills");
@@ -18,6 +16,10 @@ export function discoverSkills(): string[] {
   try {
     const entries = readdirSync(SKILLS_DIR);
     return entries.filter((entry) => {
+      // skill-creator eval workspaces are siblings, not skills
+      if (entry.endsWith("-workspace")) {
+        return false;
+      }
       const fullPath = join(SKILLS_DIR, entry);
       return statSync(fullPath).isDirectory();
     });

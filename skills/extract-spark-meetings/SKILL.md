@@ -1,6 +1,6 @@
 ---
 name: extract-spark-meetings
-description: Extract meeting summaries from Spark Mail shared links. Use as `/extract-spark-meetings <url>` for single link or `/extract-spark-meetings` to batch-process unchecked links from links.md.
+description: Extract meeting notes from Spark Mail shared-transcript links into tagged markdown files with YAML frontmatter (participants, action items, decisions, next steps). Use when the user has one or more share.sparkmailapp.com links to convert into a searchable local meeting archive, in single-URL or batch mode from a links.md checklist.
 allowed-tools:
   - Bash
   - Read
@@ -12,73 +12,95 @@ allowed-tools:
 
 # Extract Spark Meetings
 
-**Expected folder structure:**
+Spark Mail (the email client) produces shareable transcript links for recorded/summarized meetings. This skill converts those links into local markdown files with structured frontmatter, so meetings become greppable, taggable, and visible to future search.
+
+Output is plain markdown + YAML — no Spark dependency once extracted.
+
+## When to use
+
+- "Extract this Spark meeting link" — `/extract-spark-meetings <url>`
+- "Process all unchecked meetings in `links.md`" — `/extract-spark-meetings` (batch)
+- Building or refreshing a meeting archive from a growing list of Spark shares
+- Any workflow where Spark Mail transcript links need to become files on disk
+
+## When NOT to use
+
+- The source isn't a Spark Mail shared link (e.g., Google Meet transcripts, Zoom cloud recordings, Otter.ai) — different URL shapes and HTML structures; this skill's extractor will miss fields.
+- You need a one-line summary, not a structured file — just paste the URL into `WebFetch` directly.
+- Live-meeting capture (as it happens) — this skill reads already-rendered Spark shares.
+
+## Expected layout
+
 ```text
 {current-directory}/
 ├── spark-meetings/          # Output directory (auto-created)
-│   └── YYYY-MM-DD-*.md     # Extracted meeting files
-└── links.md                 # Optional: Links file for batch processing
+│   └── YYYY-MM-DD-*.md      # Extracted meeting files
+└── links.md                 # Optional: links checklist for batch mode
 ```
 
-## Usage Modes
+## Modes
 
-### Single URL Mode
-Process one Spark Mail link:
+### Single URL
+
 ```bash
 /extract-spark-meetings https://share.sparkmailapp.com/...
 ```
 
-### Batch Mode
-Process all unchecked links from `links.md`:
+Processes one link, writes one file. Updates `links.md` only if it exists and contains that URL.
+
+### Batch (`links.md`)
+
 ```bash
 /extract-spark-meetings
 ```
 
-The `links.md` file should contain checkboxes:
+`links.md` is a checklist of URLs. Batch mode processes every unchecked entry:
+
 ```markdown
 - [ ] https://share.sparkmailapp.com/link1
-- [x] https://share.sparkmailapp.com/link2  # Already processed
+- [x] https://share.sparkmailapp.com/link2   # already processed — skipped
 ```
 
 ## Workflow
 
-**CRITICAL: Process URLs sequentially, one at a time. NEVER process multiple URLs in parallel.**
+Process URLs **sequentially, one at a time** — do not parallelize. Spark's share endpoint rate-limits and can silently truncate or return partial content when hit concurrently; sequential runs also produce per-URL errors you can act on rather than a jumbled burst of failures. Parallelism looks faster but costs you correctness and debuggability.
 
 For each URL:
 
-### 1. Content Extraction
+### 1. Fetch the content
 
-Use Puppeteer MCP if available. Fallback: WebFetch with prompt "Extract all meeting content including participants, discussion points, and action items."
+Use the Puppeteer MCP if available. Otherwise, fall back to `WebFetch` with the prompt: *"Extract all meeting content including participants, discussion points, action items, decisions, and next steps."*
 
-### 2. Parse Content
+Choice guide:
 
-Extract in the original language of the meeting content. Use English for section headings.
+| Signal | Use |
+|---|---|
+| Transcript renders via client-side JS, embedded video, or attachments | Puppeteer MCP (waits for rendered DOM) |
+| Plain HTML transcript, no dynamic widgets | `WebFetch` (faster, no browser) |
+| Fetch returns a near-empty body via `WebFetch` | Retry with Puppeteer — likely JS-rendered |
 
-Extract structured information:
-- **Date**: Meeting date (YYYY-MM-DD format)
-- **Title**: Brief descriptive title
-- **Participants**: List of attendees
-- **Duration**: If mentioned
-- **Summary**: 2-3 sentence overview
-- **Discussion Points**: Key topics covered
-- **Action Items**: Tasks with owners and due dates
-- **Decisions**: Key decisions made
-- **Next Steps**: Follow-up actions
+If neither is available or both fail after a single retry, mark the URL as failed (leave it unchecked in `links.md`) and move on.
 
-### 3. Generate Output File
+### 2. Parse content
 
-**Filename convention:**
-```text
-spark-meetings/YYYY-MM-DD-{meeting-title-slug}.md
-```
+Extract in the **original language** of the meeting. Use English for section headings so filenames and frontmatter stay consistent across languages.
 
-If a file with the same name exists, append `-2`, `-3`, etc. before the extension.
+Fields:
 
-Examples:
-- `2024-03-15-quarterly-planning.md`
-- `2024-03-15-quarterly-planning-2.md`
+- **date** — meeting date (YYYY-MM-DD)
+- **title** — brief descriptive title
+- **participants** — list of attendees
+- **duration** — if mentioned
+- **summary** — 2-3 sentence overview
+- **discussion_points** — key topics
+- **action_items** — tasks with owners and due dates
+- **decisions** — decisions made
+- **next_steps** — follow-ups
 
-**File format:**
+### 3. Write the file
+
+Filename: `spark-meetings/YYYY-MM-DD-{title-slug}.md`. Collisions append `-2`, `-3`, etc. before the extension.
+
 ```yaml
 ---
 date: 2024-03-15
@@ -127,22 +149,28 @@ Brief 2-3 sentence summary of the meeting's purpose and outcomes.
 - Begin hiring process for two engineering roles
 ```
 
-### 4. Apply Tags
+### 4. Apply tags
 
-Tag each meeting according to type and topics. See `references/tagging-guide.md` for detailed tagging conventions.
+Pick tags from [`references/tagging-guide.md`](references/tagging-guide.md): one primary meeting-type tag, 1-3 topic tags, optionally a cadence tag. The guide's tag set is deliberately generic — extend it in that file with your organization's own tags (product names, team names, initiatives) and keep the additions checked in so everyone's archive uses the same vocabulary.
 
-Common tags:
+Common starter set:
+
 - **Type**: `standup`, `planning`, `review`, `retrospective`, `one-on-one`, `all-hands`
 - **Topic**: `engineering`, `design`, `product`, `strategy`, `hiring`, `budget`
 - **Cadence**: `weekly`, `monthly`, `quarterly`, `annual`
 
-### 5. Update Links File
+### 5. Update `links.md`
 
-Mark URL as checked (`- [x]`) in `links.md` only after both content extraction AND file write succeed. Never mark a URL as processed if either step failed.
+Mark the URL as `[x]` only after **both** content extraction and file write succeed. If either step failed, leave it unchecked and surface the failure in the output summary — this way a re-run will retry only the failed URLs.
 
-- **Single URL mode**: If `links.md` exists and contains the URL, update it. Otherwise skip.
-- **Batch mode**: Read `links.md`, parse unchecked (`- [ ]`) URLs. Update checkbox after each successful extraction. If extraction fails, leave unchecked and continue.
+- **Single URL mode**: update `links.md` only if it already exists and contains the URL; otherwise skip the update.
+- **Batch mode**: walk unchecked (`- [ ]`) URLs in order, update the checkbox after each successful extraction, continue on failures.
 
-## Output Summary
+## Output summary
 
-Report files created with paths and any URLs skipped with reasons.
+Report:
+
+- Files created, with paths
+- URLs skipped or failed, each with a one-line reason (fetch error, parse failure, etc.)
+
+If batch mode ran zero URLs (all already checked), say so explicitly so the user knows nothing was missed.

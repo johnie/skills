@@ -2,6 +2,20 @@
 
 Signature database for matching log output to failure categories. When analyzing logs, scan for these patterns to classify and diagnose.
 
+## Quick index
+
+| Category | Languages / tools covered | Jump to |
+|---|---|---|
+| Test failures | JS/TS (Jest, Vitest, Bun), Python (pytest), Go, Rust | [Test Failures](#test-failures) |
+| Build failures | TypeScript, Webpack/Vite/esbuild/Turbopack, Go, Docker | [Build Failures](#build-failures) |
+| Dependency failures | npm/Yarn/pnpm/Bun, pip, Docker registry | [Dependency Failures](#dependency-failures) |
+| Infrastructure | OOM, disk, runner lifecycle, network | [Infrastructure Failures](#infrastructure-failures) |
+| Lint / format | ESLint, Biome, Prettier | [Lint / Format Failures](#lint--format-failures) |
+| Auth / permission | `GITHUB_TOKEN`, secrets, SSH keys | [Auth / Permission Failures](#auth--permission-failures) |
+| Timeout | Job timeout, step timeout, stuck processes | [Timeout Failures](#timeout-failures) |
+
+When multiple patterns match, pick the most upstream cause. Priority: `auth` > `deps` > `build` > `infra` > `lint` > `test` > `timeout`. A test that fails because deps didn't install is a deps bug.
+
 ## Test Failures
 
 ### JavaScript / TypeScript (Jest, Vitest, Bun)

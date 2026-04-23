@@ -1,79 +1,76 @@
 ---
 name: commit
-description: Create semantically correct, granular git commits by analyzing staged and unstaged changes. Use when committing code, splitting changes into atomic commits, or preparing commits before a PR.
+description: Split working-tree changes into atomic git commits with conventional-commit messages. Use whenever the user asks to commit, save work, stage files, break one messy diff into multiple logical commits, or prep a branch for a PR — including terse prompts like "commit this", "ship it", or "wrap up".
 allowed-tools:
   - Bash
 ---
 
-# Commit Skill
+# Commit
 
-Create semantically correct, granular git commits by analyzing staged and unstaged changes.
+Turn the current working tree into a set of atomic conventional-commit commits. Atomic = each commit captures one logical change that could be reverted on its own without breaking the rest.
 
-**Auto-staging behavior:**
-- **Already staged files**: Respected as-is. Commit them first (as their own group) unless they logically belong with unstaged changes.
-- **Unstaged tracked files**: Auto-staged and grouped with related changes.
-- **Untracked files**: Grouped with related tracked changes if applicable; otherwise offered separately.
-- Use `--dry-run` to preview the plan before any staging/committing.
+## When to use
 
-## Model
+- "Commit this / these changes"
+- "Break this up into commits / split these commits"
+- "Prep this branch for review"
+- The user staged nothing and has a mixed diff
+- The user already staged some files and wants the rest committed sensibly
 
-Use `haiku` for all operations unless complex reasoning is required.
+## When NOT to use
+
+- User explicitly wants one commit and doesn't want splitting — just use `git commit` directly.
+- Amending the last published commit on a shared branch — propose a new commit instead (destructive to upstream history).
+- Rebasing or reordering existing commits — that's `git rebase`, not this skill.
 
 ## Arguments
 
-- `(none)`: Auto-commit without confirmation
-- `-v` or `--verify`: Show plan and ask for confirmation before committing
-- `--dry-run`: Show commit plan without executing
-- `--amend`: Amend the last commit only. Shows current last commit contents. Always requires `-v` verification for safety.
-- `push`: After committing, push to current remote branch
-- `push -v` / `push --verify`: Push with verification prompt
+- `(none)` — analyze, group, and commit without confirmation
+- `-v` / `--verify` — show plan, wait for y/n/edit
+- `--dry-run` — show plan, exit without committing
+- `--amend` — amend the last commit only. Implies `-v` because amend is irreversible once pushed.
+- `push` — after committing, push to the current remote branch
+- `push -v` / `push --verify` — push with confirmation
 
 ## Workflow
 
-1. Check for merge conflicts - abort if found
-2. Check current branch - warn if committing to main/master
-3. Run `git status` and `git diff` to understand current changes
-4. Run `git diff --cached` to see already staged changes
-5. Analyze changes and group them logically
-6. Create atomic commits with clear messages
-7. If `push` argument: push to remote
+1. **Safety**: check for merge conflicts (abort if found) and warn if on `main`/`master`.
+2. **Read state**: `git status`, `git diff`, `git diff --cached`, `git diff --stat` (for rename detection).
+3. **Group**: split changes into logical commits. See [`references/grouping-guide.md`](references/grouping-guide.md) for the decision tree, scope derivation, and type disambiguation.
+4. **Verify** (if `-v`/`--dry-run`/`--amend`): show plan. `--dry-run` exits here.
+5. **Execute**: for each group — `git add <files>` then `git commit -m "<message>"` (or `git commit --amend` for amend).
+6. **Push** (if `push`): `git push origin HEAD`. On failure, classify (auth / branch protection / diverged / other) and suggest a next step.
 
-## Grouping Strategy
+## Staging model
 
-Prefer **more commits over fewer**. Group by:
+Grouping happens over *everything* in the working tree — already-staged, unstaged-tracked, and untracked:
 
-- **Feature/functionality**: Related changes that implement one thing
-- **File type**: Config changes, test files, types, etc.
-- **Scope**: Single module/component changes together
-- **Nature**: Refactors separate from features separate from fixes
+- **Already staged**: respect the user's intent. Commit staged files first (their own group) unless they clearly belong with something unstaged.
+- **Unstaged tracked**: auto-stage into the group they belong to.
+- **Untracked**: attach to a related tracked group if the new file supports one; otherwise give it its own commit.
 
-Never combine unrelated changes. When in doubt, split.
+Use `--dry-run` to preview which files will end up in which commit before anything stages.
 
-See `references/grouping-guide.md` for the full decision tree, scope derivation, type disambiguation, and good/bad grouping examples.
+## Grouping, in one paragraph
 
-## Commit Message Format
+Prefer more commits over fewer. Group by (in priority order) feature → scope → type → nature. A good test: would reverting one group without the others leave the tree in a working state? If yes, that's an atomic group. If no, the groups are entangled — merge or split until each can stand alone. Intermediate commits that don't compile are a smell. Full rules and worked examples: [`references/grouping-guide.md`](references/grouping-guide.md), [`references/examples.md`](references/examples.md).
+
+## Commit message format
 
 ```text
 <type>(<scope>): <description>
 ```
 
 ### Types
-- `feat`: New feature
-- `fix`: Bug fix
-- `refactor`: Code restructuring without behavior change
-- `chore`: Maintenance, deps, config
-- `docs`: Documentation only
-- `test`: Adding/updating tests
-- `style`: Formatting, whitespace
-- `perf`: Performance improvement
+
+`feat` (new feature) · `fix` (bug fix) · `refactor` (restructure, no behavior change) · `chore` (maintenance/deps/config) · `docs` (documentation) · `test` (tests) · `style` (formatting) · `perf` (performance)
 
 ### Rules
 
-- Subject line: max 72 chars, imperative mood, no period
-- Body: only if necessary to explain **why**, not **what**
-- No body for obvious changes (typos, simple additions, config tweaks)
+- Subject ≤ 72 chars, imperative mood, no trailing period.
+- Body only to explain **why** when non-obvious. Skip bodies for typos, deps, trivial changes — the subject already carries the signal and bodies for trivia just rot.
 
-### Good Examples
+### Examples
 
 ```text
 feat(auth): add JWT refresh token rotation
@@ -83,32 +80,29 @@ chore: upgrade typescript to 5.4
 test(cart): add edge cases for discount calculation
 ```
 
-## Execution Steps
+## Pre-commit hooks
 
-1. **Check safety**: Detect conflicts, warn on protected branches (main/master)
-2. **Analyze**: `git diff --stat` and `git diff` for full context
-3. **Plan**: Determine commit groups with files and messages
-4. **Verify** (if `-v`/`--verify`/`--dry-run`/`--amend`): Show plan, wait for confirmation
-   - `--dry-run`: Exit after showing plan
-   - `--amend`: Modify last commit instead of creating new
-5. **Execute**: For each commit:
-   ```bash
-   git add <files>
-   git commit -m "<message>"
-   # or for --amend:
-   git add <files>
-   git commit --amend -m "<message>"
-   ```
-6. **Push** (only if `push` argument): Run `git push origin HEAD`
-   - On failure, suggest action based on error:
-     - **Authentication error**: Check credentials / SSH keys
-     - **Branch protection**: Create PR instead of direct push
-     - **Diverged branches**: Suggest `git pull --rebase` then retry
-     - **Other errors**: Show error, stop (user handles manually)
+Hooks (ultracite, prettier, eslint, etc.) run on each `git commit`.
 
-## Example Session
+- **Hook modifies files, commit succeeds**: the modifications are already included in the commit. Nothing to do.
+- **Hook modifies files, commit fails** (common with formatters that exit non-zero when they touch files): the commit did *not* happen. Re-stage the affected files (`git add <paths>`) and commit again. Do NOT `--amend` — there's no prior commit to amend, and amending silently moves changes into the wrong group.
+- **Hook rejects unrelated to formatting**: fix the underlying issue, don't bypass with `--no-verify`.
 
-### Auto-commit (no flags)
+## Edge cases
+
+Short list below. Tricky ones with full handling rules live in [`references/grouping-guide.md`](references/grouping-guide.md) and [`references/examples.md`](references/examples.md).
+
+| Situation | Action |
+|---|---|
+| Conflicts in working tree | Abort; ask user to resolve first. |
+| On `main`/`master` | Warn, require confirmation. |
+| File renames | `git diff --stat` detects them; group rename with related import-path updates. |
+| Binary files | Group with the feature that uses them. Don't try to describe binary diffs. |
+| Deletions replacing code | Treat delete + new file as one logical refactor commit. |
+| Empty diff after staging | Changes were already committed — stop and report. |
+| `--amend` of a pushed commit | Refuse unless user confirms; force-push rewrites upstream history. |
+
+## Example — auto-commit
 
 ```text
 User: /commit
@@ -118,26 +112,24 @@ Claude: Analyzing 7 changed files...
 Grouping rationale:
 - preferences route + types are one feature
 - test file is a separate commit (different type)
-- zod dep was added to support preferences validation -> groups with feature
+- zod was added to validate the feature -> groups with feature
 - package-lock.json always goes with package.json
 
-✓ feat(api): add user preferences endpoint
+feat(api): add user preferences endpoint
   - src/routes/preferences.ts, src/types/preferences.ts, package.json, bun.lock
 
-✓ test(api): add preferences endpoint tests
+test(api): add preferences endpoint tests
   - tests/preferences.test.ts
 
 2 commits created.
 ```
 
-### With `-v` (verification)
+## Example — verify
 
 ```text
 User: /commit -v
 
-Claude: Analyzing 4 changed files...
-
-Commit plan:
+Claude: Commit plan:
 
 1. fix(auth): handle expired refresh tokens gracefully
    - src/auth/refresh.ts, src/auth/errors.ts
@@ -146,36 +138,12 @@ Commit plan:
    - package.json, bun.lock
 
 Proceed? (y/n/edit)
-
-User: y
-
-✓ fix(auth): handle expired refresh tokens gracefully
-✓ chore(deps): upgrade vitest to 2.0
-
-2 commits created.
 ```
 
-**With `--dry-run`**: Same as `-v` but exits after showing plan without executing.
+`--dry-run` stops after the plan. `--amend -v` shows the current last commit + the proposed amended state. `push` appends `Pushing to origin/<branch>... Pushed.`
 
-**With `--amend -v`**: Shows contents of last commit, proposed amended state, asks for confirmation.
+See [`references/examples.md`](references/examples.md) for simple/medium/complex/anti-pattern scenarios.
 
-**With `push`**: Adds "Pushing to origin/feature-branch... Pushed." at end.
+## Handoff to `/pr`
 
-See `references/examples.md` for more scenarios (simple, medium, complex, edge cases, anti-patterns).
-
-## Pre-commit Hooks
-
-Pre-commit hooks (e.g., ultracite, prettier, eslint) will run on each `git commit`. If a hook modifies files, those modifications are automatically included in the commit. If a hook fails, the commit is aborted -- fix the issue and retry.
-
-## Edge Cases
-
-- **Protected branches**: Warn if committing directly to main/master
-- **Merge conflicts**: Abort and instruct user to resolve first
-- **Single file**: Still analyze if it contains multiple logical changes
-- **Large refactors**: May warrant a single commit if truly atomic
-- **Mixed changes**: Always split features from fixes from refactors
-- **Already staged files**: Respect existing staging (see auto-staging behavior above)
-- **File renames/moves**: Check `git diff --stat` for rename detection. Group rename with import path updates.
-- **Binary files**: Group with the feature that uses them. Don't describe binary diffs.
-- **Untracked files**: Group with related tracked changes; standalone untracked files get their own commit
-- **Empty diff after staging**: Can happen if changes were already committed. Check `git log` before proceeding.
+When you create a PR afterwards, the `/pr` skill reads these commits to generate the PR title and body. Writing good, conventional commit messages here pays off there — the title reuses the primary commit's `type(scope): description`, and the body's What/How sections are built from the commit set.

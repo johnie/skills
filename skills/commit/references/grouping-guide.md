@@ -4,7 +4,7 @@ Decision tree and examples for splitting changes into atomic commits.
 
 ## Decision Tree
 
-```
+```text
 Start: Look at all changed files
   |
   +--> Only 1 file changed?
@@ -71,7 +71,7 @@ Files:
 
 **Good grouping (4 commits):**
 
-```
+```text
 feat(users): add avatar upload endpoint
   - src/routes/users.ts, src/utils/image.ts, package.json
 
@@ -89,7 +89,7 @@ Rationale: Feature + its utility + its dep are one logical unit. Tests separated
 
 **Bad grouping (2 commits):**
 
-```
+```text
 feat(users): add avatar upload with tests and docs
   - src/routes/users.ts, src/utils/image.ts, src/routes/users.test.ts, package.json, README.md
 
@@ -101,7 +101,7 @@ Problem: Lumps feature, tests, and docs together. Can't revert tests without rev
 
 **Also bad (6 commits - too granular):**
 
-```
+```text
 chore: add sharp dependency          # package.json
 feat(utils): add image resize        # src/utils/image.ts
 feat(users): add avatar endpoint     # src/routes/users.ts

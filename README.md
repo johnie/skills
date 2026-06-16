@@ -173,6 +173,39 @@ Build type-safe CLI applications with Stricli, Bloomberg's TypeScript CLI framew
 </details>
 
 <details>
+<summary><b>/cleye</b> - Intuitive TypeScript CLI argv parser</summary>
+
+<br>
+
+Build type-safe CLIs with cleye, an intuitive argv parser that turns a declarative options object into strongly-typed parameters and flags with auto-generated help.
+
+**Features:**
+- Strongly-typed parameters and flags inferred from your config
+- Automatic `--help` and `--version` documentation generation
+- Subcommand support via `command()`
+- Powerful flag parsing (powered by `type-flag`)
+
+**Use Cases:**
+- Authoring a new cleye CLI with `cli({ ... })`
+- Defining typed flags and positional parameters
+- Organizing multi-command CLIs with `command()`
+- Validating input with custom type functions or `cleye/formats`
+
+**Core APIs:**
+- `cli(options, callback?, argvs?)` - Parse argv into typed parameters and flags
+- `command(options, callback?)` - Define and register subcommands
+- `cleye/formats` - Type helpers (`oneOf`, `commaList`, `integer`, `float`, `range`, `url`)
+
+**Parameter & Flag Types:**
+- Required `<param>`, optional `[param]`, and spread `[param...]` parameters
+- Type functions (String, Number, Boolean, custom)
+- Array flags for multiple values (`[Number]`)
+- Boolean negation (`--no-flag`) and strict-flag rejection
+- End-of-flags (`--`) passthrough
+
+</details>
+
+<details>
 <summary><b>/wp-cli</b> - WordPress CLI operations</summary>
 
 <br>
@@ -280,19 +313,19 @@ This repository includes a CLI for managing skill symlinks during local developm
 
 ```bash
 # Interactive mode (default) - toggle skills with number keys
-bun skills
+pnpm run skills
 
 # List all skills with their link status
-bun skills list
+pnpm run skills list
 
 # Link a specific skill
-bun skills link <name>
+pnpm run skills link <name>
 
 # Unlink a specific skill
-bun skills unlink <name>
+pnpm run skills unlink <name>
 
 # Show help
-bun skills --help
+pnpm run skills --help
 ```
 
 **Commands:**

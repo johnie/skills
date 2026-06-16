@@ -5,6 +5,21 @@ description: String manipulation at the type level with template literals
 
 # Template Literal Types
 
+## Contents
+
+- [Basic Syntax](#basic-syntax)
+- [String Literal Unions](#string-literal-unions)
+- [Pattern Matching with `infer`](#pattern-matching-with-infer)
+- [Built-in String Manipulation Types](#built-in-string-manipulation-types)
+- [Practical Examples](#practical-examples)
+- [Object Key Transformation](#object-key-transformation)
+- [Route Parameter Extraction](#route-parameter-extraction)
+- [Validation Patterns](#validation-patterns)
+- [Complex Parsing](#complex-parsing)
+- [When to Use Template Literal Types](#when-to-use-template-literal-types)
+- [Common Pitfalls](#common-pitfalls)
+- [Best Practices](#best-practices)
+
 ## Overview
 
 Template literal types allow you to manipulate string types using the same syntax as JavaScript template literals. Combined with `infer`, they enable powerful string parsing and transformation at the type level.

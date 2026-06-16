@@ -5,6 +5,21 @@ description: Creating new types by transforming existing type properties
 
 # Mapped Types
 
+## Contents
+
+- [Basic Syntax](#basic-syntax)
+- [Simple Examples](#simple-examples)
+- [Preserving Original Keys](#preserving-original-keys)
+- [Key Remapping with `as`](#key-remapping-with-as)
+- [Filtering Keys](#filtering-keys)
+- [Transforming Property Types](#transforming-property-types)
+- [Deep Mapped Types](#deep-mapped-types)
+- [Practical Examples](#practical-examples)
+- [Combining Mapped Types](#combining-mapped-types)
+- [Index Signatures in Mapped Types](#index-signatures-in-mapped-types)
+- [Common Pitfalls](#common-pitfalls)
+- [When to Use Mapped Types](#when-to-use-mapped-types)
+
 ## Overview
 
 Mapped types allow you to create new types by transforming each property of an existing type. They iterate over keys and apply transformations to create new type structures.
@@ -309,7 +324,7 @@ type RegistrationErrors = ValidationErrors<RegistrationForm>;
 
 ```typescript
 type PickAndTransform<T, K extends keyof T> = {
-  [P in K]: T[P] extends Function ? T[P] : Readonly<T[P]>;
+  [P in K]: T[P] extends (...args: any[]) => any ? T[P] : Readonly<T[P]>;
 };
 ```
 

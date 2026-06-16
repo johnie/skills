@@ -23,23 +23,33 @@ function processInput(input: unknown) {
 }
 ```
 
-## Syntax rule: `function` declaration required
+## Syntax rule: the call target needs an explicit type annotation
 
-Assertion functions **must** use the `function` keyword. Arrow functions do not work:
+The cleanest form is a `function` declaration. An arrow function works **only** if you put the full
+type annotation on the binding itself — TypeScript requires the *call target* to have an explicit
+type, so an arrow whose type is inferred from its body cannot be used as an assertion.
 
 ```typescript
-// WRONG — arrow functions don't support asserts
+// WRONG — type is inferred from the body, so calls fail
 const assertString = (value: unknown): asserts value is string => {
   if (typeof value !== "string") throw new Error("Not a string");
 };
-// Error: Assertions require every name in the call target to be
+assertString(x);
+// Error TS2775: Assertions require every name in the call target to be
 // declared with an explicit type annotation.
 
-// CORRECT — function declaration
+// CORRECT — function declaration (recommended)
 function assertString(value: unknown): asserts value is string {
   if (typeof value !== "string") throw new Error("Not a string");
 }
+
+// ALSO CORRECT — arrow with the annotation on the const itself
+const assertString2: (value: unknown) => asserts value is string = (value) => {
+  if (typeof value !== "string") throw new Error("Not a string");
+};
 ```
+
+Prefer the `function` declaration: it's the least surprising and avoids the inferred-type trap entirely.
 
 ## Asserting object shapes
 

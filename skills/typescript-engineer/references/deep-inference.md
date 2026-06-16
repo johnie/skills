@@ -5,6 +5,19 @@ description: Achieving deep type inference with const type parameters and as con
 
 # Deep Type Inference
 
+## Contents
+
+- [The Problem: Type Widening](#the-problem-type-widening)
+- [Solution 1: `const` Type Parameter (TS 5.0+) — Recommended](#solution-1-const-type-parameter-ts-50--recommended)
+- [Solution 2: User-Provided `as const`](#solution-2-user-provided-as-const)
+- [Solution 3: `F.Narrow` from ts-toolbelt](#solution-3-fnarrow-from-ts-toolbelt)
+- [Solution 4: Custom Narrow Type](#solution-4-custom-narrow-type)
+- [Practical Example: Type-Safe Router](#practical-example-type-safe-router)
+- [Combining with Conditional Types](#combining-with-conditional-types)
+- [Comparison of Techniques](#comparison-of-techniques)
+- [Common Pitfalls](#common-pitfalls)
+- [Best Practices](#best-practices)
+
 ## Overview
 
 By default, TypeScript widens types when inferring objects and arrays. For advanced type-safe APIs, you often need to preserve literal types deeply within nested structures. This document covers techniques for achieving deep inference.
@@ -168,7 +181,7 @@ const router = makeRouter({
 If you can't use ts-toolbelt and need to support pre-5.0 TypeScript:
 
 ```typescript
-type Narrow<T> = T extends Function
+type Narrow<T> = T extends (...args: any[]) => any
   ? T
   : T extends []
   ? []

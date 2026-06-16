@@ -1,11 +1,17 @@
 ---
 name: typescript-engineer
 description: Resolve TypeScript errors, eliminate `any`, and design complex types (generics, conditional, mapped, template literal, branded/opaque). Use for type-inference problems, `infer` / `extends` questions, utility types (`Partial`, `Record`, `ReturnType`, `Awaited`, `NoInfer`), `satisfies`, function overloads, declaration merging, and strict-mode refactors.
+allowed-tools:
+  - Bash
+  - Read
+  - Edit
+  - Grep
+  - Glob
 ---
 
 # TypeScript Engineer
 
-Type-level design, compiler-error diagnosis, and strict-safety refactoring. This skill routes the user's intent to one of fifteen focused rule files in `references/`; don't try to answer from SKILL.md alone on anything non-trivial.
+Type-level design, compiler-error diagnosis, and strict-safety refactoring. This skill routes the user's intent to a set of focused rule files in `references/`; don't try to answer from SKILL.md alone on anything non-trivial.
 
 ## When to use
 
@@ -65,13 +71,14 @@ Match keywords in the user's request to load the right rule file.
 | narrowing, `typeof`, `instanceof`, `in`, discriminated union, type guard, `is` | [type-narrowing.md](references/type-narrowing.md) |
 | assertion function, `asserts value is`, validate-and-throw | [assertion-functions.md](references/assertion-functions.md) |
 | overload, multiple signatures | [function-overloads.md](references/function-overloads.md) |
+| type test, prove a type, assert a type, `Expect`, `Equal`, `@ts-expect-error` | [type-testing.md](references/type-testing.md) |
 | type error, diagnostic, `ts(…)`, "not assignable" | [error-diagnosis.md](references/error-diagnosis.md) |
 
 ## Working style
 
 - **Reproduce first.** Run `tsc --noEmit` on the user's code before proposing a fix so you're reasoning about the real error, not a guess.
 - **Simplest type that works.** Don't reach for conditional/mapped/template-literal machinery when a plain generic or utility type would do. Complexity has a cost to everyone who reads the code later.
-- **Validate type-level code.** Use the `Expect<Equal<A, B>>` pattern (or similar) to prove the types are what you claim. Types that compile but are wrong are worse than runtime bugs — they silently lie.
+- **Validate type-level code.** Use the `Expect<Equal<A, B>>` pattern (or similar) to prove the types are what you claim — see [type-testing.md](references/type-testing.md). Types that compile but are wrong are worse than runtime bugs — they silently lie.
 - **Explain why the type works.** Dense types are hard to read; a one-line comment naming the technique (`// distributive conditional over UnionKey`) pays for itself.
 
 ## One snippet per category
@@ -122,4 +129,4 @@ Type-level programming — [conditional-types](references/conditional-types.md) 
 
 Safety — [opaque-types](references/opaque-types.md) · [type-narrowing](references/type-narrowing.md) · [assertion-functions](references/assertion-functions.md) · [function-overloads](references/function-overloads.md)
 
-Debugging — [error-diagnosis](references/error-diagnosis.md)
+Debugging — [error-diagnosis](references/error-diagnosis.md) · [type-testing](references/type-testing.md)

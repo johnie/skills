@@ -5,6 +5,17 @@ description: Strategies for diagnosing and understanding TypeScript type errors
 
 # Diagnosing TypeScript Errors
 
+## Contents
+
+- [General Strategies](#general-strategies)
+- [Common Error Patterns](#common-error-patterns)
+- [Debugging Techniques](#debugging-techniques)
+- [Massive Error Messages](#massive-error-messages)
+- [Investigating Library Types](#investigating-library-types)
+- [When Types Don't Match Reality](#when-types-dont-match-reality)
+- [Prevention Strategies](#prevention-strategies)
+- [IDE Tips](#ide-tips)
+
 ## Overview
 
 TypeScript errors can be cryptic, especially with complex generic types. This guide provides strategies for understanding and resolving type errors effectively.
@@ -15,7 +26,7 @@ TypeScript errors can be cryptic, especially with complex generic types. This gu
 
 TypeScript writes errors top-down, but the actual cause is usually at the bottom:
 
-```
+```text
 Type '{ name: string; }' is not assignable to type 'User'.
   Types of property 'email' are incompatible.
     Type 'undefined' is not assignable to type 'string'.
@@ -211,7 +222,7 @@ interface Document {
 
 Long errors often have one core problem:
 
-```
+```text
 Type '{ fullName: string; id: string; firstName: string; lastName: string; age: number; }'
 is not assignable to type
 '{ fullName: string; id: string; firstName: string; lastName: string; age: number; agePlus10: number }'.

@@ -55,7 +55,7 @@ type TypeName<T> = T extends string
   ? "boolean"
   : T extends undefined
   ? "undefined"
-  : T extends Function
+  : T extends (...args: any[]) => any
   ? "function"
   : "object";
 
@@ -158,7 +158,7 @@ type Exclude<T, U> = T extends U ? never : T;
 ## Nested Conditionals
 
 ```typescript
-type DeepReadonly<T> = T extends Function
+type DeepReadonly<T> = T extends (...args: any[]) => any
   ? T
   : T extends object
   ? { readonly [K in keyof T]: DeepReadonly<T[K]> }

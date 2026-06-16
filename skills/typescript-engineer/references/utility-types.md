@@ -5,6 +5,24 @@ description: Built-in TypeScript utility types for type manipulation
 
 # TypeScript Utility Types
 
+## Contents
+
+- [`Parameters<T>`](#parameterst)
+- [`ReturnType<T>`](#returntypet)
+- [`Awaited<T>`](#awaitedt)
+- [Pattern: Wrapping External Library Functions](#pattern-wrapping-external-library-functions)
+- [`Record<Keys, Type>`](#recordkeys-type)
+- [`Partial<T>`](#partialt)
+- [`Required<T>`](#requiredt)
+- [`Omit<T, Keys>`](#omitt-keys)
+- [`Pick<T, Keys>`](#pickt-keys)
+- [`Exclude<T, U>` and `Extract<T, U>`](#exclude-t-u-and-extract-t-u)
+- [`NonNullable<T>`](#nonnullablet)
+- [Creating a Reusable Wrapper Type](#creating-a-reusable-wrapper-type)
+- [When to Use Each Utility](#when-to-use-each-utility)
+- [`NoInfer<T>` (TS 5.4+)](#noinfert-ts-54)
+- [Common Pitfalls](#common-pitfalls)
+
 ## Overview
 
 TypeScript provides built-in utility types that transform types in common ways. Mastering these utilities is essential for advanced TypeScript programming.

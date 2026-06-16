@@ -113,10 +113,10 @@ Grouping rationale:
 - preferences route + types are one feature
 - test file is a separate commit (different type)
 - zod was added to validate the feature -> groups with feature
-- package-lock.json always goes with package.json
+- the lockfile always goes with package.json
 
 feat(api): add user preferences endpoint
-  - src/routes/preferences.ts, src/types/preferences.ts, package.json, bun.lock
+  - src/routes/preferences.ts, src/types/preferences.ts, package.json, pnpm-lock.yaml
 
 test(api): add preferences endpoint tests
   - tests/preferences.test.ts
@@ -135,7 +135,7 @@ Claude: Commit plan:
    - src/auth/refresh.ts, src/auth/errors.ts
 
 2. chore(deps): upgrade vitest to 2.0
-   - package.json, bun.lock
+   - package.json, pnpm-lock.yaml
 
 Proceed? (y/n/edit)
 ```

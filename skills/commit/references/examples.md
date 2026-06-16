@@ -5,7 +5,7 @@ Real-world scenarios showing the full analysis-to-output process.
 ## Simple: Config Update (2 files, 1 commit)
 
 **`git status` output:**
-```
+```text
  M tsconfig.json
  M biome.json
 ```
@@ -15,7 +15,7 @@ Real-world scenarios showing the full analysis-to-output process.
 **Analysis:** Same reason for change (tighten strictness), same type (chore), closely related config files.
 
 **Result:**
-```
+```text
 chore: enable strict mode in tsconfig and biome
   - tsconfig.json, biome.json
 ```
@@ -25,7 +25,7 @@ chore: enable strict mode in tsconfig and biome
 ## Medium: 2 Features (5 files, 3 commits)
 
 **`git status` output:**
-```
+```text
  M src/routes/auth.ts
  M src/routes/auth.test.ts
  M src/middleware/rate-limit.ts
@@ -46,7 +46,7 @@ chore: enable strict mode in tsconfig and biome
 - Tests split by feature
 
 **Result:**
-```
+```text
 1. feat(auth): add password reset endpoint
    - src/routes/auth.ts
 
@@ -58,7 +58,7 @@ chore: enable strict mode in tsconfig and biome
 ```
 
 Alternative (also acceptable - tests per feature):
-```
+```text
 1. feat(auth): add password reset endpoint
 2. test(auth): add password reset tests
 3. feat(middleware): add sliding window rate limiting
@@ -70,7 +70,7 @@ Alternative (also acceptable - tests per feature):
 ## Complex: Mixed Changes (12 files, 6 commits)
 
 **`git status` output:**
-```
+```text
  M src/routes/users.ts
  M src/routes/users.test.ts
  M src/services/email.ts
@@ -79,7 +79,7 @@ Alternative (also acceptable - tests per feature):
  M src/types/user.ts
  M src/db/migrations/20240115_add_email_verified.sql
  M package.json
- M bun.lock
+ M pnpm-lock.yaml
  D src/utils/old-validators.ts
  M .env.example
 ?? src/services/notification.ts
@@ -94,7 +94,7 @@ Alternative (also acceptable - tests per feature):
 - `old-validators.ts`: Deleted (replaced by validators.ts)
 - `types/user.ts`: Add `emailVerified` field
 - `migration`: Add `email_verified` column
-- `package.json` + `bun.lock`: Add `handlebars` (for email templates)
+- `package.json` + `pnpm-lock.yaml`: Add `handlebars` (for email templates)
 - `.env.example`: Add `SMTP_HOST` variable
 - `notification.ts`: New file, standalone notification service (untracked)
 
@@ -107,7 +107,7 @@ Alternative (also acceptable - tests per feature):
 6. .env.example change relates to email service
 
 **Result:**
-```
+```text
 1. feat(users): add email verification flow
    - src/routes/users.ts, src/utils/validators.ts, src/types/user.ts,
      src/db/migrations/20240115_add_email_verified.sql
@@ -116,7 +116,7 @@ Alternative (also acceptable - tests per feature):
    - src/utils/old-validators.ts (deleted)
 
 3. refactor(email): migrate email service to handlebars templates
-   - src/services/email.ts, package.json, bun.lock, .env.example
+   - src/services/email.ts, package.json, pnpm-lock.yaml, .env.example
 
 4. test(users): add email verification tests
    - src/routes/users.test.ts
@@ -135,13 +135,13 @@ Alternative (also acceptable - tests per feature):
 ### Rename Detection
 
 **`git diff --stat` shows:**
-```
+```text
  src/utils/{stringHelpers.ts => string-helpers.ts} | 0
  src/routes/api.ts                                  | 2 +-
 ```
 
 The route file updated its import path. These go together:
-```
+```text
 refactor(utils): rename stringHelpers to string-helpers
   - src/utils/string-helpers.ts, src/routes/api.ts
 ```
@@ -151,7 +151,7 @@ refactor(utils): rename stringHelpers to string-helpers
 **Changes:** Delete `src/lib/logger.ts`, add `src/lib/logger/index.ts` + `src/lib/logger/transports.ts`
 
 These are one logical change:
-```
+```text
 refactor(logger): split logger into module with transports
   - src/lib/logger.ts (deleted), src/lib/logger/index.ts, src/lib/logger/transports.ts
 ```
@@ -165,14 +165,14 @@ General rule: **separate test commits from feature commits** unless the test is 
 ## Anti-patterns
 
 ### Don't: One giant commit
-```
+```text
 feat: add email verification, refactor email service, add notifications
   - (all 12 files)
 ```
 Why bad: Can't revert email refactor without losing verification feature. Message is vague.
 
 ### Don't: Commit by file
-```
+```text
 1. feat(users): update users.ts
 2. feat(validators): update validators.ts
 3. chore(types): update user.ts
@@ -181,7 +181,7 @@ Why bad: Can't revert email refactor without losing verification feature. Messag
 Why bad: Individual commits are meaningless. "update users.ts" says nothing. Intermediate states may not compile.
 
 ### Don't: Group by directory
-```
+```text
 1. chore(src/routes): update route files
 2. chore(src/services): update service files
 3. chore(src/utils): update util files
@@ -189,7 +189,7 @@ Why bad: Individual commits are meaningless. "update users.ts" says nothing. Int
 Why bad: Directory structure doesn't reflect logical grouping. Unrelated changes lumped together.
 
 ### Don't: Describe the diff, describe the intent
-```
+```text
 BAD:  fix(api): change status code from 400 to 422
 GOOD: fix(api): return 422 for validation errors instead of 400
 ```

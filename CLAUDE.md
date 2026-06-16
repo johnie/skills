@@ -5,19 +5,19 @@ Project conventions, guidelines, and best practices for AI coding assistants.
 ## Commands
 
 ```bash
-bun install          # Install dependencies
-bun test             # Run tests
-bun test path/to/file.test.ts  # Run single test file
+pnpm install          # Install dependencies
+pnpm test             # Run tests
+pnpm test path/to/file.test.ts  # Run single test file
 
 # Skill Management
-bun run skills       # Interactive skill symlink manager
-bun run skills list  # List all skills and their link status
-bun run skills link <name>    # Link a skill to ~/.claude/skills/
-bun run skills unlink <name>  # Unlink a skill
+pnpm run skills       # Interactive skill symlink manager
+pnpm run skills list  # List all skills and their link status
+pnpm run skills link <name>    # Link a skill to ~/.claude/skills/
+pnpm run skills unlink <name>  # Unlink a skill
 
 # Linting/Formatting (Ultracite + Biome)
-bun x ultracite fix   # Auto-fix formatting and lint issues
-bun x ultracite check # Check for issues without fixing
+pnpm exec ultracite fix   # Auto-fix formatting and lint issues
+pnpm exec ultracite check # Check for issues without fixing
 ```
 
 Pre-commit hooks run `ultracite fix` automatically via lefthook.
@@ -61,24 +61,15 @@ allowed-tools:
 **When creating/modifying skills:**
 - Keep SKILL.md focused on instructions, workflows, and decision trees
 - Use `references/` for templates, examples, or large reference material
-- Test skills by symlinking them with `bun run skills link <name>`
+- Test skills by symlinking them with `pnpm run skills link <name>`
 - Skills should be self-contained - don't assume other skills exist
 
-## Bun Runtime
+## PNPM & Node.js Runtime
 
-Use Bun exclusively - not Node.js, npm, yarn, pnpm, or vite.
+Use pnpm exclusively - not Bun, Node.js directly, npm, yarn, or vite.
 
-**Prefer Bun APIs:**
-- `Bun.serve()` for HTTP servers with routes and WebSockets (not express)
-- `Bun.file()` for file I/O (not node:fs)
-- `Bun.$` for shell commands (not execa)
-- `bun:sqlite` for SQLite (not better-sqlite3)
-- `Bun.redis` for Redis (not ioredis)
-- `Bun.sql` for Postgres (not pg)
-- Built-in `WebSocket` (not ws)
+**Prefer Node.js standard APIs:**
+- Use built-in standard modules like `node:fs`, `node:path`, `node:child_process`, etc.
+- Use `tsx` for running TypeScript files directly without a manual compilation step.
 
-Bun auto-loads `.env` files - don't use dotenv.
-
-**Testing:** Use `bun:test` - imports are `import { test, expect } from "bun:test"`
-
-**Frontend:** Use HTML imports with `Bun.serve()` - Bun bundles .tsx/.jsx/.css automatically when imported from HTML.
+**Testing:** Use `vitest` - imports are `import { test, expect } from "vitest"`

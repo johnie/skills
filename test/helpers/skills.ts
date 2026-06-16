@@ -1,4 +1,5 @@
 import { readdirSync, statSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -43,14 +44,7 @@ export async function readSkillFile(skillName: string): Promise<string> {
   const skillPath = getSkillPath(skillName);
   const skillFilePath = join(skillPath, "SKILL.md");
 
-  // Use Bun.file if available (Bun runtime), otherwise use fs.readFileSync (Node/Vitest)
-  if (typeof Bun !== "undefined") {
-    const skillFile = Bun.file(skillFilePath);
-    return await skillFile.text();
-  }
-
-  const { readFileSync } = await import("node:fs");
-  return readFileSync(skillFilePath, "utf-8");
+  return await readFile(skillFilePath, "utf-8");
 }
 
 /**

@@ -182,7 +182,7 @@ Creates new `user_preferences` table with foreign key to users. Adds migration w
 - Add preference endpoints to API
 
 ## Deployment
-- Run database migration before deploying: `bun run migrate`
+- Run database migration before deploying: `npm run migrate` (use the project's package manager)
 - Migration is backwards compatible - no downtime required
-- Rollback: `bun run migrate:rollback` removes table
+- Rollback: `npm run migrate:rollback` removes table
 ```

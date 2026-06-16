@@ -2,6 +2,22 @@
 
 Organized by category with focus on non-obvious flags, gotchas, and best practices.
 
+## Contents
+
+- [Database Commands (`wp db`)](#database-commands-wp-db)
+- [Core WordPress (`wp core`)](#core-wordpress-wp-core)
+- [Plugins (`wp plugin`)](#plugins-wp-plugin)
+- [Themes (`wp theme`)](#themes-wp-theme)
+- [Users (`wp user`)](#users-wp-user)
+- [Posts & Content (`wp post`)](#posts--content-wp-post)
+- [Comments (`wp comment`)](#comments-wp-comment)
+- [Options (`wp option`)](#options-wp-option)
+- [Cache & Transients (`wp cache` / `wp transient`)](#cache--transients-wp-cache--wp-transient)
+- [Cron (`wp cron`)](#cron-wp-cron)
+- [Configuration (`wp config`)](#configuration-wp-config)
+- [Multisite (`wp site`)](#multisite-wp-site)
+- [Performance Tips](#performance-tips)
+
 ## Database Commands (`wp db`)
 
 ### Export & Import
@@ -56,8 +72,9 @@ wp db size                   # Show database size
 wp db check                  # Check table integrity
 wp db cli                    # Open MySQL/MariaDB shell
 wp db reset --yes            # DESTRUCTIVE: Drops all tables
-wp db clean                  # Remove tables from old installations
-  --all-tables-with-prefix   # Remove tables matching wp_ prefix
+wp db clean --yes            # DESTRUCTIVE: Drops every table matching $table_prefix
+  --dry-run                  # List what would be dropped without dropping
+  --network                  # All tables across a multisite network
 ```
 
 **Warning**: `wp db reset` and `wp db clean` are irreversible without backups.
@@ -246,9 +263,11 @@ wp post term remove <id> <taxonomy> <term>...
 
 **Bulk delete pattern**:
 ```bash
-# Delete all draft posts
+# Delete all draft posts — run the inner `wp post list` ALONE first to confirm the ID set
 wp post delete $(wp post list --post_status=draft --format=ids) --force
 ```
+
+If the filter is wrong, `--force` permanently deletes the wrong posts with no trash to recover from. Always eyeball the `wp post list` output before wrapping it in a delete.
 
 ## Comments (`wp comment`)
 
@@ -282,11 +301,11 @@ wp option get <key>
 
 wp option add <key> <value>
   --format=json              # Input JSON for arrays/objects
-  --autoload=<yes|no>
+  --autoload=<on|off>        # (older wp-cli accepts yes|no)
 
 wp option update <key> <value>
   --format=json
-  --autoload=<yes|no>
+  --autoload=<on|off>
 
 wp option delete <key>
 
@@ -305,7 +324,7 @@ wp option patch <op> <key> <key-path> <value>  # Update nested values
 
 **Gotcha**: Changing `siteurl` or `home` incorrectly can lock you out of wp-admin.
 
-## Cache & Transients
+## Cache & Transients (`wp cache` / `wp transient`)
 
 ```bash
 wp cache flush               # Clear object cache

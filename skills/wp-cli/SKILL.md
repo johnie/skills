@@ -102,7 +102,15 @@ Full flag docs and gotchas are in [`references/commands.md`](references/commands
 
 ## Workflows
 
-Full step-by-step workflows — site migration, bulk plugin updates, user audit — live in [`references/examples.md`](references/examples.md). Load that file when the user is doing one of those tasks end-to-end.
+Full step-by-step workflows live in `references/`, split by task — load only the one the user is doing end-to-end:
+
+| Workflow | File |
+|---|---|
+| Site migration (local → prod) + search-replace | [`references/examples-migration.md`](references/examples-migration.md) |
+| Plugin updates with rollback, debugging, DB maintenance | [`references/examples-maintenance.md`](references/examples-maintenance.md) |
+| User audit, cleanup, safe password rotation | [`references/examples-users.md`](references/examples-users.md) |
+| Bulk content import from CSV | [`references/examples-content.md`](references/examples-content.md) |
+| Multisite / network operations | [`references/examples-multisite.md`](references/examples-multisite.md) |
 
 ## Remote execution
 
@@ -163,5 +171,10 @@ Aliases beat ad-hoc SSH because they compose with every wp-cli flag (`wp @prod -
 ## References
 
 - [`references/commands.md`](references/commands.md) — detailed command + flag reference by category
-- [`references/examples.md`](references/examples.md) — complete workflows (migration, updates, audits)
+- Workflow guides (load on demand):
+  - [`references/examples-migration.md`](references/examples-migration.md) — migration + search-replace
+  - [`references/examples-maintenance.md`](references/examples-maintenance.md) — plugin updates, debugging, DB maintenance
+  - [`references/examples-users.md`](references/examples-users.md) — user audit & cleanup
+  - [`references/examples-content.md`](references/examples-content.md) — CSV content import
+  - [`references/examples-multisite.md`](references/examples-multisite.md) — multisite operations
 - Upstream docs: <https://developer.wordpress.org/cli/commands/>

@@ -2,6 +2,15 @@
 
 Define commands, group them into route maps, and wrap them in an application.
 
+## Contents
+
+- [`buildCommand`](#buildcommand)
+- [`buildRouteMap`](#buildroutemap)
+- [`buildApplication`](#buildapplication)
+- [`run`](#run)
+- [Built-In Help and Version Behavior](#built-in-help-and-version-behavior)
+- [Runtime Notes](#runtime-notes)
+
 ## `buildCommand`
 
 `buildCommand()` creates a command from either:

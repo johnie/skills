@@ -1,6 +1,13 @@
 ---
 name: stricli
 description: Build type-safe TypeScript CLIs with Bloomberg's Stricli framework. Use when the user is authoring a new CLI with Stricli, adding or changing typed flags/positionals/parsers on an existing Stricli command, wiring subcommand routing via `buildRouteMap`, or configuring bash auto-complete via `@stricli/auto-complete`. Skip for generic "best CLI framework?" questions or maintenance of CLIs built on commander/yargs/oclif/minimist.
+allowed-tools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
 ---
 
 # Stricli CLI Framework

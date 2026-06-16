@@ -2,6 +2,19 @@
 
 Define typed flags and positional arguments for commands.
 
+## Contents
+
+- [Type Inference](#type-inference)
+- [Flag Kinds](#flag-kinds)
+- [Parsed Flags](#parsed-flags)
+- [Enum Flags](#enum-flags)
+- [Boolean Flags](#boolean-flags)
+- [Counter Flags](#counter-flags)
+- [Common Flag Variants](#common-flag-variants)
+- [Flag Aliases](#flag-aliases)
+- [Positional Arguments](#positional-arguments)
+- [Practical Patterns](#practical-patterns)
+
 ## Type Inference
 
 Stricli infers parameter configuration from the TypeScript function signature and flag types you provide.

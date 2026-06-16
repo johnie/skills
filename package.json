@@ -1,34 +1,38 @@
 {
+  "dependencies": {
+    "@stricli/core": "^1.2.7",
+    "kleur": "^4.1.5",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.0",
+    "@types/node": "^25.9.3",
+    "@types/prompts": "^2.4.9",
+    "lefthook": "^2.1.9",
+    "remark": "^15.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-lint": "^10.0.1",
+    "tsx": "^4.22.4",
+    "ultracite": "7.8.3",
+    "unified": "^11.0.5",
+    "vitest": "^4.1.9",
+    "yaml": "^2.9.0"
+  },
   "name": "@johnie/skills",
-  "version": "0.0.1",
-  "type": "module",
+  "peerDependencies": {
+    "typescript": "^6"
+  },
   "scripts": {
-    "skills": "bun cli/index.ts",
+    "skills": "tsx cli/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run test/unit",
     "test:integration": "vitest run test/integration",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
   },
-  "devDependencies": {
-    "@biomejs/biome": "2.4.13",
-    "@types/bun": "latest",
-    "@types/prompts": "^2.4.9",
-    "lefthook": "^2.1.6",
-    "remark": "^15.0.1",
-    "remark-frontmatter": "^5.0.0",
-    "remark-lint": "^10.0.1",
-    "ultracite": "7.6.1",
-    "unified": "^11.0.5",
-    "vitest": "^4.1.5",
-    "yaml": "^2.8.3"
-  },
-  "peerDependencies": {
-    "typescript": "^6"
-  },
-  "dependencies": {
-    "@stricli/core": "^1.2.6",
-    "kleur": "^4.1.5",
-    "prompts": "^2.4.2"
-  }
+  "type": "module",
+  "version": "0.0.1",
+  "packageManager": "pnpm@11.7.0"
 }

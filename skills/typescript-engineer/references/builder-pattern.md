@@ -5,6 +5,18 @@ description: Type-safe builder pattern with chainable methods
 
 # Type-Safe Builder Pattern
 
+## Contents
+
+- [Basic Concept](#basic-concept)
+- [Implementation Pattern](#implementation-pattern)
+- [How the Types Build Up](#how-the-types-build-up)
+- [Key Techniques](#key-techniques)
+- [Pattern: Query Builder](#pattern-query-builder)
+- [Pattern: Configuration Builder with Required Fields](#pattern-configuration-builder-with-required-fields)
+- [Advanced: Default Values](#advanced-default-values)
+- [When to Use Builder Pattern](#when-to-use-builder-pattern)
+- [Common Pitfalls](#common-pitfalls)
+
 ## Overview
 
 The builder pattern uses a chain of method calls to incrementally build up a data structure or configuration. With TypeScript, we can make this pattern fully type-safe, tracking accumulated state at the type level.
@@ -226,25 +238,22 @@ interface ServerConfig {
   timeout?: number;
 }
 
-type RequiredFields = "host" | "port";
-type ConfiguredFields<T> = { [K in keyof T]-?: K };
-
 class ConfigBuilder<TConfigured extends Partial<Record<keyof ServerConfig, true>>> {
   private config: Partial<ServerConfig> = {};
 
   host(value: string): ConfigBuilder<TConfigured & { host: true }> {
     this.config.host = value;
-    return this as any;
+    return this;
   }
 
   port(value: number): ConfigBuilder<TConfigured & { port: true }> {
     this.config.port = value;
-    return this as any;
+    return this;
   }
 
   ssl(value: boolean): ConfigBuilder<TConfigured & { ssl: true }> {
     this.config.ssl = value;
-    return this as any;
+    return this;
   }
 
   // Only allow build when required fields are set

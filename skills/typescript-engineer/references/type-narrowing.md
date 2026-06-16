@@ -5,6 +5,19 @@ description: Narrowing types through control flow analysis
 
 # Type Narrowing
 
+## Contents
+
+- [Built-in Narrowing](#built-in-narrowing)
+- [Discriminated Unions](#discriminated-unions)
+- [Custom Type Guards](#custom-type-guards)
+- [Narrowing with Opaque Types](#narrowing-with-opaque-types)
+- [Array Filtering with Type Guards](#array-filtering-with-type-guards)
+- [Control Flow Analysis Limitations](#control-flow-analysis-limitations)
+- [Practical Example: API Response Handling](#practical-example-api-response-handling)
+- [When to Use Each Technique](#when-to-use-each-technique)
+- [Common Pitfalls](#common-pitfalls)
+- [See also](#see-also)
+
 ## Overview
 
 Type narrowing is TypeScript's ability to refine types based on control flow analysis. When you check a type condition, TypeScript narrows the type within that code block.

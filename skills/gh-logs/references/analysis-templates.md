@@ -6,7 +6,7 @@ Structured output formats for each analysis mode. Always use these templates for
 
 Use for the standard diagnose workflow.
 
-```text
+````text
 ## Diagnosis
 
 **Category**: <test|build|deps|infra|lint|auth|timeout>
@@ -23,7 +23,7 @@ Use for the standard diagnose workflow.
 
 **Verify**:
 <command to re-run CI and confirm the fix>
-```
+````
 
 ### Multiple failures
 

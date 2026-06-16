@@ -124,12 +124,16 @@ For each failed run, extract failed test names from the log. Tests that fail in 
 
 ### Slow step profiling — `--slow`
 
+Step-level timestamps come from the REST jobs endpoint (`gh run view --json jobs` exposes timing only on jobs, not steps):
+
 ```bash
-gh run view <run-id> --json jobs \
-  --jq '.jobs[].steps[] | {name, startedAt: .started_at, completedAt: .completed_at, conclusion}'
+gh api repos/{owner}/{repo}/actions/runs/<run-id>/jobs --jq '
+  [.jobs[].steps[] | select(.completed_at != null and .started_at != null) |
+   {name, duration: ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))}] |
+  sort_by(-.duration)'
 ```
 
-Compute durations, sort descending, identify bottlenecks. Suggest cache, parallelism, or dropping the step.
+Durations come back sorted descending — identify bottlenecks and suggest cache, parallelism, or dropping the step. For a coarse job-level view, `gh run view <run-id> --json jobs --jq '.jobs[] | {name, startedAt, completedAt}'` avoids the extra API call.
 
 ### History — `--history [n]`
 
@@ -170,10 +174,10 @@ Log excerpt:
   1 snapshot failed.
 
 Fix:
-  bun test -- -u src/components/LoginForm.test.tsx
+  <test-runner> -u src/components/LoginForm.test.tsx   # e.g. vitest -u / jest -u, via the project's package manager
 
 Verify:
-  git add -A && git commit -m "test: update LoginForm snapshot" && git push && gh run watch
+  Commit the updated snapshot (hand off to /commit), push, then `gh run watch`.
 ```
 
 More session shapes (flaky / slow / history) are in [`references/analysis-templates.md`](references/analysis-templates.md).

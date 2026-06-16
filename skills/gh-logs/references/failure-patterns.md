@@ -116,7 +116,7 @@ When multiple patterns match, pick the most upstream cause. Priority: `auth` > `
 
 **Common root causes**: Unpublished/yanked package, peer dependency conflict after upgrade, stale lockfile, registry outage.
 
-**Typical fixes**: `bun install` to regenerate lockfile, pin version, use `--legacy-peer-deps`, check registry status.
+**Typical fixes**: reinstall to regenerate the lockfile (`npm install` / `pnpm install` / `yarn` / `bun install` — match the project's lockfile), pin version, use `--legacy-peer-deps`, check registry status.
 
 ### pip (Python)
 
@@ -186,7 +186,7 @@ When multiple patterns match, pick the most upstream cause. Priority: `auth` > `
 
 **Common root causes**: Forgot to run formatter before committing, pre-commit hook not set up locally.
 
-**Typical fixes**: Run the formatter (`bun x ultracite fix`, `prettier --write .`, `eslint --fix`), commit the changes.
+**Typical fixes**: Run the project's formatter via its package manager (e.g. `pnpm exec ultracite fix`, `npx prettier --write .`, `eslint --fix`), commit the changes.
 
 ## Auth / Permission Failures
 

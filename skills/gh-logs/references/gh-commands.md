@@ -59,9 +59,11 @@ gh run view <id> --json jobs --jq '.jobs[] | select(.conclusion == "failure") | 
 # Job names and conclusions
 gh run view <id> --json jobs --jq '.jobs[] | "\(.name): \(.conclusion)"'
 
-# Step timing for a specific job
-gh run view <id> --json jobs --jq '.jobs[] | select(.name == "build") | .steps[] | {name, started_at, completed_at}'
+# Job-level timing (gh's native JSON uses camelCase and only exposes timestamps on jobs, not steps)
+gh run view <id> --json jobs --jq '.jobs[] | {name, startedAt, completedAt, conclusion}'
 ```
+
+> Step-level timestamps are **not** available through `gh run view --json jobs` — the `steps[]` objects only carry `name`, `status`, `conclusion`, and `number`. For per-step durations, use the REST jobs endpoint (see [Step timing](#extract-step-durations-sorted-by-time)), which returns snake_case `started_at` / `completed_at` on each step.
 
 ## Monitoring Runs
 
@@ -131,7 +133,9 @@ gh run view <id> --json jobs --jq '[.jobs[] | select(.conclusion == "failure") |
 ### Failed runs in the last 24 hours
 
 ```bash
-gh run list --status failure --created ">$(date -u -v-1d +%Y-%m-%dT%H:%M:%SZ)" --json databaseId,displayTitle,headBranch,workflowName
+# GNU date (Linux runners, most CI):
+gh run list --status failure --created ">$(date -u -d '1 day ago' +%Y-%m-%dT%H:%M:%SZ)" --json databaseId,displayTitle,headBranch,workflowName
+# BSD date (macOS): swap the date call for: date -u -v-1d +%Y-%m-%dT%H:%M:%SZ
 ```
 
 ### Compare two runs (which steps differ)
@@ -143,17 +147,21 @@ diff <(gh run view <id1> --json jobs --jq '.jobs[].steps[] | "\(.name): \(.concl
 
 ### Extract step durations sorted by time
 
+Step timestamps live on the REST jobs endpoint (`started_at` / `completed_at`, snake_case), not on `gh run view --json jobs`:
+
 ```bash
-gh run view <id> --json jobs --jq '
-  [.jobs[].steps[] | select(.completed_at != null) |
-   {name, duration: (((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601)))}] |
+gh api repos/{owner}/{repo}/actions/runs/<run-id>/jobs --jq '
+  [.jobs[].steps[] | select(.completed_at != null and .started_at != null) |
+   {name, duration: ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))}] |
   sort_by(-.duration) | .[] | "\(.duration)s\t\(.name)"'
 ```
+
+For a quick job-level breakdown without the REST call, `gh run view <id> --json jobs --jq '.jobs[] | {name, startedAt, completedAt}'` gives per-job (not per-step) timing.
 
 ### Count failures by workflow over last 50 runs
 
 ```bash
-gh run list --status failure --limit 50 --json workflowName --jq 'group_by(.workflowName) | .[] | {workflow: .[0].workflowName, count: length}' 
+gh run list --status failure --limit 50 --json workflowName --jq 'group_by(.workflowName) | .[] | {workflow: .[0].workflowName, count: length}'
 ```
 
 ### Grep failed logs for a pattern

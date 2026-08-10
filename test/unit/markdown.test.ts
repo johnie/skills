@@ -4,6 +4,11 @@ import remarkFrontmatter from "remark-frontmatter";
 import { describe, expect, test } from "vitest";
 import { discoverSkills, readSkillFile } from "../helpers/skills";
 
+/** Anthropic's documented guidance: keep SKILL.md under 500 lines. */
+const RECOMMENDED_MAX_LINES = 500;
+/** Past this, the body is a liability rather than a guide. */
+const HARD_MAX_LINES = 800;
+
 /**
  * Parse markdown content into an AST
  */
@@ -171,12 +176,14 @@ describe("Markdown Structure Validation", () => {
       test("SKILL.md line count is reasonable", async () => {
         const content = await readSkillFile(skillName);
         const lineCount = content.split("\n").length;
-        if (lineCount > 500) {
+        if (lineCount > RECOMMENDED_MAX_LINES) {
           console.warn(
-            `[${skillName}] SKILL.md is ${lineCount} lines (recommended: <500). Consider moving content to references/.`
+            `[${skillName}] SKILL.md is ${lineCount} lines (recommended: <${RECOMMENDED_MAX_LINES}). Consider moving content to references/.`
           );
         }
-        expect(true).toBe(true);
+        // A skill body stays in context for the rest of the session, so an
+        // oversized SKILL.md is a recurring token cost on every turn.
+        expect(lineCount).toBeLessThanOrEqual(HARD_MAX_LINES);
       });
     });
   }

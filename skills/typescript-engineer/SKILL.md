@@ -1,8 +1,12 @@
 ---
 name: typescript-engineer
 description: Resolve TypeScript errors, eliminate `any`, and design complex types (generics, conditional, mapped, template literal, branded/opaque). Use for type-inference problems, `infer` / `extends` questions, utility types (`Partial`, `Record`, `ReturnType`, `Awaited`, `NoInfer`), `satisfies`, function overloads, declaration merging, and strict-mode refactors.
+when_to_use: Also use to explain or teach a type-level concept with before/after examples, and when migrating a module toward stricter types. Covers TypeScript 5.x through 7.x, including inferred type predicates and `erasableSyntaxOnly`.
 allowed-tools:
-  - Bash
+  - Bash(tsc *)
+  - Bash(npx tsc *)
+  - Bash(pnpm tsc *)
+  - Bash(pnpm exec tsc *)
   - Read
   - Edit
   - Grep
@@ -13,13 +17,7 @@ allowed-tools:
 
 Type-level design, compiler-error diagnosis, and strict-safety refactoring. This skill routes the user's intent to a set of focused rule files in `references/`; don't try to answer from SKILL.md alone on anything non-trivial.
 
-## When to use
-
-- TypeScript compiler errors the user can't untangle
-- Eliminating `any` / `unknown` / unchecked casts
-- Designing generics, conditional types, mapped types, template literal types
-- Refactoring a file/module toward stricter types
-- Explaining a TS concept with concrete before/after examples
+Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 ## When NOT to use
 
@@ -73,10 +71,12 @@ Match keywords in the user's request to load the right rule file.
 | overload, multiple signatures | [function-overloads.md](references/function-overloads.md) |
 | type test, prove a type, assert a type, `Expect`, `Equal`, `@ts-expect-error` | [type-testing.md](references/type-testing.md) |
 | type error, diagnostic, `ts(…)`, "not assignable" | [error-diagnosis.md](references/error-diagnosis.md) |
+| TS version, "which version added", 5.5 / 6 / 7, `erasableSyntaxOnly`, native compiler, upgrade broke my build | [typescript-versions.md](references/typescript-versions.md) |
 
 ## Working style
 
-- **Reproduce first.** Run `tsc --noEmit` on the user's code before proposing a fix so you're reasoning about the real error, not a guess.
+- **Check the version.** Read `typescript` in `package.json` (or run `npx tsc --version`) before recommending anything version-gated. TypeScript 5.5 infers type predicates and 5.8 can ban `enum` outright, so the same advice is right or wrong depending on the target. [typescript-versions.md](references/typescript-versions.md) lists what changed.
+- **Reproduce first.** Run `tsc --noEmit` on the user's code before proposing a fix so you're reasoning about the real error, not a guess. Since 7.0 the compiler is a native binary and whole-project checks are fast — prefer a real run over reasoning from a snippet.
 - **Simplest type that works.** Don't reach for conditional/mapped/template-literal machinery when a plain generic or utility type would do. Complexity has a cost to everyone who reads the code later.
 - **Validate type-level code.** Use the `Expect<Equal<A, B>>` pattern (or similar) to prove the types are what you claim — see [type-testing.md](references/type-testing.md). Types that compile but are wrong are worse than runtime bugs — they silently lie.
 - **Explain why the type works.** Dense types are hard to read; a one-line comment naming the technique (`// distributive conditional over UnionKey`) pays for itself.
@@ -105,6 +105,8 @@ function isUser(value: unknown): value is { id: number; name: string } {
 }
 ```
 
+Two things to flag when you write one of these. `in` proves the keys exist but says nothing about their types, so the annotation is a promise the body doesn't keep — if the shape arrives over the network, validate it with Zod/Valibot instead. And on TS 5.5+ a guard like this often doesn't need the annotation at all; see [typescript-versions.md](references/typescript-versions.md).
+
 See [type-narrowing.md](references/type-narrowing.md) and [assertion-functions.md](references/assertion-functions.md).
 
 ### Preserve literals while enforcing shape
@@ -129,4 +131,4 @@ Type-level programming — [conditional-types](references/conditional-types.md) 
 
 Safety — [opaque-types](references/opaque-types.md) · [type-narrowing](references/type-narrowing.md) · [assertion-functions](references/assertion-functions.md) · [function-overloads](references/function-overloads.md)
 
-Debugging — [error-diagnosis](references/error-diagnosis.md) · [type-testing](references/type-testing.md)
+Debugging — [error-diagnosis](references/error-diagnosis.md) · [type-testing](references/type-testing.md) · [typescript-versions](references/typescript-versions.md)

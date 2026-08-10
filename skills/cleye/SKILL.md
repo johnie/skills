@@ -1,25 +1,29 @@
 ---
 name: cleye
-description: Build type-safe TypeScript CLIs with the cleye argv parser. Use when the user is authoring a new cleye CLI, adding or changing typed flags/parameters on an existing `cli()` call, defining subcommands with `command()`, using `cleye/formats` helpers (oneOf/commaList/integer/float/range/url), customizing `--help` output via `help.render`, or wiring `strictFlags`/`booleanFlagNegation`. Skip for generic "best CLI framework?" questions or maintenance of CLIs built on commander/yargs/oclif/minimist.
+description: Build type-safe TypeScript CLIs with the cleye argv parser. Use when the project already depends on `cleye` or the user names cleye — authoring a `cli()` call, adding typed flags/parameters, defining subcommands with `command()`, handling parsed output in a callback, using `cleye/formats` helpers (oneOf/commaList/integer/float/range/url), customizing `--help` via `help.render`, or wiring `strictFlags`/`booleanFlagNegation`. For Bloomberg's Stricli framework use the stricli skill instead; skip for commander/yargs/oclif/minimist and for generic "which CLI framework should I use?" questions.
+allowed-tools:
+  - Bash(npm install cleye)
+  - Bash(npm i cleye)
+  - Bash(pnpm add cleye)
+  - Bash(tsc *)
+  - Bash(pnpm exec tsc *)
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
 ---
 
 # cleye CLI Tool
 
 cleye is an intuitive argv-parsing tool for Node.js CLIs. It turns a declarative options object into strongly-typed parameters and flags, auto-generates `--help` and `--version` documentation, and supports nested commands. Flag parsing is powered by [`type-flag`](https://github.com/privatenumber/type-flag).
 
-## When to use
-
-- Authoring a new cleye CLI with `cli({ ... })`
-- Adding or changing typed flags / positional parameters
-- Defining subcommands with `command()` and registering them in `commands`
-- Using `cleye/formats` helpers or writing custom type functions for validation
-- Customizing help output (`help.render`, `usage`, `examples`)
-- Enabling `strictFlags`, `booleanFlagNegation`, or `ignoreArgv`
-- Handling parsed output with a callback (`cli(options, callback)` / `command(options, callback)`)
+Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 ## When NOT to use
 
 - The user has an existing CLI on a different framework (commander, yargs, oclif, minimist) — this skill doesn't migrate, and the APIs don't translate.
+- The project uses Bloomberg's Stricli — different library, non-transferable API. Use the stricli skill.
 - Generic "which CLI framework should I use?" — that's a design conversation, not a cleye question.
 - Non-TypeScript CLIs — cleye works in plain JS, but its core value is compile-time type inference of flags and parameters.
 - Runtime debugging of an installed CLI (not developing it) — use shell/debugging tooling.
@@ -27,6 +31,8 @@ cleye is an intuitive argv-parsing tool for Node.js CLIs. It turns a declarative
 ## Core API surface
 
 cleye's API is intentionally small. If something isn't listed here or in the references, assume it doesn't exist — checking the upstream repo is faster than guessing, and invented APIs compile until they don't.
+
+This skill targets the **2.x** line (current stable, `cleye@latest`), which is where `cleye/formats`, `booleanFlagNegation`, and `ignoreArgv` live. A `3.0.0-beta` exists on the `next` tag with breaking changes; if the project has installed it, verify each API against the upstream repo rather than trusting the shapes below.
 
 | Entry point | Purpose |
 |---|---|

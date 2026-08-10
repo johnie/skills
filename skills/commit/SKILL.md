@@ -1,21 +1,35 @@
 ---
 name: commit
 description: Split working-tree changes into atomic git commits with conventional-commit messages. Use whenever the user asks to commit, save work, stage files, break one messy diff into multiple logical commits, or prep a branch for a PR — including terse prompts like "commit this", "ship it", or "wrap up".
+when_to_use: Also triggers on "save my work", "stage everything", "make some commits out of this", and "tidy up my commits before the PR". Applies whether or not files are already staged — grouping considers staged, unstaged, and untracked changes together.
+argument-hint: "[-v|--dry-run|--amend] [push]"
 allowed-tools:
-  - Bash
+  - Bash(git status *)
+  - Bash(git diff *)
+  - Bash(git add *)
+  - Bash(git commit *)
+  - Bash(git log *)
+  - Bash(git branch *)
+  - Bash(git rev-parse *)
+  - Bash(git push origin HEAD)
 ---
 
 # Commit
 
 Turn the current working tree into a set of atomic conventional-commit commits. Atomic = each commit captures one logical change that could be reverted on its own without breaking the rest.
 
-## When to use
+Requested options: `$ARGUMENTS` — if that is blank or still shows the literal placeholder, no options were passed: analyze, group, and commit without asking.
 
-- "Commit this / these changes"
-- "Break this up into commits / split these commits"
-- "Prep this branch for review"
-- The user staged nothing and has a mixed diff
-- The user already staged some files and wants the rest committed sensibly
+## Working tree state
+
+- Branch: !`git branch --show-current`
+- Status: !`git status --short --branch`
+- Unstaged: !`git diff --stat`
+- Staged: !`git diff --cached --stat`
+- Unmerged paths: !`git diff --name-only --diff-filter=U`
+- Recent commits: !`git log --oneline -5`
+
+This snapshot is captured once, before the turn starts. After you stage or commit anything it is stale — re-read with `git` rather than trusting it. Fetch full diffs (`git diff`, `git diff --cached`) as you need them; only the summaries are inlined above so a large diff can't crowd out the instructions.
 
 ## When NOT to use
 
@@ -34,12 +48,14 @@ Turn the current working tree into a set of atomic conventional-commit commits. 
 
 ## Workflow
 
-1. **Safety**: check for merge conflicts (abort if found) and warn if on `main`/`master`.
-2. **Read state**: `git status`, `git diff`, `git diff --cached`, `git diff --stat` (for rename detection).
+1. **Safety**: abort if *Unmerged paths* above is non-empty; warn if the branch is `main`/`master`.
+2. **Read state**: the snapshot above covers status, staged/unstaged summaries, and renames. Pull the full `git diff` / `git diff --cached` only for the files you need to reason about.
 3. **Group**: split changes into logical commits. See [`references/grouping-guide.md`](references/grouping-guide.md) for the decision tree, scope derivation, and type disambiguation.
 4. **Verify** (if `-v`/`--dry-run`/`--amend`): show plan. `--dry-run` exits here.
 5. **Execute**: for each group — `git add <files>` then `git commit -m "<message>"` (or `git commit --amend` for amend).
 6. **Push** (if `push`): `git push origin HEAD`. On failure, classify (auth / branch protection / diverged / other) and suggest a next step.
+
+Only `git push origin HEAD` is pre-approved. Any other push form — a different remote, a different refspec, `--force` — will prompt, which is the intended friction.
 
 ## Staging model
 

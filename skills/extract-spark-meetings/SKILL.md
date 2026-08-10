@@ -1,8 +1,8 @@
 ---
 name: extract-spark-meetings
 description: Extract meeting notes from Spark Mail shared-transcript links into tagged markdown files with YAML frontmatter (participants, action items, decisions, next steps). Use when the user has one or more share.sparkmailapp.com links to convert into a searchable local meeting archive, in single-URL or batch mode from a links.md checklist.
+argument-hint: "[spark-share-url]"
 allowed-tools:
-  - Bash
   - Read
   - Write
   - Edit
@@ -16,12 +16,9 @@ Spark Mail (the email client) produces shareable transcript links for recorded/s
 
 Output is plain markdown + YAML — no Spark dependency once extracted.
 
-## When to use
+Target URL, if given: `$ARGUMENTS`. If that is blank or still shows the literal placeholder, run batch mode against `links.md`.
 
-- "Extract this Spark meeting link" — `/extract-spark-meetings <url>`
-- "Process all unchecked meetings in `links.md`" — `/extract-spark-meetings` (batch)
-- Building or refreshing a meeting archive from a growing list of Spark shares
-- Any workflow where Spark Mail transcript links need to become files on disk
+Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 ## When NOT to use
 

@@ -1,8 +1,12 @@
 ---
 name: stricli
-description: Build type-safe TypeScript CLIs with Bloomberg's Stricli framework. Use when the user is authoring a new CLI with Stricli, adding or changing typed flags/positionals/parsers on an existing Stricli command, wiring subcommand routing via `buildRouteMap`, or configuring bash auto-complete via `@stricli/auto-complete`. Skip for generic "best CLI framework?" questions or maintenance of CLIs built on commander/yargs/oclif/minimist.
+description: Build type-safe TypeScript CLIs with Bloomberg's Stricli framework. Use when the project already depends on `@stricli/core` or the user names Stricli — authoring a new CLI, changing typed flags/positionals/parsers, wiring subcommand routing via `buildRouteMap`, testing via `run(app, argv, context)`, or configuring bash auto-complete via `@stricli/auto-complete`. For the `cleye` argv parser use the cleye skill instead; skip for commander/yargs/oclif/minimist and for generic "which CLI framework should I use?" questions.
 allowed-tools:
-  - Bash
+  - Bash(npx @stricli/create-app*)
+  - Bash(npm install @stricli/*)
+  - Bash(pnpm add @stricli/*)
+  - Bash(tsc *)
+  - Bash(pnpm exec tsc *)
   - Read
   - Write
   - Edit
@@ -14,18 +18,12 @@ allowed-tools:
 
 Stricli is Bloomberg's type-safe CLI framework for TypeScript. Strongly-typed flags and positional arguments, explicit command routing, automatic help generation, and an isolated `CommandContext` per run.
 
-## When to use
-
-- Scaffolding a new Stricli CLI (`npx @stricli/create-app` or by hand)
-- Adding a command to an existing Stricli CLI
-- Changing flag/positional definitions, parsers, or variadic behavior
-- Introducing or restructuring `buildRouteMap` for subcommands
-- Setting up bash auto-complete via `@stricli/auto-complete`
-- Testing a Stricli command via `run(app, argv, context)`
+Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 ## When NOT to use
 
 - The user has an existing CLI on a different framework (commander, yargs, oclif, minimist) — this skill doesn't migrate, and the APIs don't translate.
+- The project uses `cleye` — different library, non-transferable API. Use the cleye skill.
 - Generic "which CLI framework should I use?" — that's a design conversation, not a Stricli question.
 - Non-TypeScript CLIs — Stricli's core value is its compile-time type safety.
 - Runtime debugging of an installed CLI (not developing it) — use shell/debugging tooling.
@@ -38,9 +36,14 @@ Stricli's public API is intentionally narrow. If something isn't listed here or 
 |---|---|
 | `buildCommand({ func \| loader, parameters, docs })` | Define a single command |
 | `buildRouteMap({ routes, docs, aliases?, defaultCommand? })` | Compose subcommands |
-| `buildApplication(rootCommandOrRouteMap, config)` | Wrap with app-level config (name, version, scanner) |
+| `buildApplication(rootCommandOrRouteMap, config)` | Wrap with app-level config (name, version, scanner, integrations) |
 | `run(app, inputs, context)` | Execute the app against tokenized input + a runtime context |
 | `CommandContext` | The shape that runtime context extends |
+| `help(config)` / `version(config)` | Built-in integrations for `--help` / `--version` (1.3.0+) |
+
+## Version awareness
+
+Check the installed `@stricli/core` before using version-gated API — `integrations`, lifecycle hooks, and the exported `help`/`version` factories arrived in **1.3.0** and don't exist on 1.2.x. Everything else in this skill applies across the 1.x line. Details in [`references/integrations.md`](references/integrations.md).
 
 ## Installation
 
@@ -178,6 +181,7 @@ See [`references/context.md`](references/context.md) and [`references/examples.m
 - `--version` appears only when `versionInfo` is configured on the application.
 - `--helpAll` is built-in and surfaces hidden commands and flags.
 - Reserved short flags: `-h` (help), `-H` (helpAll), `-v` (version, when enabled).
+- On 1.3.0+, passing an `integrations` record to `buildApplication` **replaces** the defaults — re-register `help` and `version` or you lose those flags. See [`references/integrations.md`](references/integrations.md).
 - Upstream docs are npm-first; show `pnpm` / `bun` equivalents when the user uses them.
 
 ## References
@@ -186,6 +190,7 @@ See [`references/context.md`](references/context.md) and [`references/examples.m
 - [`parameters.md`](references/parameters.md) — flag kinds and positional modes
 - [`parsers.md`](references/parsers.md) — built-in / custom / async parsers
 - [`context.md`](references/context.md) — `CommandContext`, custom context, testing, exit codes
+- [`integrations.md`](references/integrations.md) — integrations, lifecycle hooks, application flags, customizing `help`/`version` (1.3.0+)
 - [`auto-complete.md`](references/auto-complete.md) — bash auto-complete integration
 - [`examples.md`](references/examples.md) — composite patterns, end-to-end apps, **testing error paths**
 

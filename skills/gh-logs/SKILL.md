@@ -1,22 +1,49 @@
 ---
 name: gh-logs
 description: Diagnose GitHub Actions failures via the `gh` CLI — fetch logs, classify the root cause, and recommend a fix. Use when a workflow run failed and the user needs to know why, when detecting flaky tests across recent runs, profiling slow steps, analyzing failure history, or watching a live run. Stop clicking through the GitHub UI.
+argument-hint: "[run-id] [--flaky|--slow|--history N|--watch]"
+context: fork
+background: false
 allowed-tools:
-  - Bash
+  - Bash(gh auth status *)
+  - Bash(gh repo view *)
+  - Bash(gh run list *)
+  - Bash(gh run view *)
+  - Bash(gh run watch *)
+  - Bash(gh api repos/*/actions/*)
+  - Bash(git branch *)
 ---
 
 # gh-logs
 
 CI log analyst. Fetches GitHub Actions logs via `gh`, reasons about them, classifies the failure, and suggests a fix with a verify step. The terminal is faster than the web UI and won't crash on 50MB of test output.
 
-## When to use
+This skill runs in a forked context so that megabytes of raw log never land in the main conversation — only your finished diagnosis returns. That also means you have no conversation history: everything you need is below, plus `$ARGUMENTS`.
 
-- "CI is broken / red / failing — what happened?"
-- "Why did this run fail?" (with or without a run ID / URL)
-- "Is this test flaky?" — `--flaky`
-- "Why is the build so slow?" — `--slow`
-- "Has this been failing for a while?" — `--history`
-- "Watch this run and tell me when it's done / why it failed" — `--watch`
+Request: `$ARGUMENTS` — if that is blank or still shows the literal placeholder, no arguments were passed: run the default diagnose flow against the most recent failure.
+
+## Preflight
+
+- Repo: !`gh repo view --json nameWithOwner --jq .nameWithOwner`
+- Branch: !`git branch --show-current`
+- Auth: !`gh auth status`
+- Recent failures (all branches): !`gh run list --status failure --limit 5 --json databaseId,displayTitle,workflowName,headBranch,createdAt`
+
+If auth failed above, tell the user to run `gh auth login` and stop. If the repo lookup failed, ask which repo to target. Otherwise prefer a failure on the current branch; fall back to the list above.
+
+Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
+
+## Modes
+
+| Mode | Triggered by | Primary reference |
+|---|---|---|
+| Diagnose (default) | "CI is broken / red / failing", "why did this run fail?", a bare run ID or URL | [`references/failure-patterns.md`](references/failure-patterns.md) |
+| `--flaky` | "is this test flaky?", "it passes locally" | [`references/failure-patterns.md`](references/failure-patterns.md) (test signatures) |
+| `--slow` | "why is the build so slow?" | [`references/gh-commands.md`](references/gh-commands.md) (timing jq) |
+| `--history [n]` | "has this been failing for a while?" (default 10) | [`references/analysis-templates.md`](references/analysis-templates.md) |
+| `--watch` | "watch this run and tell me when it's done" | [`references/analysis-templates.md`](references/analysis-templates.md) |
+
+Every mode reports through a template in [`references/analysis-templates.md`](references/analysis-templates.md). A `<workflow-name>` argument narrows any mode to one workflow. Full `gh` invocation cookbook: [`references/gh-commands.md`](references/gh-commands.md).
 
 ## When NOT to use
 
@@ -24,42 +51,11 @@ CI log analyst. Fetches GitHub Actions logs via `gh`, reasons about them, classi
 - Editing workflow YAML — this skill reads runs, it doesn't author workflows.
 - Running or re-running workflows — that's `gh workflow run` / `gh run rerun`.
 
-## Mode → reference routing
-
-| Mode | Primary reference | Output template |
-|---|---|---|
-| Default diagnose | [`references/failure-patterns.md`](references/failure-patterns.md) | [`references/analysis-templates.md`](references/analysis-templates.md) |
-| `--flaky` | [`references/failure-patterns.md`](references/failure-patterns.md) (test signatures) | [`references/analysis-templates.md`](references/analysis-templates.md) |
-| `--slow` | [`references/gh-commands.md`](references/gh-commands.md) (timing jq) | [`references/analysis-templates.md`](references/analysis-templates.md) |
-| `--history` | — | [`references/analysis-templates.md`](references/analysis-templates.md) |
-| `--watch` | — | [`references/analysis-templates.md`](references/analysis-templates.md) |
-
-Full `gh` invocation cookbook lives in [`references/gh-commands.md`](references/gh-commands.md).
-
-## Arguments
-
-- `(none)` — auto-detect repo + branch, find latest failed run, diagnose
-- `<run-id>` — analyze a specific run by ID
-- `<workflow-name>` — filter to a specific workflow
-- `--flaky` — detect flaky tests by comparing recent runs
-- `--slow` — profile step timing, find bottlenecks
-- `--history [n]` — analyze the last n failures (default 10)
-- `--watch` — monitor a running workflow; auto-diagnose on failure
-
 ## Default workflow (diagnose)
 
-### 1. Preflight
+### 1. Find the run
 
-```bash
-gh auth status 2>&1 | head -3
-gh repo view --json nameWithOwner --jq '.nameWithOwner'
-```
-
-If auth fails, tell the user to run `gh auth login`. If not in a git repo, ask for the repo.
-
-### 2. Find the run
-
-No arg — latest failure on current branch, fall back to all branches:
+The Preflight block already resolved repo, branch, and recent failures. If a run ID was passed, use it directly. Otherwise narrow to the current branch:
 
 ```bash
 BRANCH=$(git branch --show-current)
@@ -67,9 +63,9 @@ gh run list --branch "$BRANCH" --status failure --limit 1 \
   --json databaseId,displayTitle,conclusion,event,headBranch,workflowName,createdAt
 ```
 
-With a run ID — use directly. With a workflow name — add `--workflow <name>`.
+If that is empty, fall back to the all-branches list from Preflight. With a workflow name — add `--workflow <name>`.
 
-### 3. Get the overview
+### 2. Get the overview
 
 ```bash
 gh run view <run-id> --json jobs \
@@ -78,7 +74,7 @@ gh run view <run-id> --json jobs \
 
 This tells you which jobs failed and which steps inside them.
 
-### 4. Fetch the failing logs
+### 3. Fetch the failing logs
 
 ```bash
 gh run view <run-id> --log-failed
@@ -86,7 +82,7 @@ gh run view <run-id> --log-failed
 
 If output is >5000 lines, narrow to a specific job: `gh run view <run-id> --job <job-id> --log-failed`. If still too large, `gh api` the raw log and `grep` for `error`/`FAIL`/`fatal`.
 
-### 5. Classify
+### 4. Classify
 
 Match log lines against [`references/failure-patterns.md`](references/failure-patterns.md). Pick one primary category:
 
@@ -102,7 +98,7 @@ Match log lines against [`references/failure-patterns.md`](references/failure-pa
 
 **When multiple categories match** (common — e.g., an OOM during tests looks like both `infra` and `test`): pick the most *upstream* cause, because that's what needs to be fixed. Priority: `auth` > `deps` > `build` > `infra` > `lint` > `test` > `timeout`. A test failing *because* deps didn't install is a deps bug, not a test bug. When it's genuinely ambiguous, surface both and ask the user which feels right — a wrong classification leads to a wrong fix.
 
-### 6. Report
+### 5. Report
 
 Use the diagnosis template in [`references/analysis-templates.md`](references/analysis-templates.md). Always include:
 

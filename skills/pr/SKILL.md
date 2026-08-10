@@ -1,21 +1,34 @@
 ---
 name: pr
 description: "Create, update, or review GitHub pull requests via `gh` CLI. Use when opening a PR from the current branch, refreshing an existing PR's body after new commits, or doing a structured review of somebody's PR by number or URL. Commands: create [-v] [--draft], update [-v], review <number|url>."
+argument-hint: "create|update|review [pr] [-v] [--draft]"
 allowed-tools:
-  - Bash
+  - Bash(gh pr view *)
+  - Bash(gh pr diff *)
+  - Bash(gh pr create *)
+  - Bash(gh pr edit *)
+  - Bash(gh repo view *)
+  - Bash(git log *)
+  - Bash(git diff *)
+  - Bash(git branch *)
+  - Bash(git push -u origin HEAD)
 ---
 
 # PR
 
 Create, update, and review GitHub PRs using `gh`. Each command is a separate workflow — pick the one that matches the user's intent.
 
-## When to use
+Requested command and target: `$ARGUMENTS` — if that is blank or still shows the literal placeholder, infer the command from the user's wording using the table below.
+
+## Choosing a command
 
 | User says… | Command |
 |---|---|
 | "Open a PR", "make a PR", "ship this to review" | `create` |
 | "Update the PR description", "refresh the PR body", "add the latest commits to the PR" | `update` |
 | "Review PR #123", "look at this PR", "can you review <url>" | `review` |
+
+If the request names no command and the branch has no PR yet, `create` is the safe default. If a PR already exists, ask before assuming `update` over `review`.
 
 ## When NOT to use
 

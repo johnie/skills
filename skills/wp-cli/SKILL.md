@@ -2,22 +2,30 @@
 name: wp-cli
 description: Drive WordPress from the command line via `wp` CLI — site migrations, search-replace, bulk plugin/theme/user/post operations, option and config edits, multisite management, and cron scheduling. Use whenever the user wants to do something to a WordPress site that a terminal can reach faster than wp-admin.
 allowed-tools:
-  - Bash
+  - Bash(wp --version)
+  - Bash(wp core is-installed *)
+  - Bash(wp core version *)
+  - Bash(wp plugin list *)
+  - Bash(wp theme list *)
+  - Bash(wp user list *)
+  - Bash(wp post list *)
+  - Bash(wp comment list *)
+  - Bash(wp site list *)
+  - Bash(wp option get *)
+  - Bash(wp option list *)
+  - Bash(wp cron event list *)
+  - Bash(wp db check *)
+  - Bash(wp db size *)
+  - Bash(wp db export *)
 ---
 
 # wp-cli
 
 Terminal-first WordPress operations. Safer than wp-admin for bulk work, scriptable, SSH-friendly, and won't time out on 10k-row updates.
 
-## When to use
+Only inspection commands and `wp db export` (which takes a backup) run without a prompt. Every mutating command — `search-replace`, `db import`, `db reset`, plugin/theme installs, user and post writes — prompts before it runs. That friction is deliberate: this skill routinely points at production.
 
-- Site migration (local → staging → prod), including search-replace of URLs
-- Bulk plugin / theme / user / post / comment operations
-- Database export/import, optimization, repair
-- Reading or setting `wp_options`, config constants, or theme mods
-- Running or scheduling cron events
-- Multisite admin tasks (`wp site ...`)
-- Anything scripted or SSH-driven where clicking through wp-admin isn't viable
+Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 ## When NOT to use
 

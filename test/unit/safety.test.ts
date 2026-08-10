@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { extname, join } from "node:path";
 import { describe, expect, test } from "vitest";
 import {
   discoverSkills,
@@ -25,29 +25,65 @@ interface Finding {
   patternName: string;
 }
 
+/** Binary assets can't carry prose or shell injection, so skip the read. */
+const BINARY_EXTENSIONS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".ico",
+  ".pdf",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".otf",
+  ".zip",
+  ".gz",
+]);
+
 /**
- * Collect all text content from a skill (SKILL.md + references/)
+ * Recursively collect readable text files under a directory, relative to the
+ * skill root. Scanning scripts/ and assets/ matters as much as the prose:
+ * a bundled script is executed rather than reviewed at call time.
+ */
+function collectTextFiles(dir: string, prefix: string): SkillFile[] {
+  if (!fileExists(dir)) {
+    return [];
+  }
+  const result: SkillFile[] = [];
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    const relative = `${prefix}/${entry}`;
+    const stats = statSync(fullPath);
+    if (stats.isDirectory()) {
+      result.push(...collectTextFiles(fullPath, relative));
+      continue;
+    }
+    if (
+      !stats.isFile() ||
+      BINARY_EXTENSIONS.has(extname(entry).toLowerCase())
+    ) {
+      continue;
+    }
+    result.push({ file: relative, content: readFileSync(fullPath, "utf-8") });
+  }
+  return result;
+}
+
+/**
+ * Collect all text content from a skill (SKILL.md + references/ + scripts/ + assets/)
  */
 async function getAllSkillContent(skillName: string): Promise<SkillFile[]> {
-  const result: SkillFile[] = [];
   const skillPath = getSkillPath(skillName);
-
   const skillContent = await readSkillFile(skillName);
-  result.push({ file: "SKILL.md", content: skillContent });
 
-  const referencesPath = join(skillPath, "references");
-  if (fileExists(referencesPath)) {
-    const entries = readdirSync(referencesPath);
-    for (const entry of entries) {
-      const fullPath = join(referencesPath, entry);
-      if (statSync(fullPath).isFile()) {
-        const content = readFileSync(fullPath, "utf-8");
-        result.push({ file: `references/${entry}`, content });
-      }
-    }
-  }
-
-  return result;
+  return [
+    { file: "SKILL.md", content: skillContent },
+    ...collectTextFiles(join(skillPath, "references"), "references"),
+    ...collectTextFiles(join(skillPath, "scripts"), "scripts"),
+    ...collectTextFiles(join(skillPath, "assets"), "assets"),
+  ];
 }
 
 /**

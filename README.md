@@ -265,13 +265,18 @@ Designs complex generic types, refactors `any` to strict alternatives, creates t
 - Brand/opaque types and nominal typing
 - `as const`, `typeof`, and `satisfies`
 - Type narrowing, type guards, and assertion functions
+- Inferred type predicates (TS 5.5+) and when to still annotate
+- Type-safe builder pattern and chainable APIs
+- Array element access and `[number]` indexing
 - Function overloads and declaration merging
 - Utility types including `NoInfer<T>` (TS 5.4+)
 - Deep inference with `const` type parameters (TS 5.0+)
+- Type testing with `Expect<Equal<A, B>>`
 - Error diagnosis strategies
+- Version notes for TypeScript 5.5 through 7.x
 
 **Rule Files:**
-15 reference documents covering core patterns, advanced generics, type-level programming, type safety patterns, and debugging — with a keyword routing table for fast lookup.
+17 reference documents covering core patterns, advanced generics, type-level programming, type safety patterns, debugging, and version currency — with a keyword routing table for fast lookup.
 
 </details>
 
@@ -312,7 +317,7 @@ Extract structured meeting summaries and action items from Spark Mail shared lin
 This repository includes a CLI for managing skill symlinks during local development. When developing or testing skills, you need to symlink them to `~/.claude/skills/` where Claude Code discovers them.
 
 ```bash
-# Interactive mode (default) - toggle skills with number keys
+# Interactive mode (default) - space to toggle, enter to apply
 pnpm run skills
 
 # List all skills with their link status
@@ -335,6 +340,22 @@ pnpm run skills --help
 | `link <name>` | - | Create symlink for a skill to ~/.claude/skills/ |
 | `unlink <name>` | - | Remove symlink for a skill |
 | `interactive` | `i` | Interactive TUI mode (default when no args) |
+
+### Authoring a skill
+
+`pnpm test` enforces the conventions below. Run it before pushing — CI runs `pnpm check` and `pnpm test`.
+
+**Layout.** A skill is `skills/<name>/SKILL.md` plus optional `references/`, `scripts/`, `assets/`, and `evals/` subdirectories. No other subdirectories, and no `README.md` / `LICENSE` / `package.json` / `CHANGELOG.md` inside a skill. Files in `scripts/` must be executable.
+
+**Add new skills to `.claude-plugin/marketplace.json`.** The manifest is hand-maintained; a skill missing from it is invisible to `/plugin install`. A test fails if the list and the `skills/` directory disagree.
+
+**Frontmatter.** `name` (required, kebab-case, must equal the directory name) and `description` (required, 50–1024 chars, no HTML). Optional spec fields: `allowed-tools`, `license`, `metadata`, `compatibility`. Claude Code extensions are also permitted because this repo ships as a plugin — `when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `disallowed-tools`, `model`, `effort`, `context`, `agent`, `background`, `hooks`, `paths`, `shell`. Using any extension forfeits portability to claude.ai uploads and the Skills API, which accept only the six spec fields.
+
+**Scope `allowed-tools`.** It pre-approves tools for the invoking turn rather than restricting them, so a bare `Bash` entry lets every shell command run unprompted. A test rejects it. Write per-subcommand rules instead — `Bash(git commit *)`, not `Bash(git *)`, since Claude Code matches each subcommand of a chained command independently and `Bash(git *)` would also cover `git push --force`.
+
+**Body.** Keep `SKILL.md` under 500 lines (hard fail at 800) and move detail to `references/`; the body stays in context for the whole session. Don't restate the description in a "When to use" section — put trigger phrases in `when_to_use` and keep the body for guardrails and workflow. Reference files over 300 lines need a table of contents. All fenced code blocks need a language, headings can't skip levels, and every local link must resolve.
+
+**Evals.** `evals/trigger-set.json` holds description-triggering cases as `{ query, should_trigger }`, at least 10 with 4+ in each class. These feed skill-creator's description optimizer.
 
 ## License
 

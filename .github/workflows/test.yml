@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  unit:
-    name: Unit Tests
+  test:
+    name: Lint and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,5 +26,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Run unit tests
-        run: pnpm test:unit
+      - name: Check formatting and lint
+        run: pnpm check
+
+      - name: Run tests
+        run: pnpm test

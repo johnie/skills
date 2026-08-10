@@ -1,0 +1,82 @@
+[
+  {
+    "query": "migrate my local WordPress site to production at example.com — the localhost URL is http://localhost:8888 and I need all the URLs updated in the DB",
+    "should_trigger": true
+  },
+  {
+    "query": "bulk update all plugins on my staging WP — with dry run first",
+    "should_trigger": true
+  },
+  {
+    "query": "delete user ID 42 from WordPress but reassign their posts to user ID 3",
+    "should_trigger": true
+  },
+  {
+    "query": "export just the wp_posts and wp_postmeta tables from my WP database",
+    "should_trigger": true
+  },
+  {
+    "query": "run wp search-replace from old.com to new.com but skip the guid column and use precise mode",
+    "should_trigger": true
+  },
+  {
+    "query": "set up a wp-cli alias for my production server over ssh so I can do `wp @prod plugin list`",
+    "should_trigger": true
+  },
+  {
+    "query": "clear the object cache and flush transients on the live site",
+    "should_trigger": true
+  },
+  {
+    "query": "list all inactive plugins and delete them in one shot",
+    "should_trigger": true
+  },
+  {
+    "query": "audit our user roles — show me every editor and admin with their last-login date",
+    "should_trigger": true
+  },
+  {
+    "query": "install and activate the woocommerce plugin at version 8.4.0 — need to pin it",
+    "should_trigger": true
+  },
+  {
+    "query": "build a custom WordPress plugin that adds a REST endpoint",
+    "should_trigger": false
+  },
+  {
+    "query": "design the database schema for a new custom post type",
+    "should_trigger": false
+  },
+  {
+    "query": "deploy a WordPress site to AWS using CloudFormation",
+    "should_trigger": false
+  },
+  {
+    "query": "write a wp_query that fetches posts with a specific taxonomy term in PHP",
+    "should_trigger": false
+  },
+  {
+    "query": "harden wp-admin against brute-force attacks",
+    "should_trigger": false
+  },
+  {
+    "query": "set up a Gutenberg block with React and @wordpress/scripts",
+    "should_trigger": false
+  },
+  {
+    "query": "what's the difference between an action hook and a filter hook?",
+    "should_trigger": false
+  },
+  {
+    "query": "convert my static HTML site to WordPress",
+    "should_trigger": false
+  },
+  {
+    "query": "upgrade PHP from 7.4 to 8.2 on my WP server",
+    "should_trigger": false
+  },
+  {
+    "query": "write a unit test for my custom plugin's admin_enqueue_scripts handler",
+    "should_trigger": false
+  }
+]

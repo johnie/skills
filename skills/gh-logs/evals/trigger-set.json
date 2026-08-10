@@ -1,0 +1,64 @@
+[
+  {
+    "query": "CI is red on my feature/payments branch — why?",
+    "should_trigger": true
+  },
+  {
+    "query": "the build on main just failed, can you dig into the logs and tell me what broke?",
+    "should_trigger": true
+  },
+  { "query": "/gh-logs --flaky", "should_trigger": true },
+  {
+    "query": "I think the signature-validation test in webhook.test.ts is flaky — it fails on about 1 in 5 runs. Can you confirm and figure out why?",
+    "should_trigger": true
+  },
+  {
+    "query": "why is our CI taking 12 minutes when it used to take 4? profile it",
+    "should_trigger": true
+  },
+  {
+    "query": "look at the last 20 failing runs on this repo and tell me if there's a pattern",
+    "should_trigger": true
+  },
+  {
+    "query": "watch this running workflow and tell me when it finishes, and what went wrong if it fails",
+    "should_trigger": true
+  },
+  { "query": "gh run 8474127722 — diagnose", "should_trigger": true },
+  {
+    "query": "the deploy workflow is broken after my last push",
+    "should_trigger": true
+  },
+  { "query": "re-run all the failed jobs on this PR", "should_trigger": false },
+  {
+    "query": "edit .github/workflows/ci.yml to add a lint step",
+    "should_trigger": false
+  },
+  {
+    "query": "cancel the currently running workflow on main",
+    "should_trigger": false
+  },
+  {
+    "query": "show me the secrets configured in this repo",
+    "should_trigger": false
+  },
+  { "query": "run gh pr create for this branch", "should_trigger": false },
+  {
+    "query": "how do github actions matrix strategies work?",
+    "should_trigger": false
+  },
+  {
+    "query": "enable workflow dispatch for the release action",
+    "should_trigger": false
+  },
+  { "query": "disable the stale-issue workflow", "should_trigger": false },
+  {
+    "query": "what's the difference between workflow_run and workflow_call?",
+    "should_trigger": false
+  },
+  {
+    "query": "my local test suite is failing — help me debug",
+    "should_trigger": false
+  },
+  { "query": "download the artifact from run 88123", "should_trigger": false }
+]

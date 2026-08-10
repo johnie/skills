@@ -1,0 +1,73 @@
+[
+  {
+    "query": "I have a reducer that returns an action object where the payload depends on the action type, and every consumer has to use `as` to get the right shape. How do I redesign this with discriminated unions so TS narrows properly?",
+    "should_trigger": true
+  },
+  {
+    "query": "getting `Type 'string | undefined' is not assignable to type 'string'` on line 42 of src/orders/tax.ts — help",
+    "should_trigger": true
+  },
+  {
+    "query": "this function takes `any` for the config param and i hate it — make it generic please",
+    "should_trigger": true
+  },
+  {
+    "query": "i need a utility type that extracts the return type of a function but awaits any promise — like Awaited<ReturnType<T>>. is that the right pattern or is there something better?",
+    "should_trigger": true
+  },
+  {
+    "query": "explain how `infer` works inside conditional types, specifically when distributing over a union",
+    "should_trigger": true
+  },
+  {
+    "query": "design a branded type for UserId so I can't accidentally pass an OrderId where a UserId is expected",
+    "should_trigger": true
+  },
+  {
+    "query": "i'm refactoring the checkout module to get rid of every `any` — there are about 30 of them. can you help me plan and execute this?",
+    "should_trigger": true
+  },
+  {
+    "query": "why is TS inferring `string[]` instead of `[\"a\", \"b\"]` on my const array, and how do I force literal types?",
+    "should_trigger": true
+  },
+  {
+    "query": "what's the difference between `unknown` and `any`?",
+    "should_trigger": true
+  },
+  {
+    "query": "add a zod schema to validate this incoming API payload and throw on mismatch",
+    "should_trigger": false
+  },
+  {
+    "query": "change this function to be async instead of sync",
+    "should_trigger": false
+  },
+  {
+    "query": "tsc says ENOENT: can't find ./src/index.ts — fix the paths in tsconfig",
+    "should_trigger": false
+  },
+  { "query": "write a jest test for getUserById", "should_trigger": false },
+  {
+    "query": "refactor this React component to use hooks instead of classes",
+    "should_trigger": false
+  },
+  {
+    "query": "the build is failing with `Cannot find module '@/utils/date'` — likely a path alias issue",
+    "should_trigger": false
+  },
+  {
+    "query": "what's the best way to structure a monorepo with workspaces?",
+    "should_trigger": false
+  },
+  {
+    "query": "convert this JavaScript file to TypeScript and keep the behavior identical",
+    "should_trigger": false
+  },
+  {
+    "query": "upgrade the typescript version in package.json to 5.5",
+    "should_trigger": false
+  },
+  { "query": "explain closures in JavaScript", "should_trigger": false },
+  { "query": "set up vitest config for this project", "should_trigger": false }
+]

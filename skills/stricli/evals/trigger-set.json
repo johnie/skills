@@ -1,0 +1,98 @@
+[
+  {
+    "query": "I'm scaffolding a new internal CLI with Stricli — need a deploy command that takes an env positional (staging | prod) and a --dry-run flag",
+    "should_trigger": true
+  },
+  {
+    "query": "in my stricli app, how do i wire up subcommands like `mycli user create` and `mycli user list`?",
+    "should_trigger": true
+  },
+  {
+    "query": "convert this inline `func` to a lazy `loader` because the command's imports add 500ms to cold start",
+    "should_trigger": true
+  },
+  {
+    "query": "add bash auto-complete support to my stricli CLI — using @stricli/auto-complete",
+    "should_trigger": true
+  },
+  {
+    "query": "my buildCommand is rejecting a variadic flag — how do I express `--include foo --include bar` for a list of strings?",
+    "should_trigger": true
+  },
+  {
+    "query": "write a test that asserts my stricli command prints a helpful error when the required env positional is missing",
+    "should_trigger": true
+  },
+  {
+    "query": "i want to inject a custom logger into my command via CommandContext — show me how to extend it and pass it to `run`",
+    "should_trigger": true
+  },
+  {
+    "query": "create a new CLI using `npx @stricli/create-app` and then add a custom parser for a --timeout flag",
+    "should_trigger": true
+  },
+  {
+    "query": "route-map aliases — i want `mycli ls` to alias `mycli list`",
+    "should_trigger": true
+  },
+  {
+    "query": "on @stricli/core 1.3.0 i added an integrations record for telemetry to buildApplication and now --help and --version are gone. what did i break?",
+    "should_trigger": true
+  },
+  {
+    "query": "i want to flush metrics after every stricli command runs, including when someone just does --help. which lifecycle hook do i use, command:end or app:end?",
+    "should_trigger": true
+  },
+  {
+    "query": "migrate my commander CLI to yargs",
+    "should_trigger": false
+  },
+  {
+    "query": "build a CLI with oclif",
+    "should_trigger": false
+  },
+  {
+    "query": "which CLI framework should I use for a Node script that takes one flag?",
+    "should_trigger": false
+  },
+  {
+    "query": "add argv parsing to my Python CLI with argparse",
+    "should_trigger": false
+  },
+  {
+    "query": "update commander to version 12 and fix the deprecation warnings",
+    "should_trigger": false
+  },
+  {
+    "query": "generate shell completion for my bash script",
+    "should_trigger": false
+  },
+  {
+    "query": "turn this bash script into a standalone binary",
+    "should_trigger": false
+  },
+  {
+    "query": "how do I bundle a node CLI with esbuild into a single file?",
+    "should_trigger": false
+  },
+  {
+    "query": "benchmark my CLI's startup time",
+    "should_trigger": false
+  },
+  {
+    "query": "generate a man page for my CLI tool",
+    "should_trigger": false
+  },
+  {
+    "query": "publish my TypeScript CLI to npm",
+    "should_trigger": false
+  },
+  {
+    "query": "how do i validate a --format flag against only json|csv|table in cleye? saw there's a formats subpath",
+    "should_trigger": false
+  },
+  {
+    "query": "my cleye cli() call isn't inferring the flag types, argv.flags.port comes out as any",
+    "should_trigger": false
+  }
+]

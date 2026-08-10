@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { discoverSkills, fileExists, getSkillPath } from "../helpers/skills";
 
-const ALLOWED_SUBDIRS = ["references", "scripts", "assets"];
+const ALLOWED_SUBDIRS = ["references", "scripts", "assets", "evals"];
 const DISALLOWED_FILES = [
   "README.md",
   "CHANGELOG.md",

@@ -1,0 +1,79 @@
+[
+  {
+    "query": "/extract-spark-meetings https://share.sparkmailapp.com/abc123",
+    "should_trigger": true
+  },
+  {
+    "query": "Johan shared a Spark meeting link — pull it down into a structured note in spark-meetings/",
+    "should_trigger": true
+  },
+  {
+    "query": "I have 12 unchecked Spark Mail transcript URLs in my links.md, batch-process them",
+    "should_trigger": true
+  },
+  {
+    "query": "extract this meeting: https://share.sparkmailapp.com/5ff9d4 into markdown with participants, decisions, action items",
+    "should_trigger": true
+  },
+  {
+    "query": "batch process all unchecked links in links.md into the spark-meetings folder",
+    "should_trigger": true
+  },
+  {
+    "query": "turn this spark mail share into a meeting note with yaml frontmatter and tags",
+    "should_trigger": true
+  },
+  {
+    "query": "here's a spark shared link — save it as a meeting summary file",
+    "should_trigger": true
+  },
+  {
+    "query": "run through links.md and extract every unchecked sparkmailapp url",
+    "should_trigger": true
+  },
+  {
+    "query": "transcribe this zoom recording into a meeting summary",
+    "should_trigger": false
+  },
+  {
+    "query": "summarize this gmail thread into a single note",
+    "should_trigger": false
+  },
+  {
+    "query": "extract text from a PDF meeting transcript",
+    "should_trigger": false
+  },
+  {
+    "query": "convert this otter.ai export into my markdown notes format",
+    "should_trigger": false
+  },
+  {
+    "query": "fetch the HTML of https://example.com and summarize it",
+    "should_trigger": false
+  },
+  {
+    "query": "parse my google calendar invites into markdown notes",
+    "should_trigger": false
+  },
+  {
+    "query": "schedule a follow-up meeting from this email thread",
+    "should_trigger": false
+  },
+  {
+    "query": "write action items from my notion meeting doc to linear",
+    "should_trigger": false
+  },
+  {
+    "query": "extract table of contents from a markdown file",
+    "should_trigger": false
+  },
+  {
+    "query": "use webfetch to download a recipe from a food blog",
+    "should_trigger": false
+  },
+  { "query": "parse my slack DMs into meeting notes", "should_trigger": false },
+  {
+    "query": "fix my sparkmail desktop client sync issues",
+    "should_trigger": false
+  }
+]

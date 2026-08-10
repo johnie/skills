@@ -69,15 +69,15 @@ For each URL:
 
 ### 1. Fetch the content
 
-Use the Puppeteer MCP if available. Otherwise, fall back to `WebFetch` with the prompt: *"Extract all meeting content including participants, discussion points, action items, decisions, and next steps."*
+Prefer a browser-automation MCP if one is connected — Playwright MCP and Chrome DevTools MCP are the common ones. Don't hard-code a server name: check what's actually available, since the tool names differ per server and the once-standard Puppeteer reference server is no longer published. Otherwise fall back to `WebFetch` with the prompt: *"Extract all meeting content including participants, discussion points, action items, decisions, and next steps."*
 
 Choice guide:
 
 | Signal | Use |
 |---|---|
-| Transcript renders via client-side JS, embedded video, or attachments | Puppeteer MCP (waits for rendered DOM) |
+| Transcript renders via client-side JS, embedded video, or attachments | Browser-automation MCP (waits for rendered DOM) |
 | Plain HTML transcript, no dynamic widgets | `WebFetch` (faster, no browser) |
-| Fetch returns a near-empty body via `WebFetch` | Retry with Puppeteer — likely JS-rendered |
+| Fetch returns a near-empty body via `WebFetch` | Retry with a browser MCP — likely JS-rendered |
 
 If neither is available or both fail after a single retry, mark the URL as failed (leave it unchecked in `links.md`) and move on.
 

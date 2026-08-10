@@ -27,10 +27,18 @@ export function getAvailableSkills(context: LocalContext): string[] {
   }
 
   const entries = readdirSync(context.skillsDir, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .sort();
+  return (
+    entries
+      .filter((entry) => entry.isDirectory())
+      // Only directories that actually hold a SKILL.md are linkable. This keeps
+      // skill-creator's `<skill>-workspace/` siblings out of the picker. The test
+      // helper deliberately uses a looser rule so a missing SKILL.md still fails.
+      .filter((entry) =>
+        existsSync(join(context.skillsDir, entry.name, "SKILL.md"))
+      )
+      .map((entry) => entry.name)
+      .sort()
+  );
 }
 
 export function getSymlinkStatus(
@@ -40,21 +48,21 @@ export function getSymlinkStatus(
   const targetPath = join(context.targetDir, skillName);
   const sourcePath = join(context.skillsDir, skillName);
 
-  let isLinked = false;
-  let isBroken = false;
-
-  if (existsSync(targetPath)) {
-    try {
-      const stats = lstatSync(targetPath);
-      if (stats.isSymbolicLink()) {
-        const linkTarget = readlinkSync(targetPath);
-        isLinked = linkTarget === sourcePath;
-        isBroken = !existsSync(targetPath);
-      }
-    } catch {
-      isBroken = true;
-    }
+  let stats: ReturnType<typeof lstatSync>;
+  try {
+    // lstat does not follow the link, so a dangling symlink still resolves here.
+    stats = lstatSync(targetPath);
+  } catch {
+    return { name: skillName, isLinked: false, isBroken: false };
   }
+
+  if (!stats.isSymbolicLink()) {
+    return { name: skillName, isLinked: false, isBroken: false };
+  }
+
+  // existsSync *does* follow the link, so it is false for a dangling one.
+  const isBroken = !existsSync(targetPath);
+  const isLinked = readlinkSync(targetPath) === sourcePath && !isBroken;
 
   return { name: skillName, isLinked, isBroken };
 }
@@ -129,11 +137,12 @@ export function unlinkSkill(skillName: string, context: LocalContext): void {
 }
 
 export function getIcon(skill: Skill, context: LocalContext): string {
-  if (skill.isLinked) {
-    return context.colors.icons.linked;
-  }
+  // Broken takes precedence: a dangling symlink is actionable, "linked" is not.
   if (skill.isBroken) {
     return context.colors.icons.broken;
+  }
+  if (skill.isLinked) {
+    return context.colors.icons.linked;
   }
   return context.colors.icons.unlinked;
 }

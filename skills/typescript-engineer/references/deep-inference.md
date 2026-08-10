@@ -321,7 +321,8 @@ type DeepConfig = {
 
 1. **Use `const` type parameters** as the default approach (TS 5.0+)
 2. **Fall back to `as const`** for simple, user-provided configs
-3. **Use `F.Narrow`** only when you need the extra flexibility or support older TS
-4. **Add proper constraints** to guide inference
-5. **Test with complex examples** to ensure inference works
-6. **Document the inference behavior** for API consumers
+3. **Add proper constraints** to guide inference
+4. **Test with complex examples** to ensure inference works
+5. **Document the inference behavior** for API consumers
+
+`F.Narrow` is documented above for reading existing code, not for new work. `const` type parameters have been available since 5.0 and the current release line is 7.x, so "supporting older TypeScript" almost never justifies pulling in `ts-toolbelt` today. See [typescript-versions.md](typescript-versions.md).

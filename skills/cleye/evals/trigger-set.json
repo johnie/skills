@@ -1,0 +1,82 @@
+[
+  {
+    "query": "i'm writing a small release helper in ts and using cleye — need `cli({ parameters: ['<version>', '[notes...]'] })` and then read them off argv._. how do the spread params come through, camelCase?",
+    "should_trigger": true
+  },
+  {
+    "query": "how do i validate a --format flag against only json|csv|table with cleye? saw there's a formats subpath",
+    "should_trigger": true
+  },
+  {
+    "query": "add subcommands to my cleye cli so i can do `mytool db migrate` and `mytool db seed` — one file per command ideally",
+    "should_trigger": true
+  },
+  {
+    "query": "my cleye help output is ugly, i want to drop the version line and add an examples section. is there a render hook?",
+    "should_trigger": true
+  },
+  {
+    "query": "turn on strictFlags in cleye — right now typos like --dyr-run just silently land in unknownFlags and the script does nothing",
+    "should_trigger": true
+  },
+  {
+    "query": "i need `--no-cache` to work as the inverse of `--cache` in my cleye cli. is that booleanFlagNegation or do i declare both flags",
+    "should_trigger": true
+  },
+  {
+    "query": "writing a custom type fn for a --port flag in cleye that rejects anything outside 1024-65535. do i return an Error or throw?",
+    "should_trigger": true
+  },
+  {
+    "query": "can i await cli() in cleye? my callback does an async fetch and the process exits before it resolves",
+    "should_trigger": true
+  },
+  {
+    "query": "cleye is parsing the args after -- as parameters and i want them passed through to the child process untouched",
+    "should_trigger": true
+  },
+  {
+    "query": "in my stricli app, how do i wire up subcommands like `mycli user create` and `mycli user list` with buildRouteMap?",
+    "should_trigger": false
+  },
+  {
+    "query": "scaffolding a new CLI with npx @stricli/create-app and adding a custom parser for --timeout",
+    "should_trigger": false
+  },
+  {
+    "query": "i'm using type-flag directly for argv parsing, how do i declare an array flag that accepts --tag twice",
+    "should_trigger": false
+  },
+  {
+    "query": "migrate my commander CLI to yargs, there are about 12 subcommands in src/cli/",
+    "should_trigger": false
+  },
+  {
+    "query": "which argv parser should i use for a node script that takes exactly one flag? dont want a big dep",
+    "should_trigger": false
+  },
+  {
+    "query": "add argv parsing to my Python CLI with argparse, it needs a --dry-run and a positional path",
+    "should_trigger": false
+  },
+  {
+    "query": "build a CLI with oclif and publish it to npm under our org scope",
+    "should_trigger": false
+  },
+  {
+    "query": "generate zsh completion for my bash script in ~/bin/deploy",
+    "should_trigger": false
+  },
+  {
+    "query": "bundle my node CLI into a single file with esbuild and add a shebang",
+    "should_trigger": false
+  },
+  {
+    "query": "add a --verbose flag to my CLI",
+    "should_trigger": false
+  },
+  {
+    "query": "my CLI's startup is 400ms, profile it and tell me what's slow",
+    "should_trigger": false
+  }
+]

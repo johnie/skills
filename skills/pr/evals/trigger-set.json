@@ -1,0 +1,73 @@
+[
+  {
+    "query": "open a PR for this branch targeting main",
+    "should_trigger": true
+  },
+  {
+    "query": "my branch feature/mobile-onboarding has 8 commits, time to put it up for review",
+    "should_trigger": true
+  },
+  { "query": "/pr create --draft", "should_trigger": true },
+  {
+    "query": "refresh the PR body — I pushed two more commits after the initial review and they're not reflected in the description",
+    "should_trigger": true
+  },
+  {
+    "query": "can you review https://github.com/schibstedspain/boss/pull/1412 and tell me if anything blocks merging?",
+    "should_trigger": true
+  },
+  {
+    "query": "update PR description to reflect the latest changes",
+    "should_trigger": true
+  },
+  {
+    "query": "do a code review on PR #892 before i approve it",
+    "should_trigger": true
+  },
+  {
+    "query": "put up a pull request — mark as draft for now while I wait on the backend team",
+    "should_trigger": true
+  },
+  {
+    "query": "write the PR body for this — structured with testing and deployment sections if applicable",
+    "should_trigger": true
+  },
+  { "query": "merge PR 1203 into main with squash", "should_trigger": false },
+  {
+    "query": "close PR #55, it's superseded by the refactor branch",
+    "should_trigger": false
+  },
+  {
+    "query": "post a follow-up comment on PR 204 saying the failing test is unrelated",
+    "should_trigger": false
+  },
+  {
+    "query": "review these changes in my local branch before i commit them",
+    "should_trigger": false
+  },
+  {
+    "query": "what are best practices for code review in general?",
+    "should_trigger": false
+  },
+  {
+    "query": "rebase my branch on main and resolve conflicts",
+    "should_trigger": false
+  },
+  {
+    "query": "list all open PRs from the last 30 days",
+    "should_trigger": false
+  },
+  { "query": "approve PR #700 on my behalf", "should_trigger": false },
+  {
+    "query": "set up branch protection rules on main",
+    "should_trigger": false
+  },
+  {
+    "query": "check why the CI on PR #412 is failing",
+    "should_trigger": false
+  },
+  {
+    "query": "commit the final tweaks and prepare for review",
+    "should_trigger": false
+  }
+]

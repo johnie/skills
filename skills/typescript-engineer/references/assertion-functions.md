@@ -9,6 +9,8 @@ description: Assertion functions that validate and narrow types by throwing on i
 
 Assertion functions validate a condition and narrow the type for subsequent code. If the condition fails, they throw — there is no `false` branch. This makes the happy path clean and linear compared to `if`/`else` with type predicates.
 
+Unlike type predicates, assertion signatures are **never** inferred. TS 5.5+ will work out `value is string` for you from a returned boolean expression, but `asserts value is string` always has to be written explicitly — there is no version of TypeScript where you can omit it. See [type-narrowing.md](type-narrowing.md) for when a predicate can be left off.
+
 ```typescript
 function assertIsString(value: unknown): asserts value is string {
   if (typeof value !== "string") {

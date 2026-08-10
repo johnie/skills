@@ -158,6 +158,33 @@ function getArea(shape: Shape): number {
 
 ## Custom Type Guards
 
+### Inferred Type Predicates (TS 5.5+)
+
+Since TypeScript 5.5 you usually should not write `value is Type` by hand. When a function has no explicit return type and returns a boolean expression that narrows one of its parameters, the compiler infers the predicate:
+
+```typescript
+// No annotation needed — TS infers `value is string`
+function isString(value: unknown) {
+  return typeof value === "string";
+}
+
+// The change that matters most in practice: inline callbacks now narrow
+const values = [1, null, 2, undefined, 3];
+const numbers = values.filter((v) => v !== null && v !== undefined);
+// numbers: number[]   (before 5.5: (number | null | undefined)[])
+```
+
+Write an explicit predicate only when inference can't apply. It does not fire when:
+
+- the function has an explicit return type — annotating `: boolean` opts out
+- the parameter is reassigned anywhere in the body
+- the narrowing isn't derivable from a single returned expression, e.g. several `return` statements each narrowing differently
+- you need to assert a *different* type than control flow proves — most importantly a brand, where nothing in the body establishes it
+
+That last point is why the branded validator further down still needs `email is ValidEmail`: no amount of `includes("@")` tells the compiler about a nominal brand.
+
+An explicit predicate is an unchecked assertion — the compiler takes your word for it. When you write one, prove it with a type test (see [type-testing.md](type-testing.md)); a wrong predicate silently lies for the life of the codebase.
+
 ### Type Predicates
 
 Functions that return `value is Type`:
@@ -197,6 +224,8 @@ const values = [1, null, 2, undefined, 3];
 const filtered = values.filter(isNotNull);
 // filtered is number[]
 ```
+
+On TS 5.5+ an inline `values.filter((v) => v != null)` narrows on its own, so this helper is about naming and reuse across call sites, not about unlocking the narrowing. Keep it if the predicate is shared; drop it if it's used once.
 
 ### Object Property Check
 

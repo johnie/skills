@@ -108,6 +108,8 @@ type IndividualProgram = ProgramMap["ONE_ON_ONE" | "SELF_DIRECTED"];
 - **API mappings**: Map between different representations (e.g., backend vs frontend)
 - **Event types**: Define event names and their payloads
 
+On TypeScript 5.8+ with `--erasableSyntaxOnly`, or under Node's native TypeScript execution and `tsx`, this stops being a preference: `enum` emits runtime code and is rejected outright, so the `as const` object is the only option. See [typescript-versions.md](typescript-versions.md).
+
 ## The `satisfies` Operator (TS 4.9+)
 
 `satisfies` checks that a value conforms to a type **without widening** the inferred type. It sits between annotation (widening) and no annotation (no validation).

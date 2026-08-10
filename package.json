@@ -20,7 +20,7 @@
   },
   "name": "@johnie/skills",
   "peerDependencies": {
-    "typescript": "^6"
+    "typescript": "^7"
   },
   "scripts": {
     "skills": "tsx cli/index.ts",

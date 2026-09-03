@@ -1,137 +1,18 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import path from "node:path";
-
 import { describe, expect, test } from "vitest";
 
 import {
   discoverSkills,
-  fileExists,
-  getSkillPath,
-  readSkillFile,
+  formatFindings,
+  getAllSkillContent,
+  scanContent,
 } from "../helpers/skills";
-
-interface SkillFile {
-  content: string;
-  file: string;
-}
-
-interface DangerousPattern {
-  name: string;
-  pattern: RegExp;
-}
-
-interface Finding {
-  file: string;
-  line: number;
-  matched: string;
-  patternName: string;
-}
-
-/** Binary assets can't carry prose or shell injection, so skip the read. */
-const BINARY_EXTENSIONS = new Set([
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".gif",
-  ".webp",
-  ".ico",
-  ".pdf",
-  ".woff",
-  ".woff2",
-  ".ttf",
-  ".otf",
-  ".zip",
-  ".gz",
-]);
-
-/**
- * Recursively collect readable text files under a directory, relative to the
- * skill root. Scanning scripts/ and assets/ matters as much as the prose:
- * a bundled script is executed rather than reviewed at call time.
- */
-const collectTextFiles = (dir: string, prefix: string): SkillFile[] => {
-  if (!fileExists(dir)) {
-    return [];
-  }
-  const result: SkillFile[] = [];
-  for (const entry of readdirSync(dir)) {
-    const fullPath = path.join(dir, entry);
-    const relative = `${prefix}/${entry}`;
-    const stats = statSync(fullPath);
-    if (stats.isDirectory()) {
-      result.push(...collectTextFiles(fullPath, relative));
-      continue;
-    }
-    if (
-      !stats.isFile() ||
-      BINARY_EXTENSIONS.has(path.extname(entry).toLowerCase())
-    ) {
-      continue;
-    }
-    result.push({ content: readFileSync(fullPath, "utf-8"), file: relative });
-  }
-  return result;
-};
-
-/**
- * Collect all text content from a skill (SKILL.md + references/ + scripts/ + assets/)
- */
-const getAllSkillContent = async (skillName: string): Promise<SkillFile[]> => {
-  const skillPath = getSkillPath(skillName);
-  const skillContent = await readSkillFile(skillName);
-
-  return [
-    { content: skillContent, file: "SKILL.md" },
-    ...collectTextFiles(path.join(skillPath, "references"), "references"),
-    ...collectTextFiles(path.join(skillPath, "scripts"), "scripts"),
-    ...collectTextFiles(path.join(skillPath, "assets"), "assets"),
-  ];
-};
-
-/**
- * Scan skill files against a set of dangerous patterns
- */
-const scanContent = (
-  files: SkillFile[],
-  patterns: DangerousPattern[]
-): Finding[] => {
-  const findings: Finding[] = [];
-  for (const { file, content } of files) {
-    const lines = content.split("\n");
-    for (let index = 0; index < lines.length; index += 1) {
-      const line = lines[index] ?? "";
-      for (const { name, pattern } of patterns) {
-        const match = line.match(pattern);
-        if (match) {
-          findings.push({
-            file,
-            line: index + 1,
-            matched: match[0].slice(0, 120),
-            patternName: name,
-          });
-        }
-      }
-    }
-  }
-  return findings;
-};
-
-/**
- * Format findings into a readable error message
- */
-const formatFindings = (findings: Finding[]): string =>
-  findings
-    .map(
-      (finding) =>
-        `  [${finding.patternName}] "${finding.matched}" in ${finding.file}:${finding.line}`
-    )
-    .join("\n");
+import type { LinePattern } from "../helpers/skills";
 
 // ---------------------------------------------------------------------------
 // Pattern definitions
 // ---------------------------------------------------------------------------
 
-const PROMPT_INJECTION: DangerousPattern[] = [
+const PROMPT_INJECTION: LinePattern[] = [
   {
     name: "ignore-previous-instructions",
     pattern: /ignore\s+(?:all\s+)?previous\s+instructions/iu,
@@ -165,7 +46,7 @@ const PROMPT_INJECTION: DangerousPattern[] = [
   },
 ];
 
-const DATA_EXFILTRATION: DangerousPattern[] = [
+const DATA_EXFILTRATION: LinePattern[] = [
   {
     name: "curl-file-upload",
     pattern: /curl\s+.*-[dF]\s+@/iu,
@@ -192,7 +73,7 @@ const DATA_EXFILTRATION: DangerousPattern[] = [
   },
 ];
 
-const DESTRUCTIVE_FS: DangerousPattern[] = [
+const DESTRUCTIVE_FS: LinePattern[] = [
   {
     name: "rm-rf-root",
     pattern: /rm\s+-[a-zA-Z]*r[a-zA-Z]*f[a-zA-Z]*\s+\/(?:$|\s)/u,
@@ -224,7 +105,7 @@ const DESTRUCTIVE_FS: DangerousPattern[] = [
   },
 ];
 
-const CREDENTIAL_HARVESTING: DangerousPattern[] = [
+const CREDENTIAL_HARVESTING: LinePattern[] = [
   {
     name: "read-ssh-keys",
     pattern:
@@ -257,7 +138,7 @@ const CREDENTIAL_HARVESTING: DangerousPattern[] = [
   },
 ];
 
-const PERSISTENCE: DangerousPattern[] = [
+const PERSISTENCE: LinePattern[] = [
   {
     name: "redirect-to-shell-rc",
     pattern:
@@ -286,7 +167,7 @@ const PERSISTENCE: DangerousPattern[] = [
   },
 ];
 
-const PRIVILEGE_ESCALATION: DangerousPattern[] = [
+const PRIVILEGE_ESCALATION: LinePattern[] = [
   {
     name: "chmod-777",
     pattern: /chmod\s+777\b/u,
@@ -305,7 +186,7 @@ const PRIVILEGE_ESCALATION: DangerousPattern[] = [
   },
 ];
 
-const CRYPTO_MINING: DangerousPattern[] = [
+const CRYPTO_MINING: LinePattern[] = [
   {
     name: "xmrig",
     pattern: /\bxmrig\b/iu,
@@ -332,7 +213,7 @@ const CRYPTO_MINING: DangerousPattern[] = [
   },
 ];
 
-const NETWORK_ABUSE: DangerousPattern[] = [
+const NETWORK_ABUSE: LinePattern[] = [
   {
     name: "bash-reverse-shell",
     pattern: /bash\s+-i\s+>&?\s*\/dev\/tcp\//iu,

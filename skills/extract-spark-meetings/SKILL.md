@@ -1,30 +1,36 @@
 ---
 name: extract-spark-meetings
-description: Extract meeting notes from Spark Mail shared-transcript links into tagged markdown files with YAML frontmatter (participants, action items, decisions, next steps). Use when the user has one or more share.sparkmailapp.com links to convert into a searchable local meeting archive, in single-URL or batch mode from a links.md checklist.
-argument-hint: "[spark-share-url]"
+description: Extract Spark Mail +AI Meeting Notes into tagged markdown files with YAML frontmatter (participants, action items, decisions, next steps). Use when the user has one or more Spark meeting links (sparkmailapp.com/dpl/bl?token=… deep links or readdle-spark:// links) to convert into a searchable local meeting archive, in single-link or batch mode from a links.md checklist.
+argument-hint: "[spark-meeting-link]"
 allowed-tools:
   - Read
   - Write
   - Edit
   - WebFetch
   - Glob
+  - Bash(which spark)
+  - Bash(spark meeting *)
 ---
 
 # Extract Spark Meetings
 
-Spark Mail (the email client) produces shareable transcript links for recorded/summarized meetings. This skill converts those links into local markdown files with structured frontmatter, so meetings become greppable, taggable, and visible to future search.
+Spark Mail (the email client) records and summarizes meetings as +AI Meeting Notes and lets the owner share each note as a link. This skill converts those links into local markdown files with structured frontmatter, so meetings become greppable, taggable, and visible to future search.
 
 Output is plain markdown + YAML — no Spark dependency once extracted.
 
-Target URL, if given: `$ARGUMENTS`. If that is blank or still shows the literal placeholder, run batch mode against `links.md`.
+Target link, if given: `$ARGUMENTS`. If that is blank or still shows the literal placeholder, run batch mode against `links.md`.
 
 Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
+## Link shapes
+
+Spark deep links look like `https://sparkmailapp.com/dpl/bl?token=…`; the same link can also arrive as `readdle-spark://bl=…` or `readdlespark://bl=…`. Treat any of these as a Spark meeting link. Spark may also hand out other share-link forms — if the user says it is a Spark meeting link, try it rather than rejecting it on shape.
+
 ## When NOT to use
 
-- The source isn't a Spark Mail shared link (e.g., Google Meet transcripts, Zoom cloud recordings, Otter.ai) — different URL shapes and HTML structures; this skill's extractor will miss fields.
-- You need a one-line summary, not a structured file — just paste the URL into `WebFetch` directly.
-- Live-meeting capture (as it happens) — this skill reads already-rendered Spark shares.
+- The source isn't a Spark meeting link (e.g., Google Meet transcripts, Zoom cloud recordings, Otter.ai) — different link shapes and page structures; this skill's extractor will miss fields.
+- You need a one-line summary, not a structured file — read the meeting directly and answer inline.
+- Live-meeting capture (as it happens) — this skill reads already-saved meeting notes.
 
 ## Expected layout
 
@@ -37,46 +43,42 @@ Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 ## Modes
 
-### Single URL
+### Single link
 
-```bash
-/extract-spark-meetings https://share.sparkmailapp.com/...
-```
-
-Processes one link, writes one file. Updates `links.md` only if it exists and contains that URL.
+Given one link, process it and write one file. Update `links.md` only if it exists and contains that link.
 
 ### Batch (`links.md`)
 
-```bash
-/extract-spark-meetings
-```
-
-`links.md` is a checklist of URLs. Batch mode processes every unchecked entry:
+Given no link, treat `links.md` as a checklist and process every unchecked entry:
 
 ```markdown
-- [ ] https://share.sparkmailapp.com/link1
-- [x] https://share.sparkmailapp.com/link2 # already processed — skipped
+- [ ] https://sparkmailapp.com/dpl/bl?token=AbC123...
+- [x] https://sparkmailapp.com/dpl/bl?token=XyZ789... # already processed — skipped
 ```
 
 ## Workflow
 
-Process URLs **sequentially, one at a time** — do not parallelize. Spark's share endpoint rate-limits and can silently truncate or return partial content when hit concurrently; sequential runs also produce per-URL errors you can act on rather than a jumbled burst of failures. Parallelism looks faster but costs you correctness and debuggability.
+Process links **sequentially, one at a time** — do not parallelize. The CLI talks to a single Spark Desktop process over IPC, and web endpoints can throttle or return partial pages when hit concurrently; sequential runs also produce per-link errors you can act on rather than a jumbled burst of failures. Parallelism looks faster but costs you correctness and debuggability.
 
-For each URL:
+For each link:
 
 ### 1. Fetch the content
 
-Prefer a browser-automation MCP if one is connected — Playwright MCP and Chrome DevTools MCP are the common ones. Don't hard-code a server name: check what's actually available, since the tool names differ per server and the once-standard Puppeteer reference server is no longer published. Otherwise fall back to `WebFetch` with the prompt: _"Extract all meeting content including participants, discussion points, action items, decisions, and next steps."_
+Try sources in this order and stop at the first that returns real meeting content. Each fallback exists because the one before it has a precondition that may not hold.
 
-Choice guide:
+**a. Official `spark` CLI** — check with `which spark`. If present, run:
 
-| Signal | Use |
-| --- | --- |
-| Transcript renders via client-side JS, embedded video, or attachments | Browser-automation MCP (waits for rendered DOM) |
-| Plain HTML transcript, no dynamic widgets | `WebFetch` (faster, no browser) |
-| Fetch returns a near-empty body via `WebFetch` | Retry with a browser MCP — likely JS-rendered |
+```bash
+spark meeting --transcript --notes "https://sparkmailapp.com/dpl/bl?token=..."
+```
 
-If neither is available or both fail after a single retry, mark the URL as failed (leave it unchecked in `links.md`) and move on.
+The positional accepts a numeric meeting ID or a Spark deep link. Prefer this path because it reads the note straight from the user's Spark Desktop — no scraping, no rate limits, works offline, and it is the only route for `readdle-spark://` links, which no browser can fetch. It requires Spark Desktop running on the same machine with CLI access enabled (Settings → AI Agents), and the note must belong to an account signed in there. If the command is missing, errors, or reports that the meeting isn't found, fall through.
+
+**b. Browser-automation MCP** — Playwright MCP and Chrome DevTools MCP are the common ones. Don't hard-code a server name: check what's actually available, since tool names differ per server. Use this when the link opens a JS-rendered page; a browser waits for the DOM instead of returning an empty shell.
+
+**c. `WebFetch`** — last resort, with the prompt: _"Extract all meeting content including participants, discussion points, action items, decisions, and next steps."_ Fast and needs no browser, but a deep link may render as an app-launch landing page rather than the transcript. A near-empty body means the page is JS-rendered or gated: retry once with a browser MCP, not with `WebFetch` again.
+
+If every route fails after a single retry, mark the link as failed (leave it unchecked in `links.md`) and move on.
 
 ### 2. Parse content
 
@@ -111,7 +113,7 @@ tags:
   - planning
   - quarterly
   - strategy
-spark_url: https://share.sparkmailapp.com/...
+spark_url: https://sparkmailapp.com/dpl/bl?token=AbC123...
 extracted_date: 2024-03-15
 ---
 
@@ -150,24 +152,18 @@ Brief 2-3 sentence summary of the meeting's purpose and outcomes.
 
 Pick tags from [`references/tagging-guide.md`](references/tagging-guide.md): one primary meeting-type tag, 1-3 topic tags, optionally a cadence tag. The guide's tag set is deliberately generic — extend it in that file with your organization's own tags (product names, team names, initiatives) and keep the additions checked in so everyone's archive uses the same vocabulary.
 
-Common starter set:
-
-- **Type**: `standup`, `planning`, `review`, `retrospective`, `one-on-one`, `all-hands`
-- **Topic**: `engineering`, `design`, `product`, `strategy`, `hiring`, `budget`
-- **Cadence**: `weekly`, `monthly`, `quarterly`, `annual`
-
 ### 5. Update `links.md`
 
-Mark the URL as `[x]` only after **both** content extraction and file write succeed. If either step failed, leave it unchecked and surface the failure in the output summary — this way a re-run will retry only the failed URLs.
+Mark the link as `[x]` only after **both** content extraction and file write succeed. If either step failed, leave it unchecked and surface the failure in the output summary — this way a re-run will retry only the failed links.
 
-- **Single URL mode**: update `links.md` only if it already exists and contains the URL; otherwise skip the update.
-- **Batch mode**: walk unchecked (`- [ ]`) URLs in order, update the checkbox after each successful extraction, continue on failures.
+- **Single link mode**: update `links.md` only if it already exists and contains the link; otherwise skip the update.
+- **Batch mode**: walk unchecked (`- [ ]`) links in order, update the checkbox after each successful extraction, continue on failures.
 
 ## Output summary
 
 Report:
 
 - Files created, with paths
-- URLs skipped or failed, each with a one-line reason (fetch error, parse failure, etc.)
+- Links skipped or failed, each with a one-line reason (CLI error, fetch error, parse failure, etc.)
 
-If batch mode ran zero URLs (all already checked), say so explicitly so the user knows nothing was missed.
+If batch mode ran zero links (all already checked), say so explicitly so the user knows nothing was missed.

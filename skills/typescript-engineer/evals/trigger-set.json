@@ -1,18 +1,10 @@
 [
   {
-    "query": "I have a reducer that returns an action object where the payload depends on the action type, and every consumer has to use `as` to get the right shape. How do I redesign this with discriminated unions so TS narrows properly?",
-    "should_trigger": true
-  },
-  {
     "query": "getting `Type 'string | undefined' is not assignable to type 'string'` on line 42 of src/orders/tax.ts — help",
     "should_trigger": true
   },
   {
-    "query": "this function takes `any` for the config param and i hate it — make it generic please",
-    "should_trigger": true
-  },
-  {
-    "query": "i need a utility type that extracts the return type of a function but awaits any promise — like Awaited<ReturnType<T>>. is that the right pattern or is there something better?",
+    "query": "src/lib/http.ts has `export function request(config: any) { return fetch(config.url, config.init) }` and every caller passes a different shape. i hate the `any` — make it generic so the return type follows what the caller sends",
     "should_trigger": true
   },
   {
@@ -24,15 +16,27 @@
     "should_trigger": true
   },
   {
-    "query": "i'm refactoring the checkout module to get rid of every `any` — there are about 30 of them. can you help me plan and execute this?",
+    "query": "in config/theme.ts i wrote `const theme = { primary: '#fff' } satisfies Theme` but theme.primary is still just `string` and the autocomplete on keys is gone?? thought satisfies was supposed to keep the literals",
     "should_trigger": true
   },
   {
-    "query": "why is TS inferring `string[]` instead of `[\"a\", \"b\"]` on my const array, and how do I force literal types?",
+    "query": "our router in src/routes.ts is typed as `Record<string, Handler>`. want a type that only accepts paths like `/users/:id` and gives the handler a typed params object with `id` in it — template literal thing?",
     "should_trigger": true
   },
   {
-    "query": "what's the difference between `unknown` and `any`?",
+    "query": "createStore<S>(initial: S, overrides?: Partial<S>) keeps widening S to whatever the overrides contain, so passing `{ extra: 1 }` sneaks into the state type. heard NoInfer fixes this, how would you apply it here?",
+    "should_trigger": true
+  },
+  {
+    "query": "parseDate(input: string | number | Date) returns `Date | null` for all of them but really only the string case can be null. should this be three overloads or is a union return fine? users keep complaining about the null check",
+    "should_trigger": true
+  },
+  {
+    "query": "given `type Settings = { volume: number; muted: boolean; theme: string }` I want `Getters<Settings>` to produce `{ getVolume(): number; getMuted(): boolean; ... }` — how do I write the mapped type with the renamed keys?",
+    "should_trigger": true
+  },
+  {
+    "query": "we're moving src/legacy/queue.js to queue.ts, keep the runtime behaviour exactly the same but give it real types instead of a big `any` blob",
     "should_trigger": true
   },
   {
@@ -61,13 +65,15 @@
     "should_trigger": false
   },
   {
-    "query": "convert this JavaScript file to TypeScript and keep the behavior identical",
-    "should_trigger": false
-  },
-  {
     "query": "upgrade the typescript version in package.json to 5.5",
     "should_trigger": false
   },
-  { "query": "explain closures in JavaScript", "should_trigger": false },
-  { "query": "set up vitest config for this project", "should_trigger": false }
+  {
+    "query": "add JSDoc types to lib/format.js — we don't use TS in this repo, just want editor hints",
+    "should_trigger": false
+  },
+  {
+    "query": "generate TS types from openapi.yaml with openapi-typescript and wire the script into package.json",
+    "should_trigger": false
+  }
 ]

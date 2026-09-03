@@ -1,0 +1,48 @@
+{
+  "skill_name": "extract-spark-meetings",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Extract this Spark meeting into my notes archive: https://sparkmailapp.com/dpl/bl?token=SINGLE_LINK_TOKEN",
+      "expected_output": "Run in a scratch directory with no links.md. The link must resolve to a real Spark meeting note (reachable via the spark CLI on this machine, or via a browser MCP/WebFetch). Exactly one file is created at spark-meetings/YYYY-MM-DD-<slug>.md with YAML frontmatter and the standard sections; the final response lists that path and reports no failures.",
+      "files": [],
+      "expectations": [
+        "Exactly one new file is created and its path matches the pattern spark-meetings/\\d{4}-\\d{2}-\\d{2}-[a-z0-9-]+\\.md",
+        "The created file starts with a YAML frontmatter block containing the keys date, title, participants, tags, spark_url, and extracted_date",
+        "The spark_url frontmatter value equals the link given in the prompt",
+        "The file body contains an '## Action Items' section whose entries are markdown checkbox lines starting with '- [ ]' or '- [x]'",
+        "The transcript shows the fetch was attempted via the spark CLI first (a 'which spark' check and/or a 'spark meeting --transcript --notes' invocation) before any browser MCP or WebFetch call",
+        "The final response lists the created file path and does not attempt to create or modify a links.md",
+        "The tags frontmatter list contains at least one meeting-type tag from the tagging guide (e.g. standup, planning, review, retrospective, one-on-one, all-hands, workshop, training, interview, client, demo)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Process all the unchecked Spark meeting links in links.md",
+      "expected_output": "Run in a scratch directory where evals/fixtures/batch-links.md has been copied to ./links.md. It has three entries in this order: (1) '- [x] https://sparkmailapp.com/dpl/bl?token=ALREADY_DONE' (already checked), (2) '- [ ] https://sparkmailapp.com/dpl/bl?token=GOOD_LINK' (reachable meeting note), (3) '- [ ] https://sparkmailapp.com/dpl/bl?token=BROKEN_LINK' (unreachable: fetch or CLI lookup fails). One file is written for GOOD_LINK, its checkbox flips to [x], BROKEN_LINK stays [ ] and is named in the failure report with a reason, ALREADY_DONE is never fetched.",
+      "files": ["evals/fixtures/batch-links.md"],
+      "expectations": [
+        "Exactly one new file is created under spark-meetings/ and its name matches spark-meetings/\\d{4}-\\d{2}-\\d{2}-[a-z0-9-]+\\.md",
+        "No fetch, CLI call, or WebFetch is issued for the ALREADY_DONE link (its line in links.md was already checked)",
+        "After the run, links.md has the GOOD_LINK line marked '- [x]' and the BROKEN_LINK line still marked '- [ ]'",
+        "The GOOD_LINK and BROKEN_LINK links are processed one after the other, not concurrently: the transcript shows no parallel tool-call batch containing fetch/CLI calls for both links at once",
+        "The final response lists the created file path and separately lists the BROKEN_LINK URL as failed with a one-line reason (e.g. CLI error, fetch error, empty body)",
+        "The created file's frontmatter contains the keys date, title, participants, tags, spark_url, and extracted_date, and spark_url equals the GOOD_LINK URL",
+        "The created file contains an '## Action Items' section using checkbox lines ('- [ ]' or '- [x]')"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Go through links.md and extract any spark meetings I haven't pulled in yet",
+      "expected_output": "Run in a scratch directory where evals/fixtures/all-checked-links.md has been copied to ./links.md; every entry is already checked ('- [x] https://sparkmailapp.com/dpl/bl?token=DONE_1', '- [x] https://sparkmailapp.com/dpl/bl?token=DONE_2') and an existing spark-meetings/ directory. No links are fetched, no files are written or modified, and the response says explicitly that zero links were processed because all were already checked.",
+      "files": ["evals/fixtures/all-checked-links.md"],
+      "expectations": [
+        "No new files are created under spark-meetings/ and no existing file is modified",
+        "links.md is byte-for-byte unchanged after the run",
+        "No spark CLI, browser MCP, or WebFetch call is made for either DONE_1 or DONE_2",
+        "The final response states explicitly that zero links were processed (or equivalent wording such as 'nothing to extract' / 'all links already checked'), rather than silently ending or reporting success on files",
+        "The final response does not list any file as created"
+      ]
+    }
+  ]
+}

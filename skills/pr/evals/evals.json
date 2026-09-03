@@ -1,0 +1,54 @@
+{
+  "skill_name": "pr",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm on feat/notification-prefs and it's ready for review. Open a PR against main.",
+      "expected_output": "Fixture: run inside a scratch git repo that has a GitHub remote named origin and an authenticated `gh` (`gh auth status` succeeds). Branch feat/notification-prefs is checked out, three commits ahead of main, in order: `feat(notifications): add user_preferences table and migration` (adds db/migrations/20240115_add_user_preferences.sql and src/notifications/preferences.repository.ts), `feat(notifications): expose preference endpoints` (adds src/notifications/preferences.controller.ts), `feat(settings): add notification toggles panel` (adds src/settings/NotificationToggles.tsx and src/settings/NotificationToggles.test.tsx). The branch has no upstream and no existing PR. The agent pushes the branch, gathers commits and diff against origin/main, generates a title and body, and runs `gh pr create` with a heredoc body, then reports the PR URL.",
+      "files": [],
+      "expectations": [
+        "The agent checks the current branch is not main/master before proceeding (e.g. via `git branch --show-current` or `git rev-parse --abbrev-ref HEAD`).",
+        "The agent pushes the branch with `git push -u origin HEAD` before creating the PR.",
+        "The agent resolves the base branch (e.g. `gh repo view --json defaultBranchRef`) and inspects commits with `git log origin/main..HEAD` and the diff with `git diff origin/main...HEAD`.",
+        "The PR title reuses the conventional-commit form `type(scope): description` of the primary commit, i.e. it starts with `feat(notifications):` or `feat(settings):` and is not a generic summary.",
+        "The PR body contains the four required headings `## What`, `## Why`, `## How`, and `## Changes`, in that order.",
+        "The PR body contains a `## Screenshots` section because the diff includes a `.tsx` file.",
+        "The PR body contains a `## Deployment` section that mentions the migration because the diff includes a file under db/migrations/.",
+        "The PR body contains a `## Testing` section because the diff includes a `.test.tsx` file.",
+        "The `gh pr create` invocation passes `--title` and `--body` where the body is supplied via a heredoc (`$(cat <<'EOF' ... EOF)`), not an inline single-line string.",
+        "The final response includes the PR URL returned by `gh`."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I pushed two more commits to this branch after Maria's review. Update the PR description so it matches what's on the branch now.",
+      "expected_output": "Fixture: run inside a scratch git repo with a GitHub remote and authenticated `gh`. Branch fix/rate-limit-headers has an open PR whose body has `## What`, `## Why`, `## How`, `## Changes` and a `## Testing` checklist. The `## Why` section was hand-edited after opening and reads exactly: `Customers on the enterprise tier hit 429s during batch imports because the limiter counted retries twice. See INC-2291.` Since the PR was opened, two new commits were pushed: `fix(ratelimit): stop double-counting retried requests` and `test(ratelimit): cover retry path in limiter.test.ts`. The agent locates the PR with `gh pr view`, regenerates What/How/Changes from the current commits and diff, keeps `## Why` and `## Testing` untouched, and writes the body with `gh pr edit`.",
+      "files": [],
+      "expectations": [
+        "The agent locates the existing PR with `gh pr view` (requesting at least number and body) rather than creating a new one.",
+        "The agent inspects the current commits and diff against the base branch before rewriting the body.",
+        "The new body's `## Why` section is byte-for-byte identical to the original: `Customers on the enterprise tier hit 429s during batch imports because the limiter counted retries twice. See INC-2291.`",
+        "The new body's `## Changes` section mentions the two new commits' work (retry double-counting fix and the limiter test), showing What/How/Changes were regenerated rather than copied.",
+        "The existing `## Testing` section is preserved as-is, and no new conditional section (Deployment or Screenshots) is added.",
+        "The body is written with `gh pr edit <number> --body` using a heredoc, and `gh pr create` is never invoked.",
+        "The final response summarizes which sections changed and which were preserved."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Can you review PR #1412 and tell me if anything blocks merging?",
+      "expected_output": "Fixture: run in a checkout of a repo with authenticated `gh` where PR #1412 exists and is roughly 340 changed lines across 6 files, including a new SQL query built by string concatenation from a request parameter and a test file that does not exercise the new query path. The agent fetches PR metadata and diff with `gh pr view 1412` and `gh pr diff 1412`, then prints a structured review to the terminal with Summary, Size, Highlights, Suggestions, and Questions sections, tagging each suggestion `[blocker]`, `[should-fix]`, or `[nit]`. Nothing is posted to GitHub.",
+      "files": [],
+      "expectations": [
+        "The agent runs `gh pr view 1412` (with `--json` fields) and `gh pr diff 1412` to fetch the PR before forming opinions.",
+        "The output contains the headings `## Summary`, `## Size`, `## Highlights`, `## Suggestions`, and `## Questions`.",
+        "The `## Size` section states a size classification (small, medium, or large) together with the file count and +/- line counts; for ~340 lines it says medium.",
+        "Every item under `## Suggestions` starts with exactly one of the tags `[blocker]`, `[should-fix]`, or `[nit]`.",
+        "The string-concatenated SQL query is flagged as a `[blocker]` citing injection risk.",
+        "The missing test coverage for the new query path is flagged as `[should-fix]` or `[blocker]`.",
+        "The transcript contains no `gh pr comment`, `gh pr review`, or `gh api` call that writes to GitHub; the review is only printed to the terminal.",
+        "The final response answers the user's question directly by stating whether any blocker exists."
+      ]
+    }
+  ]
+}

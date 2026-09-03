@@ -1,42 +1,42 @@
 [
   {
-    "query": "migrate my local WordPress site to production at example.com — the localhost URL is http://localhost:8888 and I need all the URLs updated in the DB",
+    "query": "client staging site at staging.acme.se is on 6.4 and they want it moved to prod at acme.se — need the db moved and urls swapped, its got woocommerce so serialized stuff",
     "should_trigger": true
   },
   {
-    "query": "bulk update all plugins on my staging WP — with dry run first",
+    "query": "we've got ~40 plugins on the marketing WP box at /var/www/marketing and a bunch are out of date. update them all but dry run first, and I want a list of current versions before we touch anything so we can roll back",
     "should_trigger": true
   },
   {
-    "query": "delete user ID 42 from WordPress but reassign their posts to user ID 3",
+    "query": "a contractor left, their wordpress account is user id 42. remove the account but hand their ~200 posts over to the editor (id 3) so nothing disappears",
     "should_trigger": true
   },
   {
-    "query": "export just the wp_posts and wp_postmeta tables from my WP database",
+    "query": "export only wp_posts and wp_postmeta from the WP database, the whole dump is 6GB and I just need content tables for a local repro",
     "should_trigger": true
   },
   {
-    "query": "run wp search-replace from old.com to new.com but skip the guid column and use precise mode",
+    "query": "change the siteurl and home options on the site in /srv/blog to https, and flip WP_DEBUG_LOG on in wp-config while ur at it — I don't have admin login, just ssh",
     "should_trigger": true
   },
   {
-    "query": "set up a wp-cli alias for my production server over ssh so I can do `wp @prod plugin list`",
+    "query": "set up an alias so i can run commands on the production server over ssh without typing the host every time, like `wp @prod plugin list`",
     "should_trigger": true
   },
   {
-    "query": "clear the object cache and flush transients on the live site",
+    "query": "our multisite network needs a new subsite for the finland team, slug fi, title 'Acme Finland', admin email ops@acme.example — can you create it and then list all sites to confirm",
     "should_trigger": true
   },
   {
-    "query": "list all inactive plugins and delete them in one shot",
+    "query": "the woocommerce scheduled emails hook (woocommerce_scheduled_sales) isnt firing on the prod server. show me the pending cron events and force-run that one from the terminal",
     "should_trigger": true
   },
   {
-    "query": "audit our user roles — show me every editor and admin with their last-login date",
+    "query": "activate the twentytwentyfour theme on the staging box to check if our custom theme is what's causing the white screen, then switch back",
     "should_trigger": true
   },
   {
-    "query": "install and activate the woocommerce plugin at version 8.4.0 — need to pin it",
+    "query": "there are like 900 old draft posts from an import gone wrong on the news site, all by author id 7. get rid of them in one go, and tell me how to make sure I'm not nuking the wrong ones",
     "should_trigger": true
   },
   {
@@ -48,7 +48,7 @@
     "should_trigger": false
   },
   {
-    "query": "deploy a WordPress site to AWS using CloudFormation",
+    "query": "run this UPDATE against wp_options with the mysql client — I have the credentials from wp-config and want to do it straight in mysql, not through WordPress",
     "should_trigger": false
   },
   {
@@ -64,11 +64,11 @@
     "should_trigger": false
   },
   {
-    "query": "what's the difference between an action hook and a filter hook?",
+    "query": "bulk publish these posts from a node script via the REST API using an application password",
     "should_trigger": false
   },
   {
-    "query": "convert my static HTML site to WordPress",
+    "query": "walk me through doing the search-replace in wp-admin with the Better Search Replace plugin",
     "should_trigger": false
   },
   {

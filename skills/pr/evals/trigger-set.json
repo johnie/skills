@@ -1,13 +1,16 @@
 [
   {
-    "query": "open a PR for this branch targeting main",
+    "query": "i'm on fix/checkout-tax-rounding, 3 commits ahead of main — open a pr for it plz, the base is main",
     "should_trigger": true
   },
   {
     "query": "my branch feature/mobile-onboarding has 8 commits, time to put it up for review",
     "should_trigger": true
   },
-  { "query": "/pr create --draft", "should_trigger": true },
+  {
+    "query": "create a draft PR from feat/search-index so Tom can start looking at the migration in db/migrations/0042_search_index.sql before the API part is done",
+    "should_trigger": true
+  },
   {
     "query": "refresh the PR body — I pushed two more commits after the initial review and they're not reflected in the description",
     "should_trigger": true
@@ -17,7 +20,7 @@
     "should_trigger": true
   },
   {
-    "query": "update PR description to reflect the latest changes",
+    "query": "pushed 2 fixup commits to #1412 after Maria's review, can u regenerate the description so the testing section is accurate",
     "should_trigger": true
   },
   {
@@ -30,6 +33,10 @@
   },
   {
     "query": "write the PR body for this — structured with testing and deployment sections if applicable",
+    "should_trigger": true
+  },
+  {
+    "query": "open a PR for chore/bump-node-22 but show me the title and body before you actually post it, last time the description was off",
     "should_trigger": true
   },
   { "query": "merge PR 1203 into main with squash", "should_trigger": false },
@@ -58,10 +65,6 @@
     "should_trigger": false
   },
   { "query": "approve PR #700 on my behalf", "should_trigger": false },
-  {
-    "query": "set up branch protection rules on main",
-    "should_trigger": false
-  },
   {
     "query": "check why the CI on PR #412 is failing",
     "should_trigger": false

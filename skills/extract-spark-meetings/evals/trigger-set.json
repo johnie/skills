@@ -1,6 +1,6 @@
 [
   {
-    "query": "/extract-spark-meetings https://share.sparkmailapp.com/abc123",
+    "query": "can you extract this into my meeting notes archive? https://sparkmailapp.com/dpl/bl?token=eyJhbGciOiJIUzI1NiJ9.abc123",
     "should_trigger": true
   },
   {
@@ -8,27 +8,31 @@
     "should_trigger": true
   },
   {
-    "query": "I have 12 unchecked Spark Mail transcript URLs in my links.md, batch-process them",
+    "query": "I have 12 unchecked Spark Mail meeting links in my links.md, batch-process them",
     "should_trigger": true
   },
   {
-    "query": "extract this meeting: https://share.sparkmailapp.com/5ff9d4 into markdown with participants, decisions, action items",
+    "query": "extract this meeting: https://sparkmailapp.com/dpl/bl?token=5ff9d4a1 into markdown with participants, decisions, action items",
     "should_trigger": true
   },
   {
-    "query": "batch process all unchecked links in links.md into the spark-meetings folder",
+    "query": "Priya from finance sent me https://sparkmailapp.com/dpl/bl?token=Q3budgetSync — it's the budget review from tuesday, save it as a proper meeting note file",
     "should_trigger": true
   },
   {
-    "query": "turn this spark mail share into a meeting note with yaml frontmatter and tags",
+    "query": "turn this spark mail meeting note into a markdown file with yaml frontmatter and tags",
     "should_trigger": true
   },
   {
-    "query": "here's a spark shared link — save it as a meeting summary file",
+    "query": "my manager dropped the 1:1 recap as readdle-spark://bl=a8f2c9 in slack, i want it in my notes folder with the action items as checkboxes",
     "should_trigger": true
   },
   {
     "query": "run through links.md and extract every unchecked sparkmailapp url",
+    "should_trigger": true
+  },
+  {
+    "query": "these are the recordings from last week's customer calls, all shared from spark. get them into the archive dir with frontmatter so i can grep them later: https://sparkmailapp.com/dpl/bl?token=cust1 https://sparkmailapp.com/dpl/bl?token=cust2",
     "should_trigger": true
   },
   {
@@ -48,7 +52,7 @@
     "should_trigger": false
   },
   {
-    "query": "fetch the HTML of https://example.com and summarize it",
+    "query": "open this spark link and just tell me when the next sync is, no file needed: https://sparkmailapp.com/dpl/bl?token=xy77",
     "should_trigger": false
   },
   {
@@ -64,14 +68,9 @@
     "should_trigger": false
   },
   {
-    "query": "extract table of contents from a markdown file",
+    "query": "reply to this Spark thread and thank everyone for joining: https://sparkmailapp.com/dpl/bl?token=thr33",
     "should_trigger": false
   },
-  {
-    "query": "use webfetch to download a recipe from a food blog",
-    "should_trigger": false
-  },
-  { "query": "parse my slack DMs into meeting notes", "should_trigger": false },
   {
     "query": "fix my sparkmail desktop client sync issues",
     "should_trigger": false

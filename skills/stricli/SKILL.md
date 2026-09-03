@@ -36,14 +36,14 @@ Stricli's public API is intentionally narrow. If something isn't listed here or 
 | --- | --- |
 | `buildCommand({ func \| loader, parameters, docs })` | Define a single command |
 | `buildRouteMap({ routes, docs, aliases?, defaultCommand? })` | Compose subcommands |
-| `buildApplication(rootCommandOrRouteMap, config)` | Wrap with app-level config (name, version, scanner, integrations) |
+| `buildApplication(rootCommandOrRouteMap, config, integrations?)` | Wrap with app-level config (name, scanner, …); third argument registers integrations (1.3.0+) |
 | `run(app, inputs, context)` | Execute the app against tokenized input + a runtime context |
 | `CommandContext` | The shape that runtime context extends |
 | `help(config)` / `version(config)` | Built-in integrations for `--help` / `--version` (1.3.0+) |
 
 ## Version awareness
 
-Check the installed `@stricli/core` before using version-gated API — `integrations`, lifecycle hooks, and the exported `help`/`version` factories arrived in **1.3.0** and don't exist on 1.2.x. Everything else in this skill applies across the 1.x line. Details in [`references/integrations.md`](references/integrations.md).
+Check the installed `@stricli/core` before using version-gated API. The `integrations` argument, lifecycle hooks, and the exported `help`/`version` factories arrived in **1.3.0**; `withNegated` on boolean flags and defaults on variadic flags arrived in **1.2.5**. The rest of this skill applies across the 1.x line. Details in [`references/integrations.md`](references/integrations.md).
 
 ## Installation
 
@@ -69,7 +69,7 @@ The generator produces the reference directory layout. For hand-written apps, fo
 ### 1. Define the command
 
 ```typescript
-import { buildCommand } from "@stricli/core";
+import { buildCommand, type CommandContext } from "@stricli/core";
 
 interface GreetFlags {
   readonly shout?: boolean;
@@ -92,7 +92,7 @@ export const greetCommand = buildCommand({
       ],
     },
   },
-  func(this, flags: GreetFlags, name: string) {
+  func(this: CommandContext, flags: GreetFlags, name: string) {
     const message = `Hello, ${name}!`;
     this.process.stdout.write(
       `${flags.shout ? message.toUpperCase() : message}\n`
@@ -104,15 +104,42 @@ export const greetCommand = buildCommand({
 ### 2. Build the application
 
 ```typescript
-import { buildApplication } from "@stricli/core";
-import { version } from "../package.json";
+import { buildApplication, help, version } from "@stricli/core";
+import { version as currentVersion } from "../package.json";
 import { greetCommand } from "./commands/greet";
 
-export const app = buildApplication(greetCommand, {
-  name: "my-cli",
-  versionInfo: { currentVersion: version },
-});
+const formatting = {
+  useAliasInUsageLine: false,
+  onlyRequiredInUsageLine: false,
+  caseStyle: "original",
+} as const;
+
+export const app = buildApplication(
+  greetCommand,
+  { name: "my-cli" },
+  {
+    help: help({
+      brief: "Print help information and exit",
+      defaultForRouteMap: true,
+      formatting,
+    }),
+    helpAll: help({
+      brief:
+        "Print help information (including hidden commands/flags) and exit",
+      alias: "H",
+      hidden: true,
+      includeHidden: true,
+      formatting,
+    }),
+    version: version({
+      brief: "Print version information and exit",
+      info: { currentVersion },
+    }),
+  }
+);
 ```
+
+On 1.3.0+ the `version` integration is the primary way to enable `--version`; the config key `versionInfo: { currentVersion }` (with no third argument) is the legacy 1.2.x form and is `@deprecated` on 1.3.0, though it still works. Passing the third argument replaces every default, which is why `help` and `helpAll` are re-registered above.
 
 ### 3. Run it
 
@@ -182,10 +209,10 @@ See [`references/context.md`](references/context.md) and [`references/examples.m
 ## Upstream conventions worth keeping
 
 - `strict: true` in `tsconfig.json`. Stricli leans on inference — loose mode loses the whole value proposition.
-- `--version` appears only when `versionInfo` is configured on the application.
+- `--version` appears only when a `version` integration is registered (1.3.0+) or the legacy `versionInfo` config key is set (1.2.x; deprecated on 1.3.0).
 - `--helpAll` is built-in and surfaces hidden commands and flags.
 - Reserved short flags: `-h` (help), `-H` (helpAll), `-v` (version, when enabled).
-- On 1.3.0+, passing an `integrations` record to `buildApplication` **replaces** the defaults — re-register `help` and `version` or you lose those flags. See [`references/integrations.md`](references/integrations.md).
+- On 1.3.0+, passing the `integrations` argument to `buildApplication` **replaces** the defaults — re-register `help`, `helpAll`, and `version` or you lose those flags. See [`references/integrations.md`](references/integrations.md).
 - Upstream docs are npm-first; show `pnpm` / `bun` equivalents when the user uses them.
 
 ## References

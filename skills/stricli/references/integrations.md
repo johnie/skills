@@ -1,6 +1,6 @@
 # Integrations and Lifecycle Hooks
 
-Added in `@stricli/core` **1.3.0**. Integrations are the extension point for application-wide behaviour: lifecycle hooks, and application-level flags that run before any command does. `--help` and `--version` were reimplemented on top of this API, so they are now integrations rather than hardwired behaviour.
+Added in `@stricli/core` **1.3.0**. Integrations are the extension point for application-wide behaviour: lifecycle hooks, and application-level flags that run before any command does. `--help`, `--helpAll`, and `--version` were reimplemented on top of this API, so they are now integrations rather than hardwired behaviour.
 
 Check the installed version before using anything here — on 1.2.x none of these exports exist.
 
@@ -16,33 +16,68 @@ Check the installed version before using anything here — on 1.2.x none of thes
 
 ## The gotcha: passing `integrations` replaces the defaults
 
-`buildApplication` accepts an `integrations` record keyed by name:
+Integrations are the **third positional argument** of `buildApplication`, not a key inside the config object:
+
+```typescript
+buildApplication(root, config, integrations?: Readonly<Record<string, StricliIntegration<CONTEXT>>>);
+```
+
+```typescript
+import { buildApplication } from "@stricli/core";
+
+export const app = buildApplication(
+  root,
+  { name: "my-cli" },
+  { telemetry: telemetryIntegration }
+);
+```
+
+Omit the third argument and Stricli gathers three defaults — `help` (alias `h`), `helpAll` (alias `H`, hidden, `includeHidden: true`), and `version` (alias `v`, only when `versionInfo` is set). **Pass any record, even an empty one, and you take over the whole set** — the defaults are no longer gathered, and the example above silently loses `--help`, `--helpAll`, and `--version`.
+
+Re-register all three whenever you add an integration of your own. Both factories require `brief` and `help` requires a complete `formatting` object:
 
 ```typescript
 import { buildApplication, help, version } from "@stricli/core";
+import { version as currentVersion } from "../package.json";
 
-export const app = buildApplication(root, {
-  name: "my-cli",
-  versionInfo: { currentVersion: "1.2.3" },
-  integrations: {
+const formatting = {
+  useAliasInUsageLine: false,
+  onlyRequiredInUsageLine: false,
+  caseStyle: "original",
+} as const;
+
+export const app = buildApplication(
+  root,
+  { name: "my-cli" },
+  {
+    help: help({
+      brief: "Print help information and exit",
+      alias: "h",
+      defaultForRouteMap: true,
+      formatting,
+    }),
+    helpAll: help({
+      brief:
+        "Print help information (including hidden commands/flags) and exit",
+      alias: "H",
+      hidden: true,
+      includeHidden: true,
+      formatting,
+    }),
+    version: version({
+      brief: "Print version information and exit",
+      info: { currentVersion },
+    }),
     telemetry: telemetryIntegration,
-  },
-});
+  }
+);
 ```
 
-Omit `integrations` entirely and Stricli gathers the defaults, so `--help` and `--version` keep working exactly as before. **Provide the key and you take over the whole set** — the defaults are no longer gathered, and the above example silently loses `--help` and `--version`.
+`defaultForRouteMap: true` on `help` is what keeps `my-cli some-group` printing the group's help instead of erroring. This is the single most likely way to break a working CLI while adopting 1.3.0.
 
-Register them explicitly whenever you add an integration of your own:
+`config.versionInfo` and `config.documentation.*` are `@deprecated` on 1.3.0 in favour of `version({ info })` and `help({ formatting })`. They still work — and are the only option on 1.2.x — but on 1.3.0+ register `version` yourself rather than relying on the deprecated config key.
 
-```typescript
-integrations: {
-    help: help({ formatting: { caseStyle: "convert-camel-to-kebab" } }),
-    version: version({}),
-    telemetry: telemetryIntegration,
-}
-```
-
-This is the single most likely way to break a working CLI while adopting 1.3.0.
+`StricliIntegration<CONTEXT>` is invariant in `CONTEXT`, and `help()`/`version()` infer `CommandContext` on their own. When the root command uses a custom context, pass the type argument once — `buildApplication<LocalContext>(root, config, { … })` — so every integration in the record resolves to the same context; otherwise the call fails overload resolution with a confusing "`Command<LocalContext>` is not assignable to `RouteMap<CommandContext>`" error.
 
 ## `StricliIntegration` shape
 
@@ -50,7 +85,10 @@ This is the single most likely way to break a working CLI while adopting 1.3.0.
 type StricliIntegration<CONTEXT extends CommandContext> = {
   // Runs at build time. Throw to reject an incompatible application config.
   // The integration's name is added to the error for you.
-  readonly validate?: (root, config) => void;
+  readonly validate?: (
+    root: RoutingTarget<CONTEXT>,
+    config: ApplicationConfiguration
+  ) => void;
   readonly hooks?: LifecycleHooks<CONTEXT>;
   // `name` comes from the record key, so it is omitted here.
   readonly flag?: Omit<ApplicationFlag<CONTEXT>, "name">;
@@ -94,13 +132,13 @@ Command hooks receive your `CONTEXT` on `this`, so they can reach the same injec
 
 ## Application flags
 
-A flag on an integration runs during route scanning, before the target command executes — which is how `--help` short-circuits:
+A flag on an integration runs during route scanning, before the target command executes — which is how `--help` short-circuits. Application flags are always boolean switches, so there is no `kind` field; `brief` and `run` are the only required members:
 
 ```typescript
 const dryRun: StricliIntegration<LocalContext> = {
   flag: {
     brief: "Print the plan without executing",
-    kind: "boolean",
+    global: true, // otherwise the flag only exists on the root target
     run(app, args) {
       // `this` is the ApplicationContext, not your CONTEXT
     },
@@ -108,21 +146,45 @@ const dryRun: StricliIntegration<LocalContext> = {
 };
 ```
 
+Optional members: `aliases` (single characters), `hidden`, `complete` (include in completion proposals), `global`, and `defaultForRouteMap`.
+
 `defaultForRouteMap: true` makes the flag handle the case where inputs resolve to a route map rather than a command. That is how `--help` preserves the pre-1.3.0 behaviour of printing route-map help. At most one integration may set it; more than one throws at build time.
 
 ## Customizing `help` and `version`
 
-Both factories take a configuration object and return a `StricliIntegration`:
+Both factories take a configuration object and return a `StricliIntegration`. `help` requires `brief` and a full `FormattingConfiguration` — all three members, no partial objects:
 
 ```typescript
 help({
+  brief: "Print help information and exit",
   alias: "h", // single-char alias, or `false` to disable it
-  includeHidden: false, // the `--helpAll` behaviour
-  formatting: { caseStyle: "convert-camel-to-kebab" },
+  includeHidden: false, // `true` is the `--helpAll` behaviour
+  formatting: {
+    useAliasInUsageLine: false,
+    onlyRequiredInUsageLine: false,
+    caseStyle: "convert-camel-to-kebab",
+  },
+});
+```
+
+`version` requires `brief` and `info`; `info` is either `{ currentVersion }` or `{ getCurrentVersion }`, optionally with `getLatestVersion` and `upgradeCommand`. When `getLatestVersion` is set, the integration also registers a hook (default `app:start`, override with `hook`) that warns on stderr when the current version is stale:
+
+```typescript
+version({
+  brief: "Print version information and exit",
+  alias: "v",
+  info: {
+    currentVersion,
+    getLatestVersion: async () => fetchLatestFromRegistry(),
+    upgradeCommand: "npm i -g my-cli",
+  },
+  hook: "app:end",
 });
 ```
 
 Typed as `HelpIntegrationConfiguration` and `VersionIntegrationConfiguration`. `help` validates case-style compatibility at build time and throws if the scanner reads names as `original` while display converts camel to kebab — a genuine misconfiguration that used to fail at runtime.
+
+Upstream `main` adds a `complete` integration (a hidden `--complete` flag that proposes completions for the inputs after it) and deprecates the exported `proposeCompletions` function in its favour — unreleased as of 1.3.0, so don't reach for it until a newer version ships.
 
 ## Error handling
 

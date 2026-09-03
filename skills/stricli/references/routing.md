@@ -64,35 +64,7 @@ export const echoCommand = buildCommand<Flags, [text: string], CommandContext>({
 
 ### Lazy `loader`
 
-Use `loader` when the implementation is heavy or should be code-split.
-
-```typescript
-import { buildCommand } from "@stricli/core";
-
-export const analyzeCommand = buildCommand({
-  docs: {
-    brief: "Analyze a large project",
-  },
-  parameters: {
-    positional: {
-      kind: "tuple",
-      parameters: [
-        {
-          brief: "Project path",
-          parse: String,
-          placeholder: "path",
-        },
-      ],
-    },
-  },
-  loader: async () => import("./impl"),
-});
-```
-
-The loaded module can export either:
-
-- a default command implementation
-- a named implementation returned explicitly from the loader
+Use `loader` when the implementation is heavy or should be code-split: `loader: async () => import("./impl")` in place of `func`. The SKILL.md "Large CLIs" section has the full example. The loaded module can export either a default command implementation or a named implementation returned explicitly from the loader.
 
 ### Command Documentation
 
@@ -138,12 +110,7 @@ parameters: {
 }
 ```
 
-Notes:
-
-- aliases are single characters
-- `-h` is reserved for help
-- `-H` is reserved for help-all
-- `-v` is reserved for version when `versionInfo` is configured
+Aliases are single characters. `-h`, `-H`, and `-v` are taken by the built-in help, helpAll, and version flags (see SKILL.md "Upstream conventions").
 
 ## `buildRouteMap`
 
@@ -254,73 +221,70 @@ docs: {
 
 ## `buildApplication`
 
-Current public API takes the root target first, then configuration:
+Current public API takes the root target first, then configuration, then an optional integrations record (1.3.0+):
 
 ```typescript
-buildApplication(rootCommandOrRouteMap, config);
+buildApplication(rootCommandOrRouteMap, config, integrations?);
 ```
 
-Do not use the older object form `buildApplication({ command, name, version })` — it was replaced by the positional-first-argument API shown here.
-
-### Single Command
+Do not use the older object form `buildApplication({ command, name, version })` — it was replaced by the positional-first-argument API shown here. The single-command form is in the SKILL.md quick start; a route-map root looks the same:
 
 ```typescript
-import { buildApplication } from "@stricli/core";
-import { version } from "../package.json";
-import { echoCommand } from "./commands/echo";
-
-export const app = buildApplication(echoCommand, {
-  name: "my-cli",
-  versionInfo: {
-    currentVersion: version,
-  },
-});
-```
-
-### Route Map
-
-```typescript
-import { buildApplication } from "@stricli/core";
-import { version } from "../package.json";
+import { buildApplication, help, version } from "@stricli/core";
+import { version as currentVersion } from "../package.json";
 import { rootRoutes } from "./routes";
 
-export const app = buildApplication(rootRoutes, {
-  name: "my-cli",
-  versionInfo: {
-    currentVersion: version,
+const formatting = {
+  useAliasInUsageLine: false,
+  onlyRequiredInUsageLine: false,
+  caseStyle: "convert-camel-to-kebab",
+} as const;
+
+export const app = buildApplication(
+  rootRoutes,
+  {
+    name: "my-cli",
+    scanner: {
+      caseStyle: "allow-kebab-for-camel",
+    },
   },
-  scanner: {
-    caseStyle: "allow-kebab-for-camel",
-  },
-});
+  {
+    help: help({
+      brief: "Print help information and exit",
+      defaultForRouteMap: true,
+      formatting,
+    }),
+    helpAll: help({
+      brief:
+        "Print help information (including hidden commands/flags) and exit",
+      alias: "H",
+      hidden: true,
+      includeHidden: true,
+      formatting,
+    }),
+    version: version({
+      brief: "Print version information and exit",
+      info: { currentVersion },
+    }),
+  }
+);
 ```
+
+On 1.2.x there is no third argument; enable `--version` with `versionInfo: { currentVersion }` in the config instead. That key still works on 1.3.0 but is `@deprecated` — see [integrations.md](integrations.md).
 
 ### Useful Application Config
 
 - `name` - required CLI name
-- `versionInfo` - enables `--version` and version awareness
+- `versionInfo` - enables `--version` on 1.2.x; deprecated on 1.3.0+ in favour of the `version` integration
 - `scanner` - input scanning config such as `caseStyle`
-- `documentation` - help text formatting config
+- `documentation` - help text formatting config; deprecated on 1.3.0+ in favour of `help({ formatting })`
 - `completion` - completion proposal config
 - `localization` - localized text config (rarely used; consult upstream docs if needed)
 - `determineExitCode` - custom error-to-exit-code mapping
 
 ## `run`
 
-`run()` executes an already-built application:
-
-```typescript
-import { run } from "@stricli/core";
-import { app } from "./app";
-
-await run(app, process.argv.slice(2), { process });
-```
-
-Important details:
-
-- `inputs` should already be tokenized, like `process.argv.slice(2)`
-- current public API expects a runtime context object
-- in Node-compatible environments, `{ process }` is the normal starting point
+`run(app, inputs, context)` executes an already-built application — the SKILL.md quick start shows the entry point. `inputs` should already be tokenized (`process.argv.slice(2)`), and in Node-compatible environments `{ process }` is the normal starting context.
 
 ### With Custom Context
 
@@ -350,12 +314,10 @@ await run(app, ["--version"], testContext);
 
 ## Built-In Help and Version Behavior
 
-- `--help` is built in
-- `--helpAll` is built in and reveals hidden flags and routes
-- `--version` is built in only when `versionInfo` is configured
+`--help`, `--helpAll`, and `--version` are integrations on 1.3.0+ (see [integrations.md](integrations.md)); on 1.2.x they are built in, with `--version` present only when `versionInfo` is configured.
 
 ## Runtime Notes
 
 - Official quick start and generator are Node/npm oriented
 - `pnpm` and `bun` work fine for package installation and script execution in many setups
-- Keep package-manager examples flexible, but default to `npm` when following upstream guidance
+- Mirror the user's package manager in examples; upstream examples use npm

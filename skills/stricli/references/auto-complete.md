@@ -52,7 +52,6 @@ import {
   buildInstallCommand,
   buildUninstallCommand,
 } from "@stricli/auto-complete";
-import { version } from "../package.json";
 import { statusCommand } from "./commands/status";
 
 const routes = buildRouteMap({
@@ -74,12 +73,9 @@ const routes = buildRouteMap({
   },
 });
 
-export const app = buildApplication(routes, {
-  name: "my-cli",
-  versionInfo: {
-    currentVersion: version,
-  },
-});
+// Register help/helpAll/version integrations as in the SKILL.md quick start;
+// `versionInfo` in the config object is the deprecated 1.2.x form.
+export const app = buildApplication(routes, { name: "my-cli" });
 ```
 
 This mirrors the current upstream guidance and generated app structure.

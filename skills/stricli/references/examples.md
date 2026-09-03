@@ -1,61 +1,6 @@
 # Stricli Examples
 
-Patterns that complement the reference files. For parsers, context, routing, and auto-complete, see the dedicated reference files — this page covers composite scenarios and patterns not shown elsewhere.
-
-## Variadic Flags
-
-Variadic flags collect multiple values into an array. Use `variadic: true` for repeated flags or a separator string like `variadic: ","` for comma-delimited input.
-
-```typescript
-import { buildCommand } from "@stricli/core";
-
-interface Flags {
-  readonly include?: readonly string[];
-  readonly exclude?: readonly string[];
-}
-
-export const buildFilesCommand = buildCommand({
-  docs: {
-    brief: "Build with include and exclude filters",
-  },
-  parameters: {
-    flags: {
-      include: {
-        kind: "parsed",
-        parse: String,
-        brief: "Path(s) to include",
-        optional: true,
-        variadic: true,
-      },
-      exclude: {
-        kind: "parsed",
-        parse: String,
-        brief: "Glob(s) to exclude",
-        optional: true,
-        variadic: ",",
-      },
-    },
-  },
-  func(this, flags: Flags) {
-    this.process.stdout.write(
-      JSON.stringify(
-        {
-          include: flags.include ?? [],
-          exclude: flags.exclude ?? [],
-        },
-        null,
-        2
-      ) + "\n"
-    );
-  },
-});
-```
-
-Usage:
-
-```bash
-my-cli --include src --include test --exclude "*.spec.ts,*.test.ts"
-```
+Patterns that complement the reference files. For parsers, context, routing, and auto-complete, see the dedicated reference files — this page covers composite scenarios and patterns not shown elsewhere. Variadic flags (`variadic: true` / `variadic: ","`) are covered in [parameters.md — Variadic](parameters.md#variadic).
 
 ## Multi-Command Application with Aliases
 
@@ -93,6 +38,8 @@ export const app = buildApplication(projectRoutes, {
   },
 });
 ```
+
+`versionInfo` is the 1.2.x form. On 1.3.0+ it is deprecated: pass `help`/`helpAll`/`version` integrations as the third argument instead — see [integrations.md](integrations.md).
 
 Usage:
 
@@ -167,6 +114,7 @@ import { buildApplication } from "@stricli/core";
 import { version } from "../package.json";
 import { deployCommand } from "./commands/deploy";
 
+// 1.2.x form; on 1.3.0+ pass help/helpAll/version integrations as the third argument (integrations.md)
 export const app = buildApplication(deployCommand, {
   name: "deploy-cli",
   versionInfo: { currentVersion: version },
@@ -189,41 +137,18 @@ await run(app, process.argv.slice(2), {
 
 ### Test
 
+Uses the `buildContextForTest()` helper from [context.md — Testing with Context](context.md#testing-with-context), extended with the `logger` and `deployer` fields this command needs:
+
 ```typescript
 import { run } from "@stricli/core";
 import { app } from "../src/app";
 
-function buildContextForTest() {
-  let out = "";
-  let err = "";
-  return {
-    process: {
-      stdout: {
-        write: (s: string) => {
-          out += s;
-          return true;
-        },
-      },
-      stderr: {
-        write: (s: string) => {
-          err += s;
-          return true;
-        },
-      },
-    },
+it("deploys in dry-run mode", async () => {
+  // Object.assign keeps the helper's stdout/stderr getters live; a spread would snapshot them
+  const ctx = Object.assign(buildContextForTest(), {
     logger: { info: () => {} },
     deployer: { deploy: async () => {} },
-    get stdout() {
-      return out;
-    },
-    get stderr() {
-      return err;
-    },
-  };
-}
-
-it("deploys in dry-run mode", async () => {
-  const ctx = buildContextForTest();
+  });
   await run(app, ["--dryRun", "staging"], ctx);
   expect(ctx.stdout).toContain("dry=true");
 });
@@ -278,4 +203,4 @@ it("reports a helpful error from a custom parser", async () => {
 
 ### Help / version are not errors
 
-`-h`, `--help`, `--helpAll`, and `-v`/`--version` (when `versionInfo` is configured) write to `stdout` and exit with code 0. If your tests assert error-on-any-stderr-output, carve these out.
+`-h`, `--help`, `--helpAll`, and `-v`/`--version` (when version info is configured) write to `stdout` and exit with code 0. If your tests assert error-on-any-stderr-output, carve these out.

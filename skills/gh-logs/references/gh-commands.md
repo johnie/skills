@@ -52,18 +52,17 @@ gh run view [<run-id>] [flags]
 
 ### View job details with jq
 
-```bash
-# All failed jobs and their failed steps
-gh run view <id> --json jobs --jq '.jobs[] | select(.conclusion == "failure") | {name, conclusion, steps: [.steps[] | select(.conclusion == "failure") | {name, conclusion}]}'
+The failed-jobs overview and the per-step timing filter live in SKILL.md (steps 2 and `--slow`); this section covers the rest.
 
+```bash
 # Job names and conclusions
 gh run view <id> --json jobs --jq '.jobs[] | "\(.name): \(.conclusion)"'
 
-# Job-level timing (gh's native JSON uses camelCase and only exposes timestamps on jobs, not steps)
+# Job-level timing
 gh run view <id> --json jobs --jq '.jobs[] | {name, startedAt, completedAt, conclusion}'
 ```
 
-> Step-level timestamps are **not** available through `gh run view --json jobs` — the `steps[]` objects only carry `name`, `status`, `conclusion`, and `number`. For per-step durations, use the REST jobs endpoint (see [Step timing](#extract-step-durations-sorted-by-time)), which returns snake_case `started_at` / `completed_at` on each step.
+> Since gh 2.60.0, `steps[]` objects also carry `startedAt` / `completedAt` (camelCase), so per-step durations need no REST call. Older gh versions return only `name`, `status`, `conclusion`, and `number` on steps — fall back to [the REST filter](#extract-step-durations-via-rest-gh-before-260).
 
 ## Monitoring Runs
 
@@ -115,14 +114,7 @@ gh run rerun <run-id> --failed
 
 ## Compound Commands
 
-Useful one-liners for common analysis tasks.
-
-### Find last failed run on current branch
-
-```bash
-BRANCH=$(git branch --show-current)
-gh run list --branch "$BRANCH" --status failure --limit 1 --json databaseId,displayTitle,workflowName,createdAt
-```
+Useful one-liners for common analysis tasks. The workflow-driving commands — last failed run on the current branch, failed jobs and steps for a run, step durations — are in SKILL.md and not repeated here.
 
 ### Get all failed job names from a run
 
@@ -145,9 +137,9 @@ diff <(gh run view <id1> --json jobs --jq '.jobs[].steps[] | "\(.name): \(.concl
      <(gh run view <id2> --json jobs --jq '.jobs[].steps[] | "\(.name): \(.conclusion)"')
 ```
 
-### Extract step durations sorted by time
+### Extract step durations via REST (gh before 2.60)
 
-Step timestamps live on the REST jobs endpoint (`started_at` / `completed_at`, snake_case), not on `gh run view --json jobs`:
+Same filter as SKILL.md's `--slow`, against the REST jobs endpoint, which returns snake_case `started_at` / `completed_at` on every step regardless of gh version:
 
 ```bash
 gh api repos/{owner}/{repo}/actions/runs/<run-id>/jobs --jq '
@@ -155,8 +147,6 @@ gh api repos/{owner}/{repo}/actions/runs/<run-id>/jobs --jq '
    {name, duration: ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))}] |
   sort_by(-.duration) | .[] | "\(.duration)s\t\(.name)"'
 ```
-
-For a quick job-level breakdown without the REST call, `gh run view <id> --json jobs --jq '.jobs[] | {name, startedAt, completedAt}'` gives per-job (not per-step) timing.
 
 ### Count failures by workflow over last 50 runs
 

@@ -1,7 +1,7 @@
 ---
 name: commit
 description: Split working-tree changes into atomic git commits with conventional-commit messages. Use whenever the user asks to commit, save work, stage files, break one messy diff into multiple logical commits, or prep a branch for a PR — including terse prompts like "commit this", "ship it", or "wrap up".
-when_to_use: Also triggers on "save my work", "stage everything", "make some commits out of this", and "tidy up my commits before the PR". Applies whether or not files are already staged — grouping considers staged, unstaged, and untracked changes together.
+when_to_use: Also triggers on "save my work", "stage everything", "make some commits out of this", and "split my changes into clean commits before the PR". Applies whether or not files are already staged — grouping considers staged, unstaged, and untracked changes together.
 argument-hint: "[-v|--dry-run|--amend] [push]"
 allowed-tools:
   - Bash(git status *)
@@ -69,7 +69,7 @@ Use `--dry-run` to preview which files will end up in which commit before anythi
 
 ## Grouping, in one paragraph
 
-Prefer more commits over fewer. Group by (in priority order) feature → scope → type → nature. A good test: would reverting one group without the others leave the tree in a working state? If yes, that's an atomic group. If no, the groups are entangled — merge or split until each can stand alone. Intermediate commits that don't compile are a smell. Full rules and worked examples: [`references/grouping-guide.md`](references/grouping-guide.md), [`references/examples.md`](references/examples.md).
+Prefer more commits over fewer. Group by (in priority order) feature → scope → type → nature. A good test: would reverting one group without the others leave the tree in a working state? If yes, that's an atomic group. If no, the groups are entangled — merge or split until each can stand alone. Intermediate commits that don't compile are a smell. Decision tree, scope derivation, type disambiguation, and the definition of each grouping axis: [`references/grouping-guide.md`](references/grouping-guide.md). Worked scenarios: [`references/examples.md`](references/examples.md).
 
 ## Commit message format
 
@@ -98,7 +98,7 @@ test(cart): add edge cases for discount calculation
 
 ## Pre-commit hooks
 
-Hooks (ultracite, prettier, eslint, etc.) run on each `git commit`.
+Hooks (prettier, eslint, biome, lint-staged, etc.) run on each `git commit`.
 
 - **Hook modifies files, commit succeeds**: the modifications are already included in the commit. Nothing to do.
 - **Hook modifies files, commit fails** (common with formatters that exit non-zero when they touch files): the commit did _not_ happen. Re-stage the affected files (`git add <paths>`) and commit again. Do NOT `--amend` — there's no prior commit to amend, and amending silently moves changes into the wrong group.
@@ -106,7 +106,7 @@ Hooks (ultracite, prettier, eslint, etc.) run on each `git commit`.
 
 ## Edge cases
 
-Short list below. Tricky ones with full handling rules live in [`references/grouping-guide.md`](references/grouping-guide.md) and [`references/examples.md`](references/examples.md).
+Short list below; the references cover grouping, not edge cases.
 
 | Situation | Action |
 | --- | --- |
@@ -115,6 +115,7 @@ Short list below. Tricky ones with full handling rules live in [`references/grou
 | File renames | `git diff --stat` detects them; group rename with related import-path updates. |
 | Binary files | Group with the feature that uses them. Don't try to describe binary diffs. |
 | Deletions replacing code | Treat delete + new file as one logical refactor commit. |
+| Generated artifacts (`coverage/`, `dist/`, lockfile-only churn) | Give them their own `chore` commit and note that they may belong in `.gitignore` instead. |
 | Empty diff after staging | Changes were already committed — stop and report. |
 | `--amend` of a pushed commit | Refuse unless user confirms; force-push rewrites upstream history. |
 
@@ -160,6 +161,6 @@ Proceed? (y/n/edit)
 
 See [`references/examples.md`](references/examples.md) for simple/medium/complex/anti-pattern scenarios.
 
-## Handoff to `/pr`
+## Handoff to PR creation
 
-When you create a PR afterwards, the `/pr` skill reads these commits to generate the PR title and body. Writing good, conventional commit messages here pays off there — the title reuses the primary commit's `type(scope): description`, and the body's What/How sections are built from the commit set.
+When you create a PR afterwards, a PR skill typically reads these commits to generate the PR title and body. Writing good, conventional commit messages here pays off there — the title reuses the primary commit's `type(scope): description`, and the body's What/How sections are built from the commit set.

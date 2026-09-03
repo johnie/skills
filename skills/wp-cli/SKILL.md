@@ -70,7 +70,7 @@ wp search-replace 'old.com' 'new.com' --dry-run
 These are irreversible without a backup. Confirm with the user before running:
 
 - `wp db reset` — drops every table
-- `wp db clean` — removes tables
+- `wp db clean` — drops every table matching the current `$table_prefix`
 - `wp site delete` (multisite) — removes a site and its content
 - `wp user delete` without `--reassign` — orphans the user's posts (they get deleted too). Always pass `--reassign=<new_author_id>` to reassign their content first. The flag exists because orphaning content is almost never what you want — the user's posts are the institutional record, not the user row.
 - `wp post delete $(wp post list --format=ids)` and similar bulk-delete pipes — quietly turn the whole site into a blank page if the filter is wrong.
@@ -174,7 +174,7 @@ Aliases beat ad-hoc SSH because they compose with every wp-cli flag (`wp @prod -
 4. **Document non-obvious workflows** — migrations, multisite conversions — as they happen; future-you will not remember which flags you used.
 5. **`--format=json` whenever piping to `jq` or another script.** The default human format rots.
 6. **Verify after big changes** — load the homepage, check admin, exercise critical paths.
-7. **Keep wp-cli current**: `wp cli update`.
+7. **Keep wp-cli current**: `wp cli update` (Phar installs only — Homebrew and Composer installs update through their package manager).
 
 ## References
 

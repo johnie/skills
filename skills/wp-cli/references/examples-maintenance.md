@@ -21,16 +21,9 @@ wp plugin get <plugin-slug> --field=update_version
 
 ### Backup & Update
 
+Snapshot the database and `wp-content/plugins/` first, then `wp plugin update --all --dry-run` — the exact commands are in the skill's Safety patterns.
+
 ```bash
-# Full backup
-wp db export backup-before-updates-$(date +%Y%m%d).sql
-
-# Optional: Backup wp-content/plugins
-tar -czf plugins-backup-$(date +%Y%m%d).tar.gz wp-content/plugins/
-
-# Test updates (dry-run)
-wp plugin update --all --dry-run
-
 # Update one plugin at a time (safer approach)
 wp plugin update akismet --dry-run
 wp plugin update akismet
@@ -72,13 +65,13 @@ wp cron test
 wp plugin install plugin-slug --version=1.2.3 --force
 
 # Or restore from backup
-wp db import backup-before-updates-20240115.sql
+wp db import backup-before-updates-<date>.sql
 
 # Or restore all plugins from tar.
 # CAUTION: `rm -rf wp-content/plugins/*` deletes every installed plugin. Confirm the tar
 # below exists and is the right backup BEFORE running the rm — there is no undo.
 rm -rf wp-content/plugins/*
-tar -xzf plugins-backup-20240115.tar.gz
+tar -xzf plugins-backup-<date>.tar.gz
 ```
 
 ## Debugging & Maintenance
@@ -135,9 +128,10 @@ wp post list --post_type=revision --format=ids | xargs wp post delete --force
 # Clean up auto-drafts
 wp post delete $(wp post list --post_status=auto-draft --format=ids) --force
 
-# Clean up trashed posts older than 30 days
+# Clean up trashed posts modified before a cutoff
+# e.g. CUTOFF=$(date -v-30d +%F) on macOS/BSD, CUTOFF=$(date -d '30 days ago' +%F) on GNU
 wp post list --post_status=trash --format=json | \
-  jq -r '.[] | select(.post_modified < "2024-01-01") | .ID' | \
+  jq --arg cutoff "<cutoff-date>" -r '.[] | select(.post_modified < $cutoff) | .ID' | \
   xargs wp post delete --force
 
 # Remove expired transients

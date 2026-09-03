@@ -16,7 +16,6 @@ Organized by category with focus on non-obvious flags, gotchas, and best practic
 - [Cron (`wp cron`)](#cron-wp-cron)
 - [Configuration (`wp config`)](#configuration-wp-config)
 - [Multisite (`wp site`)](#multisite-wp-site)
-- [Performance Tips](#performance-tips)
 
 ## Database Commands (`wp db`)
 
@@ -37,7 +36,7 @@ wp db import <file>
 
 ### Query & Search-Replace
 
-```bash
+````bash
 wp db query '<SQL>'
   --skip-column-names            # Remove header row (useful for scripts)
 
@@ -49,9 +48,12 @@ wp search-replace <old> <new> [<table>...]
   --network                      # Search across multisite
   --export=<file>                # Export before replace
   --skip-tables=<tables>         # Skip specific tables
+  --regex                        # <old> is a PCRE pattern (no delimiters); <new> may use \1 backrefs. 15-20x slower
+  --regex-flags=<flags>          # PCRE modifiers, e.g. i (case-insensitive), m, s
+  --regex-delimiter=<char>       # Pattern delimiter; default chr(1), so slashes need no escaping
+  --regex-limit=<n>              # Max replacements per row (default -1: unlimited)
   --report                       # Show detailed report
   --report-changed-only          # Only show modified rows
-```
 
 **Critical Gotchas**:
 
@@ -76,7 +78,7 @@ wp db reset --yes            # DESTRUCTIVE: Drops all tables
 wp db clean --yes            # DESTRUCTIVE: Drops every table matching $table_prefix
   --dry-run                  # List what would be dropped without dropping
   --network                  # All tables across a multisite network
-```
+````
 
 **Warning**: `wp db reset` and `wp db clean` are irreversible without backups.
 
@@ -202,7 +204,7 @@ wp user create <login> <email>
   --porcelain                # Output only user ID
 
 wp user delete <user>...
-  --reassign=<user-id>       # REQUIRED to prevent orphaned content
+  --reassign=<user-id>       # Optional — without it the user's posts are deleted with the user
   --network                  # Delete from entire network (multisite)
   --yes                      # Skip confirmation
 
@@ -224,7 +226,7 @@ wp user reset-password <user>
   --skip-email               # Don't send email notification
 ```
 
-**Critical Gotcha**: `wp user delete` without `--reassign` fails if user has posts. Always reassign content to another user.
+**Critical Gotcha**: `wp user delete` without `--reassign` succeeds and deletes the user's posts along with the account. Pass `--reassign=<user-id>` unless losing that content is the intent.
 
 ## Posts & Content (`wp post`)
 
@@ -422,35 +424,3 @@ wp site unarchive <id>
 ```
 
 **Note**: Multisite commands require network admin privileges.
-
-## Performance Tips
-
-1. **Use `--format=ids` for piping**:
-
-   ```bash
-   wp post delete $(wp post list --post_status=draft --format=ids)
-   ```
-
-2. **Skip plugins/themes for speed**:
-
-   ```bash
-   wp --skip-plugins db export
-   wp --skip-themes cache flush
-   ```
-
-3. **Limit fields to reduce output**:
-
-   ```bash
-   wp user list --fields=ID,user_login
-   ```
-
-4. **Use JSON for structured data**:
-
-   ```bash
-   wp option get active_plugins --format=json
-   ```
-
-5. **Batch operations with `xargs`**:
-   ```bash
-   wp plugin list --status=inactive --field=name | xargs wp plugin delete
-   ```

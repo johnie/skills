@@ -382,9 +382,11 @@ pnpm run skills --help
 
 **Scope `allowed-tools`.** It pre-approves tools for the invoking turn rather than restricting them, so a bare `Bash` entry lets every shell command run unprompted. A test rejects it. Write per-subcommand rules instead — `Bash(git commit *)`, not `Bash(git *)`, since Claude Code matches each subcommand of a chained command independently and `Bash(git *)` would also cover `git push --force`.
 
-**Body.** Keep `SKILL.md` under 500 lines (hard fail at 800) and move detail to `references/`; the body stays in context for the whole session. Don't restate the description in a "When to use" section — put trigger phrases in `when_to_use` and keep the body for guardrails and workflow. Reference files over 300 lines need a table of contents. All fenced code blocks need a language, headings can't skip levels, and every local link must resolve.
+**Body.** Keep `SKILL.md` under 500 lines (hard fail at 800) and move detail to `references/`; the body stays in context for the whole session. Don't restate the description in a "When to use" section — put trigger phrases in `when_to_use` and keep the body for guardrails and workflow. Reference files over 300 lines need a table of contents. All fenced code blocks need a language, headings can't skip levels, and every local link — including `#anchor` fragments in SKILL.md and reference files — must resolve.
 
-**Evals.** `evals/trigger-set.json` holds description-triggering cases as `{ query, should_trigger }`, at least 10 with 4+ in each class. These feed skill-creator's description optimizer.
+**Stay general.** A skill runs in other people's projects, so it must not mention this repo's toolchain, personal paths, or the author, and must not link to a sibling skill's files (`../other/SKILL.md`) — skills install independently. A test scans every skill file for these leaks.
+
+**Evals.** `evals/trigger-set.json` holds description-triggering cases as `{ query, should_trigger }`, at least 16 with 8+ in each class and no `/slash-command` queries (those bypass description matching). These feed skill-creator's description optimizer. `evals/evals.json` (optional) holds behavioral evals — `{ skill_name, evals: [{ id, prompt, expected_output, files, expectations }] }`, at least 2 evals with 3+ verifiable expectations each — for skill-creator's run/grade loop.
 
 ## License
 

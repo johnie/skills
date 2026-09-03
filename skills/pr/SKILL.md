@@ -56,7 +56,7 @@ If the request names no command and the branch has no PR yet, `create` is the sa
    - Commits: `git log origin/<base>..HEAD --oneline`
    - Diff: `git diff origin/<base>...HEAD`
 4. **Generate**:
-   - **Title**: derive from the primary commit or branch name, reusing conventional-commit `type(scope): description` when present. If [`/commit`](../commit/SKILL.md) produced the commits, the title comes for free from the leading commit's subject.
+   - **Title**: derive from the primary commit or branch name, reusing conventional-commit `type(scope): description` when present. If the branch was committed with a conventional-commit workflow like `/commit`, the title comes for free from the leading commit's subject.
    - **Body**: fill the template in [`references/templates.md`](references/templates.md). What/Why/How/Changes always. Conditional sections by the table below.
 5. **Confirm** (if `-v`): print draft title + body, ask `yes/no`.
 6. **Execute**:
@@ -112,15 +112,15 @@ Include a conditional section only when the trigger below is met. Empty placehol
    - **Performance** — hot-path allocations, N+1 queries, blocking I/O.
    - **Commit hygiene** — conventional commits? Atomic?
 3. **Size signal**: <200 lines → small, 200–500 → medium, 500+ → suggest splitting.
-4. **Output** to the terminal using the "Review Output Template" in [`references/templates.md`](references/templates.md). Tag each suggestion as `[blocker]` (must fix before merge), `[should-fix]` (address or justify), or `[nit]` (stylistic preference).
+4. **Output** to the terminal using the [Review Output Template](references/templates.md#review-output-template). Tag each suggestion as `[blocker]` (must fix before merge), `[should-fix]` (address or justify), or `[nit]` (stylistic preference).
 5. **Do not** post the review as a PR comment automatically. The user decides whether to share it.
 
-## Handoff from `/commit`
+## Handoff from a commit workflow
 
-`/pr create` assumes the branch's commits follow the conventional-commit format produced by [`/commit`](../commit/SKILL.md). When that's the case:
+`create` assumes the branch's commits follow the conventional-commit format, as produced by a commit workflow like `/commit`. When that's the case:
 
 - PR title = primary commit's `type(scope): description`.
 - `## What` bullet list mirrors the commit subjects.
 - `## How` groups commits by scope.
 
-If the branch has messy or non-conventional commits, offer to run `/commit --amend` or reword before opening the PR rather than papering over it in the body.
+If the branch has messy or non-conventional commits, offer to amend or reword them (for example with `/commit --amend`) before opening the PR rather than papering over it in the body.

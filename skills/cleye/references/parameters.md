@@ -7,7 +7,7 @@ Parameters (aka _positional arguments_) are the named slots that map onto argume
 Every non-flag value is an _argument_, available on the `_` array:
 
 ```typescript
-const argv = cli({ /* ... */ });
+const argv = cli({/* ... */});
 
 // $ my-script file-a.txt file-b.txt
 argv._; // => ["file-a.txt", "file-b.txt"] (string[])
@@ -19,10 +19,10 @@ Defining `parameters` gives those arguments names, enables validation, and impro
 
 Declare parameters as strings using these markers:
 
-| Format | Meaning |
-|---|---|
-| `<parameter name>` | Required parameter |
-| `[parameter name]` | Optional parameter |
+| Format                | Meaning                     |
+| --------------------- | --------------------------- |
+| `<parameter name>`    | Required parameter          |
+| `[parameter name]`    | Optional parameter          |
 | `<parameter name...>` | Required spread (1 or more) |
 | `[parameter name...]` | Optional spread (0 or more) |
 
@@ -33,17 +33,17 @@ Two ordering rules cleye enforces:
 
 ```typescript
 const argv = cli({
-    parameters: [
-        "<required parameter>",
-        "[optional parameter]",
-        "[optional spread...]"
-    ]
+  parameters: [
+    "<required parameter>",
+    "[optional parameter]",
+    "[optional spread...]",
+  ],
 });
 
 // $ my-script a b c d
 argv._.requiredParameter; // => "a"            (string)
 argv._.optionalParameter; // => "b"            (string | undefined)
-argv._.optionalSpread;    // => ["c", "d"]     (string[])
+argv._.optionalSpread; // => ["c", "d"]     (string[])
 ```
 
 The multi-word names in the markers (`<first name>`) are converted to camelCase keys (`argv._.firstName`).
@@ -55,7 +55,7 @@ A bare `--` ends flag parsing: everything after it is treated as plain arguments
 All end-of-flag arguments are available on `argv._['--']`:
 
 ```typescript
-const argv = cli({ /* ... */ });
+const argv = cli({/* ... */});
 
 // $ my-script --my-flag -- --not-a-flag
 argv._["--"]; // => ["--not-a-flag"]
@@ -65,16 +65,12 @@ You can also name the end-of-flags arguments by placing `--` in the `parameters`
 
 ```typescript
 const argv = cli({
-    name: "npm-run",
-    parameters: [
-        "<script>",
-        "--",
-        "[arguments...]"
-    ]
+  name: "npm-run",
+  parameters: ["<script>", "--", "[arguments...]"],
 });
 
 // $ npm-run echo -- hello world
-argv._.script;    // => "echo"            (string)
+argv._.script; // => "echo"            (string)
 argv._.arguments; // => ["hello", "world"] (string[])
 ```
 

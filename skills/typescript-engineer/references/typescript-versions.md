@@ -5,7 +5,7 @@ description: What changed in TypeScript 5.5 through 7.x that affects type-level 
 
 # TypeScript Version Notes (5.5 → 7.x)
 
-Only the changes that alter *advice*, not the full release notes. Check the project's installed version before applying anything here — `npx tsc --version`, or read `typescript` in `package.json`.
+Only the changes that alter _advice_, not the full release notes. Check the project's installed version before applying anything here — `npx tsc --version`, or read `typescript` in `package.json`.
 
 ## Contents
 
@@ -77,7 +77,7 @@ Also in 5.5: control-flow narrowing through constant indexed access, which makes
 ## Advice that aged out
 
 | Old advice | Status |
-|---|---|
+| --- | --- |
 | Always annotate `value is T` on a guard | Superseded on 5.5+. Annotate only when inference can't apply |
 | Write a `isNotNull` helper to filter nullables | Optional on 5.5+. Inline callbacks narrow on their own |
 | Prefer `enum` for a closed set of values | Unusable under `erasableSyntaxOnly` (5.8+). Use `as const` objects |

@@ -68,6 +68,7 @@ const router = makeRouter({
 ```
 
 ### Benefits
+
 - No external library needed
 - Built into TypeScript
 - Clean syntax
@@ -135,6 +136,7 @@ const router = makeRouter({
 ```
 
 ### Drawbacks
+
 - Users must remember to add `as const`
 - Types become readonly (may require type adjustments)
 - Easy to forget, leading to subtle bugs
@@ -171,6 +173,7 @@ const router = makeRouter({
 ### How F.Narrow Works
 
 `F.Narrow` recursively narrows types to their literal forms:
+
 - Strings become literal string types
 - Numbers become literal number types
 - Arrays become tuples
@@ -184,12 +187,12 @@ If you can't use ts-toolbelt and need to support pre-5.0 TypeScript:
 type Narrow<T> = T extends (...args: any[]) => any
   ? T
   : T extends []
-  ? []
-  : T extends readonly [infer First, ...infer Rest]
-  ? [Narrow<First>, ...Narrow<Rest>]
-  : T extends object
-  ? { [K in keyof T]: Narrow<T[K]> }
-  : T;
+    ? []
+    : T extends readonly [infer First, ...infer Rest]
+      ? [Narrow<First>, ...Narrow<Rest>]
+      : T extends object
+        ? { [K in keyof T]: Narrow<T[K]> }
+        : T;
 
 // Note: This is simplified and may not cover all edge cases
 ```
@@ -267,7 +270,7 @@ const post = api.call("getPost"); // Type: "Post"
 ## Comparison of Techniques
 
 | Technique | Pros | Cons |
-|-----------|------|------|
+| --- | --- | --- |
 | `const` type param | Built-in, clean, recommended | TypeScript 5.0+ only |
 | `as const` | No dependencies | Manual, readonly types |
 | `F.Narrow` | Automatic, flexible | External dependency |
@@ -282,9 +285,8 @@ const post = api.call("getPost"); // Type: "Post"
 const bad = <const TConfig>(config: TConfig) => config;
 
 // With constraint, inference works properly
-const good = <const TConfig extends Record<string, unknown>>(
-  config: TConfig
-) => config;
+const good = <const TConfig extends Record<string, unknown>>(config: TConfig) =>
+  config;
 ```
 
 ### Readonly Arrays

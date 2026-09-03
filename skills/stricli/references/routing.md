@@ -26,39 +26,39 @@ Both forms require `docs`, and usually `parameters`.
 import { buildCommand, numberParser, type CommandContext } from "@stricli/core";
 
 interface Flags {
-    readonly count?: number;
+  readonly count?: number;
 }
 
 export const echoCommand = buildCommand<Flags, [text: string], CommandContext>({
-    docs: {
-        brief: "Echo text to stdout"
+  docs: {
+    brief: "Echo text to stdout",
+  },
+  parameters: {
+    flags: {
+      count: {
+        kind: "parsed",
+        parse: numberParser,
+        brief: "Repeat count",
+        optional: true,
+        default: "1",
+      },
     },
-    parameters: {
-        flags: {
-            count: {
-                kind: "parsed",
-                parse: numberParser,
-                brief: "Repeat count",
-                optional: true,
-                default: "1"
-            }
+    positional: {
+      kind: "tuple",
+      parameters: [
+        {
+          brief: "Text to print",
+          parse: String,
+          placeholder: "text",
         },
-        positional: {
-            kind: "tuple",
-            parameters: [
-                {
-                    brief: "Text to print",
-                    parse: String,
-                    placeholder: "text"
-                }
-            ]
-        }
+      ],
     },
-    func(this, flags, text) {
-        for (let i = 0; i < (flags.count ?? 1); i += 1) {
-            this.process.stdout.write(`${text}\n`);
-        }
+  },
+  func(this, flags, text) {
+    for (let i = 0; i < (flags.count ?? 1); i += 1) {
+      this.process.stdout.write(`${text}\n`);
     }
+  },
 });
 ```
 
@@ -70,22 +70,22 @@ Use `loader` when the implementation is heavy or should be code-split.
 import { buildCommand } from "@stricli/core";
 
 export const analyzeCommand = buildCommand({
-    docs: {
-        brief: "Analyze a large project"
+  docs: {
+    brief: "Analyze a large project",
+  },
+  parameters: {
+    positional: {
+      kind: "tuple",
+      parameters: [
+        {
+          brief: "Project path",
+          parse: String,
+          placeholder: "path",
+        },
+      ],
     },
-    parameters: {
-        positional: {
-            kind: "tuple",
-            parameters: [
-                {
-                    brief: "Project path",
-                    parse: String,
-                    placeholder: "path"
-                }
-            ]
-        }
-    },
-    loader: async () => import("./impl")
+  },
+  loader: async () => import("./impl"),
 });
 ```
 
@@ -164,13 +164,13 @@ import { createCommand } from "./create";
 import { listCommand } from "./list";
 
 export const projectRoutes = buildRouteMap({
-    routes: {
-        create: createCommand,
-        list: listCommand
-    },
-    docs: {
-        brief: "Manage projects"
-    }
+  routes: {
+    create: createCommand,
+    list: listCommand,
+  },
+  docs: {
+    brief: "Manage projects",
+  },
 });
 ```
 
@@ -178,23 +178,23 @@ export const projectRoutes = buildRouteMap({
 
 ```typescript
 const taskRoutes = buildRouteMap({
-    routes: {
-        add: addTaskCommand,
-        done: doneTaskCommand
-    },
-    docs: {
-        brief: "Manage tasks"
-    }
+  routes: {
+    add: addTaskCommand,
+    done: doneTaskCommand,
+  },
+  docs: {
+    brief: "Manage tasks",
+  },
 });
 
 export const rootRoutes = buildRouteMap({
-    routes: {
-        project: projectRoutes,
-        task: taskRoutes
-    },
-    docs: {
-        brief: "Project management CLI"
-    }
+  routes: {
+    project: projectRoutes,
+    task: taskRoutes,
+  },
+  docs: {
+    brief: "Project management CLI",
+  },
 });
 ```
 
@@ -202,17 +202,17 @@ export const rootRoutes = buildRouteMap({
 
 ```typescript
 export const routes = buildRouteMap({
-    routes: {
-        remove: removeCommand,
-        list: listCommand
-    },
-    aliases: {
-        rm: "remove",
-        ls: "list"
-    },
-    docs: {
-        brief: "Manage records"
-    }
+  routes: {
+    remove: removeCommand,
+    list: listCommand,
+  },
+  aliases: {
+    rm: "remove",
+    ls: "list",
+  },
+  docs: {
+    brief: "Manage records",
+  },
 });
 ```
 
@@ -222,14 +222,14 @@ Use `defaultCommand` when navigating to a route map should run one specific comm
 
 ```typescript
 export const routes = buildRouteMap({
-    routes: {
-        old: oldCommand,
-        modern: modernCommand
-    },
-    defaultCommand: "old",
-    docs: {
-        brief: "Migration commands"
-    }
+  routes: {
+    old: oldCommand,
+    modern: modernCommand,
+  },
+  defaultCommand: "old",
+  docs: {
+    brief: "Migration commands",
+  },
 });
 ```
 
@@ -257,7 +257,7 @@ docs: {
 Current public API takes the root target first, then configuration:
 
 ```typescript
-buildApplication(rootCommandOrRouteMap, config)
+buildApplication(rootCommandOrRouteMap, config);
 ```
 
 Do not use the older object form `buildApplication({ command, name, version })` — it was replaced by the positional-first-argument API shown here.
@@ -270,10 +270,10 @@ import { version } from "../package.json";
 import { echoCommand } from "./commands/echo";
 
 export const app = buildApplication(echoCommand, {
-    name: "my-cli",
-    versionInfo: {
-        currentVersion: version
-    }
+  name: "my-cli",
+  versionInfo: {
+    currentVersion: version,
+  },
 });
 ```
 
@@ -285,13 +285,13 @@ import { version } from "../package.json";
 import { rootRoutes } from "./routes";
 
 export const app = buildApplication(rootRoutes, {
-    name: "my-cli",
-    versionInfo: {
-        currentVersion: version
-    },
-    scanner: {
-        caseStyle: "allow-kebab-for-camel"
-    }
+  name: "my-cli",
+  versionInfo: {
+    currentVersion: version,
+  },
+  scanner: {
+    caseStyle: "allow-kebab-for-camel",
+  },
 });
 ```
 
@@ -326,15 +326,15 @@ Important details:
 
 ```typescript
 interface AppContext extends CommandContext {
-    readonly process: typeof process;
-    readonly config: AppConfig;
-    readonly logger: Logger;
+  readonly process: typeof process;
+  readonly config: AppConfig;
+  readonly logger: Logger;
 }
 
 const context: AppContext = {
-    process,
-    config: loadConfig(),
-    logger: createLogger()
+  process,
+  config: loadConfig(),
+  logger: createLogger(),
 };
 
 await run(app, process.argv.slice(2), context);

@@ -35,7 +35,7 @@ cleye's API is intentionally small. If something isn't listed here or in the ref
 This skill targets the **2.x** line (current stable, `cleye@latest`), which is where `cleye/formats`, `booleanFlagNegation`, and `ignoreArgv` live. A `3.0.0-beta` exists on the `next` tag with breaking changes; if the project has installed it, verify each API against the upstream repo rather than trusting the shapes below.
 
 | Entry point | Purpose |
-|---|---|
+| --- | --- |
 | `cli(options, callback?, argvs?)` | Parse argv from a declarative options object; returns `ParsedArgv` |
 | `command(options, callback?)` | Define a subcommand; same options as `cli` plus `name`/`alias` |
 | `cleye/formats` | Tree-shakable type-function helpers (`oneOf`, `commaList`, `integer`, `float`, `range`, `url`) |
@@ -45,12 +45,12 @@ This skill targets the **2.x** line (current stable, `cleye@latest`), which is w
 
 ```typescript
 type ParsedArgv = {
-    _: string[] & Parameters;            // positional args, named in camelCase
-    flags: { [flagName: string]: InferredType };
-    unknownFlags: { [flagName: string]: (string | boolean)[] };
-    command?: string;                    // present when commands are registered
-    showVersion: () => void;
-    showHelp: (options?: HelpOptions) => void;
+  _: string[] & Parameters; // positional args, named in camelCase
+  flags: { [flagName: string]: InferredType };
+  unknownFlags: { [flagName: string]: (string | boolean)[] };
+  command?: string; // present when commands are registered
+  showVersion: () => void;
+  showHelp: (options?: HelpOptions) => void;
 };
 ```
 
@@ -70,26 +70,26 @@ npm i cleye
 import { cli } from "cleye";
 
 const argv = cli({
-    name: "greet.js",
-    parameters: [
-        "<first name>", // required
-        "[last name]"   // optional
-    ],
-    flags: {
-        time: {
-            type: String,
-            description: "Time of day to greet (morning or evening)",
-            default: "morning"
-        }
-    }
+  name: "greet.js",
+  parameters: [
+    "<first name>", // required
+    "[last name]", // optional
+  ],
+  flags: {
+    time: {
+      type: String,
+      description: "Time of day to greet (morning or evening)",
+      default: "morning",
+    },
+  },
 });
 
 const name = [argv._.firstName, argv._.lastName].filter(Boolean).join(" ");
 
 if (argv.flags.time === "morning") {
-    console.log(`Good morning ${name}!`);
+  console.log(`Good morning ${name}!`);
 } else {
-    console.log(`Good evening ${name}!`);
+  console.log(`Good evening ${name}!`);
 }
 ```
 
@@ -129,20 +129,20 @@ Define subcommands with `command()` and register them in the `commands` array of
 import { cli, command } from "cleye";
 
 const argv = cli({
-    name: "npm",
-    version: "1.2.3",
-    commands: [
-        command({
-            name: "install",
-            parameters: ["<package name>"],
-            flags: { noSave: Boolean, saveDev: Boolean }
-        })
-    ]
+  name: "npm",
+  version: "1.2.3",
+  commands: [
+    command({
+      name: "install",
+      parameters: ["<package name>"],
+      flags: { noSave: Boolean, saveDev: Boolean },
+    }),
+  ],
 });
 
 // $ npm install lodash
-argv.command;          // => "install"
-argv._.packageName;    // => "lodash"
+argv.command; // => "install"
+argv._.packageName; // => "lodash"
 ```
 
 ## Help & version
@@ -157,9 +157,11 @@ Details in [`references/help.md`](references/help.md).
 ## Recommended workflow
 
 ### Single-command CLI
+
 `cli({ name, parameters, flags })` → read `argv._` / `argv.flags`. Pass a callback as the second argument when you prefer to keep handling co-located, and return a Promise from it to `await cli(...)`.
 
 ### Multi-command CLI
+
 Define each command with `command()` (ideally one per file with its own callback), register them in `commands`, then branch on `argv.command` if you handle output centrally. See [`references/commands.md`](references/commands.md).
 
 ## Conventions worth keeping

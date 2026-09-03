@@ -33,7 +33,7 @@ Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 Stricli's public API is intentionally narrow. If something isn't listed here or in the references, assume it doesn't exist — checking the upstream repo is faster than guessing, and invented APIs compile until they don't.
 
 | Entry point | Purpose |
-|---|---|
+| --- | --- |
 | `buildCommand({ func \| loader, parameters, docs })` | Define a single command |
 | `buildRouteMap({ routes, docs, aliases?, defaultCommand? })` | Compose subcommands |
 | `buildApplication(rootCommandOrRouteMap, config)` | Wrap with app-level config (name, version, scanner, integrations) |
@@ -72,30 +72,32 @@ The generator produces the reference directory layout. For hand-written apps, fo
 import { buildCommand } from "@stricli/core";
 
 interface GreetFlags {
-    readonly shout?: boolean;
+  readonly shout?: boolean;
 }
 
 export const greetCommand = buildCommand({
-    docs: { brief: "Print a greeting" },
-    parameters: {
-        flags: {
-            shout: {
-                kind: "boolean",
-                brief: "Uppercase the greeting",
-                optional: true
-            }
-        },
-        positional: {
-            kind: "tuple",
-            parameters: [
-                { brief: "Name to greet", parse: String, placeholder: "name" }
-            ]
-        }
+  docs: { brief: "Print a greeting" },
+  parameters: {
+    flags: {
+      shout: {
+        kind: "boolean",
+        brief: "Uppercase the greeting",
+        optional: true,
+      },
     },
-    func(this, flags: GreetFlags, name: string) {
-        const message = `Hello, ${name}!`;
-        this.process.stdout.write(`${flags.shout ? message.toUpperCase() : message}\n`);
-    }
+    positional: {
+      kind: "tuple",
+      parameters: [
+        { brief: "Name to greet", parse: String, placeholder: "name" },
+      ],
+    },
+  },
+  func(this, flags: GreetFlags, name: string) {
+    const message = `Hello, ${name}!`;
+    this.process.stdout.write(
+      `${flags.shout ? message.toUpperCase() : message}\n`
+    );
+  },
 });
 ```
 
@@ -107,8 +109,8 @@ import { version } from "../package.json";
 import { greetCommand } from "./commands/greet";
 
 export const app = buildApplication(greetCommand, {
-    name: "my-cli",
-    versionInfo: { currentVersion: version }
+  name: "my-cli",
+  versionInfo: { currentVersion: version },
 });
 ```
 
@@ -132,9 +134,11 @@ Full details in [`references/parameters.md`](references/parameters.md). Parser s
 ## Recommended workflow
 
 ### Single-command CLI
+
 `buildCommand` → `buildApplication(command, config)` → `run(app, argv, context)`.
 
 ### Multi-command CLI
+
 Define commands independently, compose with `buildRouteMap`, add `aliases` / `defaultCommand` where UX benefits. See [`references/routing.md`](references/routing.md).
 
 ### Large CLIs — prefer the `loader` pattern
@@ -145,19 +149,19 @@ For commands whose implementation is expensive to import (heavy transitive deps,
 import { buildCommand, numberParser } from "@stricli/core";
 
 export const analyzeCommand = buildCommand({
-    docs: { brief: "Analyze a report" },
-    parameters: {
-        flags: {
-            depth: {
-                kind: "parsed",
-                parse: numberParser,
-                brief: "Traversal depth",
-                optional: true,
-                default: "1"
-            }
-        }
+  docs: { brief: "Analyze a report" },
+  parameters: {
+    flags: {
+      depth: {
+        kind: "parsed",
+        parse: numberParser,
+        brief: "Traversal depth",
+        optional: true,
+        default: "1",
+      },
     },
-    loader: async () => import("./impl")
+  },
+  loader: async () => import("./impl"),
 });
 ```
 

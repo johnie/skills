@@ -71,10 +71,12 @@ type Test = RemovePostSuffix<"attribute:post">; // "attribute"
 ### Split on Delimiter
 
 ```typescript
-type Split<S extends string, D extends string> =
-  S extends `${infer Head}${D}${infer Tail}`
-    ? [Head, ...Split<Tail, D>]
-    : S extends ""
+type Split<
+  S extends string,
+  D extends string,
+> = S extends `${infer Head}${D}${infer Tail}`
+  ? [Head, ...Split<Tail, D>]
+  : S extends ""
     ? []
     : [S];
 
@@ -190,8 +192,8 @@ type ExtractRouteParams<T extends string> =
   T extends `${string}:${infer Param}/${infer Rest}`
     ? Param | ExtractRouteParams<`/${Rest}`>
     : T extends `${string}:${infer Param}`
-    ? Param
-    : never;
+      ? Param
+      : never;
 
 type Params = ExtractRouteParams<"/users/:userId/posts/:postId">;
 // "userId" | "postId"
@@ -245,8 +247,8 @@ type ParseQueryString<T extends string> =
   T extends `${infer Key}=${infer Value}&${infer Rest}`
     ? { [K in Key]: Value } & ParseQueryString<Rest>
     : T extends `${infer Key}=${infer Value}`
-    ? { [K in Key]: Value }
-    : {};
+      ? { [K in Key]: Value }
+      : {};
 
 type QueryParams = ParseQueryString<"name=John&age=30&city=NYC">;
 // { name: "John" } & { age: "30" } & { city: "NYC" }
@@ -255,10 +257,9 @@ type QueryParams = ParseQueryString<"name=John&age=30&city=NYC">;
 ### Parse Dot Notation Path
 
 ```typescript
-type ParsePath<T extends string> =
-  T extends `${infer Key}.${infer Rest}`
-    ? [Key, ...ParsePath<Rest>]
-    : [T];
+type ParsePath<T extends string> = T extends `${infer Key}.${infer Rest}`
+  ? [Key, ...ParsePath<Rest>]
+  : [T];
 
 type Path = ParsePath<"user.address.city">; // ["user", "address", "city"]
 ```

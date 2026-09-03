@@ -10,22 +10,22 @@ Commands let you organize multiple "scripts" under a single CLI — like `npm in
 import { cli, command } from "cleye";
 
 const argv = cli({
-    name: "npm",
-    version: "1.2.3",
-    commands: [
-        command({
-            name: "install",
-            parameters: ["<package name>"],
-            flags: {
-                noSave: Boolean,
-                saveDev: Boolean
-            }
-        })
-    ]
+  name: "npm",
+  version: "1.2.3",
+  commands: [
+    command({
+      name: "install",
+      parameters: ["<package name>"],
+      flags: {
+        noSave: Boolean,
+        saveDev: Boolean,
+      },
+    }),
+  ],
 });
 
 // $ npm install lodash
-argv.command;       // => "install"  (string)
+argv.command; // => "install"  (string)
 argv._.packageName; // => "lodash"   (string)
 ```
 
@@ -35,15 +35,15 @@ When commands are registered, `argv.command` holds the invoked command name (or 
 
 ```typescript
 if (argv.command === "install") {
-    argv._.packageName; // typed for the install command
-    argv.flags.saveDev; // boolean | undefined
+  argv._.packageName; // typed for the install command
+  argv.flags.saveDev; // boolean | undefined
 }
 ```
 
 ## `command` options
 
 | Property | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `name` | `string` | Required name used to invoke the command. |
 | `alias` | `string \| string[]` | Alias(es) to invoke the command. Shown in an "Aliases:" help section. |
 | `parameters` | `string[]` | Positional parameters. Same format as [`parameters.md`](parameters.md). |
@@ -59,8 +59,8 @@ Commands inherit `strictFlags` and `booleanFlagNegation` from the parent `cli()`
 
 ```typescript
 command({
-    name: "build",
-    strictFlags: false // disable for this command even if the CLI enables it
+  name: "build",
+  strictFlags: false, // disable for this command even if the CLI enables it
 });
 ```
 
@@ -74,18 +74,18 @@ _install-command.ts_
 import { command } from "cleye";
 
 export const installCommand = command(
-    {
-        name: "install",
-        parameters: ["<package name>"],
-        flags: {
-            noSave: Boolean,
-            saveDev: Boolean
-        }
+  {
+    name: "install",
+    parameters: ["<package name>"],
+    flags: {
+      noSave: Boolean,
+      saveDev: Boolean,
     },
-    (argv) => {
-        // $ npm install lodash
-        argv._.packageName; // => "lodash"
-    }
+  },
+  (argv) => {
+    // $ npm install lodash
+    argv._.packageName; // => "lodash"
+  }
 );
 ```
 
@@ -96,8 +96,8 @@ import { cli } from "cleye";
 import { installCommand } from "./install-command.js";
 
 cli({
-    name: "npm",
-    commands: [installCommand]
+  name: "npm",
+  commands: [installCommand],
 });
 ```
 

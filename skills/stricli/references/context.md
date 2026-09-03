@@ -12,8 +12,8 @@ At minimum, it includes a `process` object with writable streams used by Stricli
 import type { CommandContext } from "@stricli/core";
 
 interface AppContext extends CommandContext {
-    readonly logger: Logger;
-    readonly config: AppConfig;
+  readonly logger: Logger;
+  readonly config: AppConfig;
 }
 ```
 
@@ -27,17 +27,17 @@ Commands receive runtime context through `this`.
 import { buildCommand, type CommandContext } from "@stricli/core";
 
 interface AppContext extends CommandContext {
-    readonly logger: Logger;
+  readonly logger: Logger;
 }
 
 export const statusCommand = buildCommand<{}, [], AppContext>({
-    docs: {
-        brief: "Print status information"
-    },
-    func(this) {
-        this.logger.info("Running status command");
-        this.process.stdout.write("ok\n");
-    }
+  docs: {
+    brief: "Print status information",
+  },
+  func(this) {
+    this.logger.info("Running status command");
+    this.process.stdout.write("ok\n");
+  },
 });
 ```
 
@@ -53,17 +53,17 @@ import { run } from "@stricli/core";
 import { app } from "./app";
 
 interface AppContext extends CommandContext {
-    readonly process: typeof process;
-    readonly config: AppConfig;
-    readonly logger: Logger;
-    readonly db: Database;
+  readonly process: typeof process;
+  readonly config: AppConfig;
+  readonly logger: Logger;
+  readonly db: Database;
 }
 
 const context: AppContext = {
-    process,
-    config: loadConfig(),
-    logger: createLogger(),
-    db: await connectDatabase()
+  process,
+  config: loadConfig(),
+  logger: createLogger(),
+  db: await connectDatabase(),
 };
 
 await run(app, process.argv.slice(2), context);
@@ -118,17 +118,31 @@ expect(context.stdout).toContain("hello");
 
 ```typescript
 function buildContextForTest() {
-    let out = "";
-    let err = "";
-    return {
-        process: {
-            stdout: { write: (s: string) => { out += s; return true; } },
-            stderr: { write: (s: string) => { err += s; return true; } }
+  let out = "";
+  let err = "";
+  return {
+    process: {
+      stdout: {
+        write: (s: string) => {
+          out += s;
+          return true;
         },
-        // add your custom context fields here (logger, db, etc.)
-        get stdout() { return out; },
-        get stderr() { return err; }
-    };
+      },
+      stderr: {
+        write: (s: string) => {
+          err += s;
+          return true;
+        },
+      },
+    },
+    // add your custom context fields here (logger, db, etc.)
+    get stdout() {
+      return out;
+    },
+    get stderr() {
+      return err;
+    },
+  };
 }
 ```
 
@@ -138,15 +152,15 @@ Prefer throwing errors from command implementations and letting Stricli format t
 
 ```typescript
 export const deployCommand = buildCommand({
-    docs: {
-        brief: "Deploy the current release"
-    },
-    async func(this) {
-        const ok = await deploy();
-        if (!ok) {
-            throw new Error("Deployment failed");
-        }
+  docs: {
+    brief: "Deploy the current release",
+  },
+  async func(this) {
+    const ok = await deploy();
+    if (!ok) {
+      throw new Error("Deployment failed");
     }
+  },
 });
 ```
 
@@ -154,13 +168,13 @@ If you need custom exit codes, configure them at the application level with `det
 
 ```typescript
 export const app = buildApplication(routes, {
-    name: "my-cli",
-    determineExitCode(exc) {
-        if (exc instanceof ValidationError) {
-            return 2;
-        }
-        return 1;
+  name: "my-cli",
+  determineExitCode(exc) {
+    if (exc instanceof ValidationError) {
+      return 2;
     }
+    return 1;
+  },
 });
 ```
 

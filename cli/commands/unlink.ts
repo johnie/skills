@@ -1,10 +1,14 @@
 import { buildCommand } from "@stricli/core";
+
 import type { LocalContext } from "../context";
 import { unlinkSkill } from "../shared";
 
 export const unlinkCommand = buildCommand({
   docs: {
     brief: "Remove a symlink for a skill",
+  },
+  func(this: LocalContext, _flags: Record<string, never>, name: string) {
+    unlinkSkill(name, this);
   },
   parameters: {
     flags: {},
@@ -18,8 +22,5 @@ export const unlinkCommand = buildCommand({
         },
       ],
     },
-  },
-  func(this: LocalContext, _flags: Record<string, never>, name: string) {
-    unlinkSkill(name, this);
   },
 });

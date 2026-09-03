@@ -48,7 +48,7 @@ This snapshot is captured once, before the turn starts. After you stage or commi
 
 ## Workflow
 
-1. **Safety**: abort if *Unmerged paths* above is non-empty; warn if the branch is `main`/`master`.
+1. **Safety**: abort if _Unmerged paths_ above is non-empty; warn if the branch is `main`/`master`.
 2. **Read state**: the snapshot above covers status, staged/unstaged summaries, and renames. Pull the full `git diff` / `git diff --cached` only for the files you need to reason about.
 3. **Group**: split changes into logical commits. See [`references/grouping-guide.md`](references/grouping-guide.md) for the decision tree, scope derivation, and type disambiguation.
 4. **Verify** (if `-v`/`--dry-run`/`--amend`): show plan. `--dry-run` exits here.
@@ -59,7 +59,7 @@ Only `git push origin HEAD` is pre-approved. Any other push form — a different
 
 ## Staging model
 
-Grouping happens over *everything* in the working tree — already-staged, unstaged-tracked, and untracked:
+Grouping happens over _everything_ in the working tree — already-staged, unstaged-tracked, and untracked:
 
 - **Already staged**: respect the user's intent. Commit staged files first (their own group) unless they clearly belong with something unstaged.
 - **Unstaged tracked**: auto-stage into the group they belong to.
@@ -101,7 +101,7 @@ test(cart): add edge cases for discount calculation
 Hooks (ultracite, prettier, eslint, etc.) run on each `git commit`.
 
 - **Hook modifies files, commit succeeds**: the modifications are already included in the commit. Nothing to do.
-- **Hook modifies files, commit fails** (common with formatters that exit non-zero when they touch files): the commit did *not* happen. Re-stage the affected files (`git add <paths>`) and commit again. Do NOT `--amend` — there's no prior commit to amend, and amending silently moves changes into the wrong group.
+- **Hook modifies files, commit fails** (common with formatters that exit non-zero when they touch files): the commit did _not_ happen. Re-stage the affected files (`git add <paths>`) and commit again. Do NOT `--amend` — there's no prior commit to amend, and amending silently moves changes into the wrong group.
 - **Hook rejects unrelated to formatting**: fix the underlying issue, don't bypass with `--no-verify`.
 
 ## Edge cases
@@ -109,7 +109,7 @@ Hooks (ultracite, prettier, eslint, etc.) run on each `git commit`.
 Short list below. Tricky ones with full handling rules live in [`references/grouping-guide.md`](references/grouping-guide.md) and [`references/examples.md`](references/examples.md).
 
 | Situation | Action |
-|---|---|
+| --- | --- |
 | Conflicts in working tree | Abort; ask user to resolve first. |
 | On `main`/`master` | Warn, require confirmation. |
 | File renames | `git diff --stat` detects them; group rename with related import-path updates. |

@@ -40,29 +40,29 @@ Use `kind: "parsed"` when a flag should parse string input into a custom type.
 import { buildCommand, numberParser } from "@stricli/core";
 
 interface Flags {
-    readonly port?: number;
+  readonly port?: number;
 }
 
 export const serveCommand = buildCommand({
-    docs: {
-        brief: "Start the server"
+  docs: {
+    brief: "Start the server",
+  },
+  parameters: {
+    flags: {
+      port: {
+        kind: "parsed",
+        parse: numberParser,
+        brief: "Port to bind",
+        placeholder: "port",
+        optional: true,
+        default: "3000",
+      },
     },
-    parameters: {
-        flags: {
-            port: {
-                kind: "parsed",
-                parse: numberParser,
-                brief: "Port to bind",
-                placeholder: "port",
-                optional: true,
-                default: "3000"
-            }
-        }
-    },
-    func(this, flags: Flags) {
-        const port = flags.port ?? 3000;
-        this.process.stdout.write(`Listening on ${port}\n`);
-    }
+  },
+  func(this, flags: Flags) {
+    const port = flags.port ?? 3000;
+    this.process.stdout.write(`Listening on ${port}\n`);
+  },
 });
 ```
 
@@ -379,10 +379,10 @@ Use camelCase in TypeScript and enable app-level scanning when you want users to
 
 ```typescript
 const app = buildApplication(routes, {
-    name: "my-cli",
-    scanner: {
-        caseStyle: "allow-kebab-for-camel"
-    }
+  name: "my-cli",
+  scanner: {
+    caseStyle: "allow-kebab-for-camel",
+  },
 });
 ```
 

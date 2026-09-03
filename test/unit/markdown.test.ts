@@ -1,190 +1,132 @@
-import type { Code, Heading, Root } from "mdast";
+import type { Code, Heading, Nodes, Root } from "mdast";
 import { remark } from "remark";
 import remarkFrontmatter from "remark-frontmatter";
 import { describe, expect, test } from "vitest";
+
 import { discoverSkills, readSkillFile } from "../helpers/skills";
 
-/** Anthropic's documented guidance: keep SKILL.md under 500 lines. */
-const RECOMMENDED_MAX_LINES = 500;
-/** Past this, the body is a liability rather than a guide. */
 const HARD_MAX_LINES = 800;
 
 /**
  * Parse markdown content into an AST
  */
-function parseMarkdown(content: string): Root {
+const parseMarkdown = (content: string): Root => {
   const processor = remark().use(remarkFrontmatter, ["yaml"]);
   return processor.parse(content);
-}
+};
 
 /**
- * Check if frontmatter is the first element in the AST
+ * Check if frontmatter is the first element in the AST.
  */
-function hasFrontmatterFirst(ast: Root): boolean {
-  return ast.children.length > 0 && ast.children[0]?.type === "yaml";
-}
+const hasFrontmatterFirst = (ast: Root): boolean =>
+  ast.children[0]?.type === "yaml";
 
 /**
- * Extract all headings from the AST
+ * Extract all headings from the AST.
  */
-function extractHeadings(ast: Root): Heading[] {
+const extractHeadings = (ast: Root): Heading[] => {
   const headings: Heading[] = [];
-  function visit(node: any) {
+  const visit = (node: Nodes): void => {
     if (node.type === "heading") {
       headings.push(node);
     }
-    if (node.children) {
+    if ("children" in node) {
       for (const child of node.children) {
         visit(child);
       }
     }
-  }
+  };
   visit(ast);
   return headings;
+};
+
+interface ValidationResult {
+  error?: string;
+  valid: boolean;
 }
 
 /**
- * Check if heading hierarchy is valid (no skipped levels)
+ * Check if heading hierarchy is valid (no skipped levels).
  */
-function hasValidHeadingHierarchy(headings: Heading[]): {
-  valid: boolean;
-  error?: string;
-} {
-  if (headings.length === 0) {
-    return { valid: true };
-  }
-
-  let prevLevel = 0;
-  for (let i = 0; i < headings.length; i++) {
-    const heading = headings[i];
-    if (!heading) {
-      continue;
-    }
+const hasValidHeadingHierarchy = (headings: Heading[]): ValidationResult => {
+  let previousLevel = 0;
+  for (const [index, heading] of headings.entries()) {
     const level = heading.depth;
 
-    if (i === 0 && level !== 1) {
+    if (index === 0 && level !== 1) {
       return {
-        valid: false,
         error: `First heading should be level 1, got level ${level}`,
-      };
-    }
-
-    if (level > prevLevel + 1) {
-      return {
         valid: false,
-        error: `Heading level jumped from ${prevLevel} to ${level} (skipped level ${prevLevel + 1})`,
       };
     }
 
-    prevLevel = level;
+    if (level > previousLevel + 1) {
+      return {
+        error: `Heading level jumped from ${previousLevel} to ${level} (skipped level ${previousLevel + 1})`,
+        valid: false,
+      };
+    }
+
+    previousLevel = level;
   }
 
   return { valid: true };
-}
+};
 
 /**
- * Extract all code blocks from the AST
+ * Extract all code blocks from the AST.
  */
-function extractCodeBlocks(ast: Root): Code[] {
+const extractCodeBlocks = (ast: Root): Code[] => {
   const codeBlocks: Code[] = [];
-  function visit(node: any) {
+  const visit = (node: Nodes): void => {
     if (node.type === "code") {
       codeBlocks.push(node);
     }
-    if (node.children) {
+    if ("children" in node) {
       for (const child of node.children) {
         visit(child);
       }
     }
-  }
+  };
   visit(ast);
   return codeBlocks;
-}
+};
 
 /**
- * Check if all code blocks have language specifiers
+ * Check if all code blocks have language specifiers.
  */
-function allCodeBlocksHaveLang(codeBlocks: Code[]): {
-  valid: boolean;
-  error?: string;
-} {
+const allCodeBlocksHaveLang = (codeBlocks: Code[]): ValidationResult => {
   for (const block of codeBlocks) {
     if (!block.lang || block.lang.trim() === "") {
       return {
-        valid: false,
         error: "Code block without language specifier found",
+        valid: false,
       };
     }
   }
   return { valid: true };
-}
+};
 
 describe("Markdown Structure Validation", () => {
   const skills = discoverSkills();
 
-  if (skills.length === 0) {
-    test("at least one skill exists", () => {
-      expect(skills.length).toBeGreaterThan(0);
-    });
-  }
+  test("discovers at least one skill", () => {
+    expect(skills.length).toBeGreaterThan(0);
+  });
 
-  for (const skillName of skills) {
-    describe(`skill: ${skillName}`, () => {
-      let ast: Root;
+  test.each(skills)("%s has valid SKILL.md structure", async (skillName) => {
+    const content = await readSkillFile(skillName);
+    const ast = parseMarkdown(content);
+    expect(ast.type).toBe("root");
+    expect(hasFrontmatterFirst(ast)).toBeTruthy();
 
-      test("can parse markdown", async () => {
-        const content = await readSkillFile(skillName);
-        ast = parseMarkdown(content);
-        expect(ast).toBeDefined();
-        expect(ast.type).toBe("root");
-      });
+    const headingResult = hasValidHeadingHierarchy(extractHeadings(ast));
+    expect(headingResult).toStrictEqual({ valid: true });
 
-      test("has frontmatter as first element", async () => {
-        if (!ast) {
-          const content = await readSkillFile(skillName);
-          ast = parseMarkdown(content);
-        }
-        expect(hasFrontmatterFirst(ast)).toBe(true);
-      });
+    const codeBlockResult = allCodeBlocksHaveLang(extractCodeBlocks(ast));
+    expect(codeBlockResult).toStrictEqual({ valid: true });
 
-      test("has valid heading hierarchy", async () => {
-        if (!ast) {
-          const content = await readSkillFile(skillName);
-          ast = parseMarkdown(content);
-        }
-        const headings = extractHeadings(ast);
-        const result = hasValidHeadingHierarchy(headings);
-        expect(result.valid).toBe(true);
-        if (!result.valid) {
-          throw new Error(result.error);
-        }
-      });
-
-      test("all code blocks have language specifiers", async () => {
-        if (!ast) {
-          const content = await readSkillFile(skillName);
-          ast = parseMarkdown(content);
-        }
-        const codeBlocks = extractCodeBlocks(ast);
-        const result = allCodeBlocksHaveLang(codeBlocks);
-        expect(result.valid).toBe(true);
-        if (!result.valid) {
-          throw new Error(result.error);
-        }
-      });
-
-      test("SKILL.md line count is reasonable", async () => {
-        const content = await readSkillFile(skillName);
-        const lineCount = content.split("\n").length;
-        if (lineCount > RECOMMENDED_MAX_LINES) {
-          console.warn(
-            `[${skillName}] SKILL.md is ${lineCount} lines (recommended: <${RECOMMENDED_MAX_LINES}). Consider moving content to references/.`
-          );
-        }
-        // A skill body stays in context for the rest of the session, so an
-        // oversized SKILL.md is a recurring token cost on every turn.
-        expect(lineCount).toBeLessThanOrEqual(HARD_MAX_LINES);
-      });
-    });
-  }
+    const lineCount = content.split("\n").length;
+    expect(lineCount).toBeLessThanOrEqual(HARD_MAX_LINES);
+  });
 });

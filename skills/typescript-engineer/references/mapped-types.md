@@ -229,9 +229,7 @@ Apply transformations recursively:
 
 ```typescript
 type DeepReadonly<T> = {
-  readonly [K in keyof T]: T[K] extends object
-    ? DeepReadonly<T[K]>
-    : T[K];
+  readonly [K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K];
 };
 
 interface Nested {
@@ -335,8 +333,8 @@ type Merge<A, B> = {
   [K in keyof A | keyof B]: K extends keyof B
     ? B[K]
     : K extends keyof A
-    ? A[K]
-    : never;
+      ? A[K]
+      : never;
 };
 ```
 

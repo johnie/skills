@@ -55,7 +55,7 @@ Processes one link, writes one file. Updates `links.md` only if it exists and co
 
 ```markdown
 - [ ] https://share.sparkmailapp.com/link1
-- [x] https://share.sparkmailapp.com/link2   # already processed — skipped
+- [x] https://share.sparkmailapp.com/link2 # already processed — skipped
 ```
 
 ## Workflow
@@ -66,12 +66,12 @@ For each URL:
 
 ### 1. Fetch the content
 
-Prefer a browser-automation MCP if one is connected — Playwright MCP and Chrome DevTools MCP are the common ones. Don't hard-code a server name: check what's actually available, since the tool names differ per server and the once-standard Puppeteer reference server is no longer published. Otherwise fall back to `WebFetch` with the prompt: *"Extract all meeting content including participants, discussion points, action items, decisions, and next steps."*
+Prefer a browser-automation MCP if one is connected — Playwright MCP and Chrome DevTools MCP are the common ones. Don't hard-code a server name: check what's actually available, since the tool names differ per server and the once-standard Puppeteer reference server is no longer published. Otherwise fall back to `WebFetch` with the prompt: _"Extract all meeting content including participants, discussion points, action items, decisions, and next steps."_
 
 Choice guide:
 
 | Signal | Use |
-|---|---|
+| --- | --- |
 | Transcript renders via client-side JS, embedded video, or attachments | Browser-automation MCP (waits for rendered DOM) |
 | Plain HTML transcript, no dynamic widgets | `WebFetch` (faster, no browser) |
 | Fetch returns a near-empty body via `WebFetch` | Retry with a browser MCP — likely JS-rendered |

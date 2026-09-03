@@ -25,6 +25,7 @@ Use one primary type tag per meeting:
 Add multiple topic tags as relevant:
 
 **Functional Areas:**
+
 - `engineering` - Technical discussions, architecture, infrastructure
 - `design` - UX/UI design, user research
 - `product` - Product strategy, roadmap, features
@@ -34,6 +35,7 @@ Add multiple topic tags as relevant:
 - `operations` - Business operations, processes
 
 **Common Topics:**
+
 - `strategy` - Strategic planning, vision, direction
 - `hiring` - Recruitment, hiring plans, interviewing
 - `budget` - Financial planning, budget allocation
@@ -60,6 +62,7 @@ Add cadence tags for recurring meetings:
 ## Tagging Examples
 
 ### Example 1: Sprint Planning
+
 ```yaml
 tags:
   - planning
@@ -68,6 +71,7 @@ tags:
 ```
 
 ### Example 2: Quarterly All-Hands
+
 ```yaml
 tags:
   - all-hands
@@ -76,6 +80,7 @@ tags:
 ```
 
 ### Example 3: Post-Incident Review
+
 ```yaml
 tags:
   - retrospective
@@ -103,6 +108,7 @@ For organization-specific topics not covered above, create custom tags following
 - Document new tags if they'll be reused
 
 Examples of good custom tags:
+
 - `mobile-app` - For mobile-specific discussions
 - `api-design` - For API-related meetings
 - `vendor-management` - For vendor/contractor discussions

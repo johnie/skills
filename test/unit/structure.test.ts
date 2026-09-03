@@ -1,30 +1,34 @@
 import { accessSync, constants, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import path from "node:path";
+
 import { describe, expect, test } from "vitest";
+
 import { discoverSkills, fileExists, getSkillPath } from "../helpers/skills";
 
-const ALLOWED_SUBDIRS = ["references", "scripts", "assets", "evals"];
-const DISALLOWED_FILES = [
+const ALLOWED_SUBDIRS = new Set(["references", "scripts", "assets", "evals"]);
+const DISALLOWED_FILES = new Set([
   "README.md",
   "CHANGELOG.md",
   "LICENSE",
   "package.json",
-];
+]);
+
+interface DirectoryEntries {
+  dirs: string[];
+  files: string[];
+}
 
 /**
- * Get all entries in a directory
+ * Get all entries in a directory.
  */
-function getDirectoryEntries(dirPath: string): {
-  files: string[];
-  dirs: string[];
-} {
+const getDirectoryEntries = (dirPath: string): DirectoryEntries => {
   try {
     const entries = readdirSync(dirPath);
-    const files: string[] = [];
     const dirs: string[] = [];
+    const files: string[] = [];
 
     for (const entry of entries) {
-      const fullPath = join(dirPath, entry);
+      const fullPath = path.join(dirPath, entry);
       const stats = statSync(fullPath);
       if (stats.isDirectory()) {
         dirs.push(entry);
@@ -33,82 +37,52 @@ function getDirectoryEntries(dirPath: string): {
       }
     }
 
-    return { files, dirs };
+    return { dirs, files };
   } catch {
-    return { files: [], dirs: [] };
+    return { dirs: [], files: [] };
   }
-}
+};
 
 describe("Directory Structure Validation", () => {
   const skills = discoverSkills();
 
-  if (skills.length === 0) {
-    test("at least one skill exists", () => {
-      expect(skills.length).toBeGreaterThan(0);
+  test("discovers at least one skill", () => {
+    expect(skills.length).toBeGreaterThan(0);
+  });
+
+  test.each(skills)("%s matches the skill package contract", (skillName) => {
+    const skillPath = getSkillPath(skillName);
+    const skillFile = path.join(skillPath, "SKILL.md");
+    expect(fileExists(skillFile)).toBeTruthy();
+
+    const { dirs, files } = getDirectoryEntries(skillPath);
+    const disallowedDirs = dirs.filter((dir) => !ALLOWED_SUBDIRS.has(dir));
+    expect(
+      disallowedDirs,
+      `Disallowed directories found: ${disallowedDirs.join(", ")}. Only ${[...ALLOWED_SUBDIRS].join(", ")} are allowed.`
+    ).toStrictEqual([]);
+
+    const extraneousFiles = files.filter(
+      (file) => file !== "SKILL.md" && DISALLOWED_FILES.has(file)
+    );
+    expect(
+      extraneousFiles,
+      `Extraneous files found: ${extraneousFiles.join(", ")}. These files should not be in the skill directory.`
+    ).toStrictEqual([]);
+
+    const scriptsPath = path.join(skillPath, "scripts");
+    const { files: scriptFiles } = getDirectoryEntries(scriptsPath);
+    const nonExecutable = scriptFiles.filter((file) => {
+      try {
+        accessSync(path.join(scriptsPath, file), constants.X_OK);
+        return false;
+      } catch {
+        return true;
+      }
     });
-  }
-
-  for (const skillName of skills) {
-    describe(`skill: ${skillName}`, () => {
-      const skillPath = getSkillPath(skillName);
-
-      test("SKILL.md exists", () => {
-        const skillFile = join(skillPath, "SKILL.md");
-        expect(fileExists(skillFile)).toBe(true);
-      });
-
-      test("only contains allowed subdirectories", () => {
-        const { dirs } = getDirectoryEntries(skillPath);
-        const disallowedDirs = dirs.filter(
-          (dir) => !ALLOWED_SUBDIRS.includes(dir)
-        );
-
-        expect(disallowedDirs).toEqual([]);
-        if (disallowedDirs.length > 0) {
-          throw new Error(
-            `Disallowed directories found: ${disallowedDirs.join(", ")}. Only ${ALLOWED_SUBDIRS.join(", ")} are allowed.`
-          );
-        }
-      });
-
-      test("all scripts are executable", () => {
-        const scriptsPath = join(skillPath, "scripts");
-        const { files: scriptFiles } = getDirectoryEntries(scriptsPath);
-        if (scriptFiles.length === 0) {
-          return;
-        }
-
-        const nonExecutable: string[] = [];
-        for (const file of scriptFiles) {
-          const fullPath = join(scriptsPath, file);
-          try {
-            accessSync(fullPath, constants.X_OK);
-          } catch {
-            nonExecutable.push(file);
-          }
-        }
-
-        expect(nonExecutable).toEqual([]);
-        if (nonExecutable.length > 0) {
-          throw new Error(
-            `Scripts missing executable permission: ${nonExecutable.join(", ")}`
-          );
-        }
-      });
-
-      test("does not contain extraneous files", () => {
-        const { files } = getDirectoryEntries(skillPath);
-        const extraneousFiles = files.filter(
-          (file) => file !== "SKILL.md" && DISALLOWED_FILES.includes(file)
-        );
-
-        expect(extraneousFiles).toEqual([]);
-        if (extraneousFiles.length > 0) {
-          throw new Error(
-            `Extraneous files found: ${extraneousFiles.join(", ")}. These files should not be in the skill directory.`
-          );
-        }
-      });
-    });
-  }
+    expect(
+      nonExecutable,
+      `Scripts missing executable permission: ${nonExecutable.join(", ")}`
+    ).toStrictEqual([]);
+  });
 });

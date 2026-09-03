@@ -1,4 +1,5 @@
 import { buildCommand } from "@stricli/core";
+
 import type { LocalContext } from "../context";
 import { getAvailableSkills, getIcon, getSymlinkStatus } from "../shared";
 
@@ -6,7 +7,6 @@ export const listCommand = buildCommand({
   docs: {
     brief: "List all skills with their link status",
   },
-  parameters: {},
   func(this: LocalContext) {
     const skills = getAvailableSkills(this);
 
@@ -22,4 +22,5 @@ export const listCommand = buildCommand({
 
     this.process.stdout.write("\n");
   },
+  parameters: {},
 });

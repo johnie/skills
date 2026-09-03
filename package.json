@@ -1,27 +1,7 @@
 {
-  "dependencies": {
-    "@stricli/core": "^1.2.7",
-    "kleur": "^4.1.5",
-    "prompts": "^2.4.2"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.5.0",
-    "@types/node": "^25.9.3",
-    "@types/prompts": "^2.4.9",
-    "lefthook": "^2.1.9",
-    "remark": "^15.0.1",
-    "remark-frontmatter": "^5.0.0",
-    "remark-lint": "^10.0.1",
-    "tsx": "^4.22.4",
-    "ultracite": "7.8.3",
-    "unified": "^11.0.5",
-    "vitest": "^4.1.9",
-    "yaml": "^2.9.0"
-  },
   "name": "@johnie/skills",
-  "peerDependencies": {
-    "typescript": "^7"
-  },
+  "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "skills": "tsx cli/index.ts",
     "test": "vitest run",
@@ -31,7 +11,28 @@
     "check": "ultracite check",
     "fix": "ultracite fix"
   },
-  "type": "module",
-  "version": "0.0.1",
-  "packageManager": "pnpm@11.21.0"
+  "dependencies": {
+    "@stricli/core": "^1.3.0",
+    "kleur": "^4.1.5",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.1",
+    "@types/prompts": "^2.4.9",
+    "lefthook": "^2.1.12",
+    "oxfmt": "^0.66.0",
+    "oxlint": "^1.81.0",
+    "remark": "^15.0.1",
+    "remark-frontmatter": "^5.0.0",
+    "remark-lint": "^10.0.1",
+    "tsx": "^4.23.13",
+    "ultracite": "7.10.7",
+    "unified": "^11.0.5",
+    "vitest": "^5.0.0",
+    "yaml": "^2.9.0"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  },
+  "packageManager": "pnpm@11.25.0"
 }

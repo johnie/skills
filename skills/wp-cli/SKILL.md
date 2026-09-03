@@ -94,7 +94,7 @@ These are irreversible without a backup. Confirm with the user before running:
 Full flag docs and gotchas are in [`references/commands.md`](references/commands.md). Categories:
 
 | Category | Prefix | Typical use |
-|---|---|---|
+| --- | --- | --- |
 | Database | `wp db` | export, import, query, optimize, search-replace |
 | Core | `wp core` | install, update, verify-checksums, version |
 | Plugins | `wp plugin` | list, install, activate, update, delete |
@@ -113,7 +113,7 @@ Full flag docs and gotchas are in [`references/commands.md`](references/commands
 Full step-by-step workflows live in `references/`, split by task — load only the one the user is doing end-to-end:
 
 | Workflow | File |
-|---|---|
+| --- | --- |
 | Site migration (local → prod) + search-replace | [`references/examples-migration.md`](references/examples-migration.md) |
 | Plugin updates with rollback, debugging, DB maintenance | [`references/examples-maintenance.md`](references/examples-maintenance.md) |
 | User audit, cleanup, safe password rotation | [`references/examples-users.md`](references/examples-users.md) |
@@ -151,7 +151,7 @@ Aliases beat ad-hoc SSH because they compose with every wp-cli flag (`wp @prod -
 ## Common errors
 
 | Error | Cause | Fix |
-|---|---|---|
+| --- | --- | --- |
 | `The site you have requested is not installed` | Not at WordPress root / `wp-config.php` missing | `cd` to root or `--path=/path/to/wordpress` |
 | `MySQL connection failed` | Bad credentials or MySQL down | Check `wp-config.php`, confirm MySQL is running |
 | `Error: Can't select database` | DB doesn't exist | `wp db create` |

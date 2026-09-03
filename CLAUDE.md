@@ -53,18 +53,21 @@ allowed-tools:
 ---
 
 # Skill Instructions
+
 ...
 ```
 
 `allowed-tools` **pre-approves** tools for the invoking turn — it does not restrict them. A bare `Bash` entry therefore lets every shell command run without a prompt, and the test suite rejects it. Scope rules per subcommand: `Bash(git commit *)`, not `Bash(git *)`.
 
 **How skills work:**
+
 1. User invokes via `/skill-name`, or Claude loads it automatically when the `description` matches
 2. Claude Code loads `SKILL.md` from `~/.claude/skills/skill-name/`
 3. The rendered content enters the conversation and **stays there for the rest of the session**
 4. Skills can reference files in their own `references/` directory
 
 **When creating/modifying skills:**
+
 - Keep SKILL.md focused on instructions, workflows, and decision trees; under 500 lines
 - Every line of the body is a recurring token cost — don't restate the `description` in a "When to use" section. Trigger phrases belong in `when_to_use`
 - Use `references/` for templates, examples, or large reference material
@@ -77,6 +80,7 @@ allowed-tools:
 Use pnpm exclusively - not Bun, Node.js directly, npm, yarn, or vite.
 
 **Prefer Node.js standard APIs:**
+
 - Use built-in standard modules like `node:fs`, `node:path`, `node:child_process`, etc.
 - Use `tsx` for running TypeScript files directly without a manual compilation step.
 

@@ -13,17 +13,15 @@ export interface Colors {
   warn: (text: string) => string;
 }
 
-export function createColors(): Colors {
-  return {
-    success: (text: string) => kleur.green(text),
-    error: (text: string) => kleur.red(text),
-    warn: (text: string) => kleur.yellow(text),
-    info: (text: string) => kleur.cyan(text),
-    dim: (text: string) => kleur.dim(text),
-    icons: {
-      linked: kleur.green("✓"),
-      unlinked: kleur.dim("○"),
-      broken: kleur.yellow("⚠"),
-    },
-  };
-}
+export const createColors = (): Colors => ({
+  dim: (text: string) => kleur.dim(text),
+  error: (text: string) => kleur.red(text),
+  icons: {
+    broken: kleur.yellow("⚠"),
+    linked: kleur.green("✓"),
+    unlinked: kleur.dim("○"),
+  },
+  info: (text: string) => kleur.cyan(text),
+  success: (text: string) => kleur.green(text),
+  warn: (text: string) => kleur.yellow(text),
+});

@@ -74,9 +74,7 @@ wp user list --format=json | jq -r '.[] | select(.user_email | contains("@admin"
 
 ### Rotating administrator passwords — do it safely
 
-Prefer `wp user reset-password`. It generates a strong password server-side and emails it to the
-user, so the secret never touches your shell — unlike piping `openssl rand` into `--user_pass=...`,
-which leaks the password into shell history and process listings (see the skill's antipatterns).
+Prefer `wp user reset-password`. It generates a strong password server-side and emails it to the user, so the secret never touches your shell — unlike piping `openssl rand` into `--user_pass=...`, which leaks the password into shell history and process listings (see the skill's antipatterns).
 
 ```bash
 # Recommended: reset every administrator's password and email them the new one
@@ -88,5 +86,4 @@ wp user list --role=administrator --field=ID | \
   xargs -I {} wp user reset-password {} --skip-email
 ```
 
-> Resetting *all* administrator passwords at once can lock out every admin if email delivery
-> fails. On production, reset one account, confirm the new password works, then proceed.
+> Resetting _all_ administrator passwords at once can lock out every admin if email delivery fails. On production, reset one account, confirm the new password works, then proceed.

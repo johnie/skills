@@ -24,7 +24,7 @@ chore: enable strict mode in tsconfig and biome
 
 ---
 
-## Medium: 2 Features (5 files, 3 commits)
+## Medium: 2 Features (5 files, 4 commits)
 
 **`git status` output:**
 
@@ -48,7 +48,7 @@ chore: enable strict mode in tsconfig and biome
 
 - Password reset (auth.ts) and rate limiting (rate-limit.ts) are unrelated features
 - `ioredis` was added for the rate limiter -> groups with rate-limit
-- Tests split by feature
+- Tests split by feature so each feature + its tests can be reverted as a pair
 
 **Result:**
 
@@ -56,21 +56,17 @@ chore: enable strict mode in tsconfig and biome
 1. feat(auth): add password reset endpoint
    - src/routes/auth.ts
 
-2. feat(middleware): add sliding window rate limiting
+2. test(auth): add password reset tests
+   - src/routes/auth.test.ts
+
+3. feat(middleware): add sliding window rate limiting
    - src/middleware/rate-limit.ts, package.json
 
-3. test: add tests for password reset and rate limiting
-   - src/routes/auth.test.ts, src/middleware/rate-limit.test.ts
-```
-
-Alternative (also acceptable - tests per feature):
-
-```text
-1. feat(auth): add password reset endpoint
-2. test(auth): add password reset tests
-3. feat(middleware): add sliding window rate limiting
 4. test(middleware): add sliding window rate limit tests
+   - src/middleware/rate-limit.test.ts
 ```
+
+Combining both test files into one `test:` commit is acceptable only when the tests share fixtures or helpers that would leave one commit broken without the other. Here they don't, so a combined test commit would tie the two features' revert paths together.
 
 ---
 
@@ -142,33 +138,6 @@ Alternative (also acceptable - tests per feature):
 ---
 
 ## Edge Cases
-
-### Rename Detection
-
-**`git diff --stat` shows:**
-
-```text
- src/utils/{stringHelpers.ts => string-helpers.ts} | 0
- src/routes/api.ts                                  | 2 +-
-```
-
-The route file updated its import path. These go together:
-
-```text
-refactor(utils): rename stringHelpers to string-helpers
-  - src/utils/string-helpers.ts, src/routes/api.ts
-```
-
-### Deletion + Replacement
-
-**Changes:** Delete `src/lib/logger.ts`, add `src/lib/logger/index.ts` + `src/lib/logger/transports.ts`
-
-These are one logical change:
-
-```text
-refactor(logger): split logger into module with transports
-  - src/lib/logger.ts (deleted), src/lib/logger/index.ts, src/lib/logger/transports.ts
-```
 
 ### Test Files Alongside Feature Files
 

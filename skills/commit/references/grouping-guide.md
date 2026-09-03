@@ -14,13 +14,26 @@ Start: Look at all changed files
   |
   +--> Multiple files changed?
         |
-        +--> Group by: feature/scope/type (in priority order)
+        +--> Group by: feature/scope/type/nature (in priority order, see below)
         |
         +--> For each group, ask:
               - Do these files change for the same reason?
               - Would reverting one file but not the others make sense?
               - If yes to reverting separately --> split into separate commits
 ```
+
+## Grouping Axes
+
+Apply these in order; a later axis only splits a group that the earlier ones left together.
+
+| Axis | Question | Example split |
+| --- | --- | --- |
+| Feature | Does this serve the same user-facing goal? | Password reset vs. rate limiting |
+| Scope | Does this touch the same module or area? | `auth` vs. `middleware` |
+| Type | Is this the same kind of change? | `feat` vs. `test` vs. `docs` |
+| Nature | Does this change behavior, or only structure? | A bug fix vs. a rename inside the same file |
+
+**Nature** separates behavioral changes (a fix, a new code path, a changed default) from non-behavioral ones (rename, extract, reorder, reformat) that landed in the same feature, scope, and type. The reason this axis exists: reverting the non-behavioral half should never change what the program does, so the two halves must be revertable independently. When a refactor and a fix share a file, stage the hunks separately (a trimmed patch via `git apply --cached`) rather than committing them together; if the hunks are inseparable, commit as `fix` and say in the body that the refactor rode along.
 
 ## Scope Determination
 
@@ -123,15 +136,3 @@ New (untracked) files need special handling:
 | New standalone file (e.g., new config, new utility) | Own commit |
 | New test file for existing modified code | Separate `test()` commit |
 | New file + its companion test file | Two commits: `feat()` + `test()` |
-
-## File Rename / Move Detection
-
-- `git diff` shows renames as delete + add. Check `git diff --stat` for rename detection (shows `old -> new`).
-- A rename with no content change --> `refactor(<scope>): rename/move <description>`
-- A rename with content changes --> decide if the rename and content change are one logical unit or should be split
-
-## Binary Files
-
-- Binary files (images, fonts, compiled assets) group with the feature that uses them
-- Commit message should mention what the binary is for: `feat(ui): add logo assets for header`
-- Don't try to describe binary diffs in commit body

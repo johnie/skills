@@ -32,7 +32,7 @@ Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 cleye's API is intentionally small. If something isn't listed here or in the references, assume it doesn't exist — checking the upstream repo is faster than guessing, and invented APIs compile until they don't.
 
-This skill targets the **2.x** line (current stable, `cleye@latest`), which is where `cleye/formats`, `booleanFlagNegation`, and `ignoreArgv` live. A `3.0.0-beta` exists on the `next` tag with breaking changes; if the project has installed it, verify each API against the upstream repo rather than trusting the shapes below.
+This skill targets the **2.x** line (`cleye@latest`). Check the installed version before reaching for newer options: `cleye/formats` needs ≥2.6 and `booleanFlagNegation` ≥2.3. A `3.0.0-beta.1` is published on the `beta` dist-tag (`npm i cleye@beta`) with breaking changes — if the project is on the 3.x beta, read [`references/v3-migration.md`](references/v3-migration.md) before trusting the shapes below.
 
 | Entry point | Purpose |
 | --- | --- |
@@ -56,7 +56,7 @@ type ParsedArgv = {
 
 ## Installation
 
-Upstream docs are npm-first. Stay agnostic to the user's package manager — pnpm and bun work equally well (this repo uses pnpm).
+Upstream docs are npm-first. Stay agnostic to the user's package manager — pnpm and bun work equally well.
 
 ```bash
 npm i cleye
@@ -130,29 +130,20 @@ import { cli, command } from "cleye";
 
 const argv = cli({
   name: "npm",
-  version: "1.2.3",
   commands: [
     command({
       name: "install",
       parameters: ["<package name>"],
-      flags: { noSave: Boolean, saveDev: Boolean },
+      flags: { saveDev: Boolean },
     }),
   ],
 });
-
-// $ npm install lodash
-argv.command; // => "install"
-argv._.packageName; // => "lodash"
+// $ npm install lodash  →  argv.command === "install", argv._.packageName === "lodash"
 ```
 
 ## Help & version
 
-- `--help` / `-h` is handled by default; set `help: false` to disable (you can still call `argv.showHelp()`).
-- `--version` is handled only when `version` is set. To show a version in help without auto-handling the flag, pass `help.version`.
-- Customize the document with `help.render(nodes, renderers) => string`, and supply `usage` / `examples` / `description`.
-- Tip: import `name`, `version`, and `description` from `package.json` to avoid drift.
-
-Details in [`references/help.md`](references/help.md).
+`--help`/`-h` is automatic (disable with `help: false`, print manually with `argv.showHelp()`), `--version` is automatic only when `version` is set, and `help.render(nodes, renderers)` plus `usage`/`examples`/`description` shape the document. Details in [`references/help.md`](references/help.md).
 
 ## Recommended workflow
 
@@ -181,6 +172,7 @@ Define each command with `command()` (ideally one per file with its own callback
 - [`commands.md`](references/commands.md) — `command()`, registration, type narrowing, callbacks, aliases, option inheritance
 - [`help.md`](references/help.md) — auto docs, `help` options, `render` customization, responsive tables
 - [`examples.md`](references/examples.md) — composite end-to-end patterns (multi-command, async, validation, `ignoreArgv`, manual `showHelp`)
+- [`v3-migration.md`](references/v3-migration.md) — 3.x beta breaking changes: `commands` record, callback/return changes, PascalCase formats, atom-based help, `group()`, `strictCommands`, `CleyeExit`
 
 ## External
 

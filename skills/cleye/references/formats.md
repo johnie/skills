@@ -1,6 +1,6 @@
 # Flag Formats & Custom Types
 
-A flag's `type` is any function that accepts a string and returns the parsed value. To validate input, **throw** inside the type function — cleye surfaces the error to the user. Never return an `Error` value; cleye expects type functions to throw.
+A flag's `type` is any function that accepts a string and returns the parsed value; validation failures are thrown from inside it and cleye surfaces the message to the user.
 
 ## Custom type functions
 

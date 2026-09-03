@@ -4,7 +4,7 @@ Flags (aka options) are key-value pairs passed in the form `--flag-name <value>`
 
 ## Defining flags
 
-Each entry in the `flags` object maps a flag name to either a **type function** or a **descriptor object**. Define keys in **camelCase** — cleye automatically parses the kebab-case equivalent (`saveDev` accepts `--save-dev`).
+Each entry in the `flags` object maps a camelCase flag name to either a **type function** or a **descriptor object**.
 
 A type function is any function that takes a string and returns the parsed value. The built-in JS constructors cover most cases: `String`, `Number`, `Boolean`.
 

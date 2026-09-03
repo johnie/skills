@@ -286,6 +286,29 @@ type DeepSplit<S extends string> = S extends `${infer H}${infer T}`
   : [];
 ```
 
+### One Character Means One Code Point (7.0+)
+
+`${infer H}${infer T}` peels one character at a time, and what counts as "one character" changed in 7.0. Through 6.x it was a UTF-16 code unit, matching `str[0]` and `str.length`; from 7.0 it is a Unicode code point, matching `[...str]` and `for...of`. A `Length` built this way therefore disagrees with runtime `.length` for emoji and other non-BMP text on 7.0, and gives a different answer than it did on 6.x:
+
+```typescript
+type Length<
+  S extends string,
+  Acc extends unknown[] = [],
+> = S extends `${string}${infer Rest}`
+  ? Length<Rest, [...Acc, unknown]>
+  : Acc["length"];
+
+type A = Length<"abc">; // 3 on every version
+type B = Length<"😀a">; // 2 on 7.0+, 3 on 5.x/6.x ("😀a".length is 3 at runtime)
+
+type HeadTail<S> = S extends `${infer Head}${infer Tail}`
+  ? [Head, Tail]
+  : never;
+type C = HeadTail<"😀abc">; // ["😀", "abc"] on 7.0+; ["\ud83d", "\ude00abc"] before
+```
+
+If a type-level `Length`, `Reverse`, or fixed-width validator needs to agree with runtime `.length`, it cannot be written with template literal inference on 7.0 — validate at runtime instead. Version history is in [typescript-versions.md](typescript-versions.md).
+
 ### Greedy Matching
 
 Template literals match greedily:

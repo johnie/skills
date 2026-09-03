@@ -1,7 +1,7 @@
 ---
 name: typescript-engineer
 description: Resolve TypeScript errors, eliminate `any`, and design complex types (generics, conditional, mapped, template literal, branded/opaque). Use for type-inference problems, `infer` / `extends` questions, utility types (`Partial`, `Record`, `ReturnType`, `Awaited`, `NoInfer`), `satisfies`, function overloads, declaration merging, and strict-mode refactors.
-when_to_use: Also use to explain or teach a type-level concept with before/after examples, and when migrating a module toward stricter types. Covers TypeScript 5.x through 7.x, including inferred type predicates and `erasableSyntaxOnly`.
+when_to_use: Also use to explain or teach a type-level concept with before/after examples, when migrating JavaScript files to TypeScript, and when migrating a module toward stricter types. Covers TypeScript 5.x through 7.x, including inferred type predicates, `erasableSyntaxOnly`, and 6.0/7.0 upgrade breakage.
 allowed-tools:
   - Bash(tsc *)
   - Bash(npx tsc *)
@@ -60,7 +60,7 @@ Match keywords in the user's request to load the right rule file.
 | `Partial`, `Record`, `Omit`, `Pick`, `ReturnType`, `Parameters`, `Awaited`, `NoInfer`, utility type | [utility-types.md](references/utility-types.md) |
 | generic, constraint, `extends`, type parameter | [generics-basics.md](references/generics-basics.md) |
 | builder pattern, chainable, fluent API | [builder-pattern.md](references/builder-pattern.md) |
-| deep inference, `const` type parameter, `F.Narrow`, preserve literal types | [deep-inference.md](references/deep-inference.md) |
+| deep inference, `const` type parameter, preserve literal types, `F.Narrow` in old code | [deep-inference.md](references/deep-inference.md) |
 | conditional type, `extends ? :`, distribute | [conditional-types.md](references/conditional-types.md) |
 | `infer`, extract inner type | [infer-keyword.md](references/infer-keyword.md) |
 | template literal type, string manipulation at type level | [template-literal-types.md](references/template-literal-types.md) |
@@ -71,7 +71,7 @@ Match keywords in the user's request to load the right rule file.
 | overload, multiple signatures | [function-overloads.md](references/function-overloads.md) |
 | type test, prove a type, assert a type, `Expect`, `Equal`, `@ts-expect-error` | [type-testing.md](references/type-testing.md) |
 | type error, diagnostic, `ts(…)`, "not assignable" | [error-diagnosis.md](references/error-diagnosis.md) |
-| TS version, "which version added", 5.5 / 6 / 7, `erasableSyntaxOnly`, native compiler, upgrade broke my build | [typescript-versions.md](references/typescript-versions.md) |
+| TS version, "which version added", 5.5 / 5.9 / 6 / 7, `erasableSyntaxOnly`, `stableTypeOrdering`, native compiler, no compiler API, upgrade broke my build | [typescript-versions.md](references/typescript-versions.md) |
 
 ## Working style
 

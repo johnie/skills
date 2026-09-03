@@ -1,12 +1,15 @@
 import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
+
 import { describe, expect, test } from "vitest";
+
 import { discoverSkills } from "../helpers/skills";
 
-const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
-const MARKETPLACE_PATH = join(REPO_ROOT, ".claude-plugin/marketplace.json");
-const SKILL_PATH_REGEX = /^\.\/skills\/[a-z0-9]+(-[a-z0-9]+)*$/;
+const REPO_ROOT = path.join(import.meta.dirname, "../..");
+const MARKETPLACE_PATH = path.join(
+  REPO_ROOT,
+  ".claude-plugin/marketplace.json"
+);
 
 interface MarketplacePlugin {
   description?: string;
@@ -20,9 +23,9 @@ interface Marketplace {
   plugins: MarketplacePlugin[];
 }
 
-function readMarketplace(): Marketplace {
-  return JSON.parse(readFileSync(MARKETPLACE_PATH, "utf-8")) as Marketplace;
-}
+const readMarketplace = (): Marketplace =>
+  // SAFETY: marketplace.json is validated by the tests below.
+  JSON.parse(readFileSync(MARKETPLACE_PATH, "utf-8")) as Marketplace;
 
 /**
  * The marketplace manifest is hand-maintained, and nothing at runtime cross-checks
@@ -38,30 +41,28 @@ describe("Plugin marketplace manifest", () => {
   });
 
   test("lists every skill on disk, and only those", () => {
-    const declared = (marketplace.plugins[0]?.skills ?? []).slice().sort();
-    const expected = skills.map((name) => `./skills/${name}`).sort();
+    const declared = [...(marketplace.plugins[0]?.skills ?? [])].toSorted();
+    const expected = skills.map((name) => `./skills/${name}`).toSorted();
 
-    const missing = expected.filter((path) => !declared.includes(path));
-    const dangling = declared.filter((path) => !expected.includes(path));
+    const missing = expected.filter(
+      (skillPath) => !declared.includes(skillPath)
+    );
+    const dangling = declared.filter(
+      (skillPath) => !expected.includes(skillPath)
+    );
 
     expect(
       missing,
       `Skills on disk missing from marketplace.json: ${missing.join(", ")}`
-    ).toEqual([]);
+    ).toStrictEqual([]);
     expect(
       dangling,
       `marketplace.json entries with no skill on disk: ${dangling.join(", ")}`
-    ).toEqual([]);
+    ).toStrictEqual([]);
   });
 
   test("skill paths are unique", () => {
     const declared = marketplace.plugins[0]?.skills ?? [];
     expect(new Set(declared).size).toBe(declared.length);
-  });
-
-  test("skill paths use the ./skills/<name> form", () => {
-    for (const path of marketplace.plugins[0]?.skills ?? []) {
-      expect(path).toMatch(SKILL_PATH_REGEX);
-    }
   });
 });

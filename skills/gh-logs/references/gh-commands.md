@@ -10,19 +10,19 @@ Complete reference for GitHub Actions log analysis via the `gh` CLI.
 gh run list [flags]
 ```
 
-| Flag | Description |
-|---|---|
-| `-w, --workflow <name>` | Filter by workflow name |
-| `-b, --branch <branch>` | Filter by branch |
-| `-c, --commit <SHA>` | Filter by commit SHA |
-| `-e, --event <event>` | Filter by trigger event (push, pull_request, etc.) |
-| `-s, --status <status>` | Filter by status (see below) |
-| `-u, --user <user>` | Filter by user who triggered |
-| `--created <date>` | Filter by creation date |
-| `-a, --all` | Include disabled workflows |
-| `-L, --limit <n>` | Max results (default 20) |
-| `--json <fields>` | JSON output |
-| `-q, --jq <expr>` | Filter JSON with jq |
+| Flag                    | Description                                        |
+| ----------------------- | -------------------------------------------------- |
+| `-w, --workflow <name>` | Filter by workflow name                            |
+| `-b, --branch <branch>` | Filter by branch                                   |
+| `-c, --commit <SHA>`    | Filter by commit SHA                               |
+| `-e, --event <event>`   | Filter by trigger event (push, pull_request, etc.) |
+| `-s, --status <status>` | Filter by status (see below)                       |
+| `-u, --user <user>`     | Filter by user who triggered                       |
+| `--created <date>`      | Filter by creation date                            |
+| `-a, --all`             | Include disabled workflows                         |
+| `-L, --limit <n>`       | Max results (default 20)                           |
+| `--json <fields>`       | JSON output                                        |
+| `-q, --jq <expr>`       | Filter JSON with jq                                |
 
 **Status values**: `queued`, `completed`, `in_progress`, `requested`, `waiting`, `pending`, `action_required`, `cancelled`, `failure`, `neutral`, `skipped`, `stale`, `startup_failure`, `success`, `timed_out`
 
@@ -36,17 +36,17 @@ gh run list [flags]
 gh run view [<run-id>] [flags]
 ```
 
-| Flag | Description |
-|---|---|
-| `--log` | Full log output |
-| `--log-failed` | Only failed step logs |
-| `-j, --job <job-id>` | View specific job |
-| `-a, --attempt <n>` | View specific retry attempt |
-| `-v, --verbose` | Show job steps |
-| `--exit-status` | Exit non-zero if run failed |
-| `--json <fields>` | JSON output |
-| `-q, --jq <expr>` | Filter JSON with jq |
-| `-w, --web` | Open in browser |
+| Flag                 | Description                 |
+| -------------------- | --------------------------- |
+| `--log`              | Full log output             |
+| `--log-failed`       | Only failed step logs       |
+| `-j, --job <job-id>` | View specific job           |
+| `-a, --attempt <n>`  | View specific retry attempt |
+| `-v, --verbose`      | Show job steps              |
+| `--exit-status`      | Exit non-zero if run failed |
+| `--json <fields>`    | JSON output                 |
+| `-q, --jq <expr>`    | Filter JSON with jq         |
+| `-w, --web`          | Open in browser             |
 
 **Additional JSON fields** (beyond list fields): `jobs`
 
@@ -73,11 +73,11 @@ gh run view <id> --json jobs --jq '.jobs[] | {name, startedAt, completedAt, conc
 gh run watch [<run-id>] [flags]
 ```
 
-| Flag | Description |
-|---|---|
-| `--compact` | Show only relevant/failed steps |
+| Flag                 | Description                             |
+| -------------------- | --------------------------------------- |
+| `--compact`          | Show only relevant/failed steps         |
 | `-i, --interval <n>` | Refresh interval in seconds (default 3) |
-| `--exit-status` | Exit non-zero if run fails |
+| `--exit-status`      | Exit non-zero if run fails              |
 
 ## API Endpoints
 

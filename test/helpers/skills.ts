@@ -1,19 +1,14 @@
 import { readdirSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
 
-// Get current directory (works in both Bun and Node/Vitest)
-const getCurrentDir = () => dirname(fileURLToPath(import.meta.url));
-
-const CURRENT_DIR = getCurrentDir();
-const SKILLS_DIR = join(CURRENT_DIR, "../../skills");
+const SKILLS_DIR = path.join(import.meta.dirname, "../../skills");
 
 /**
  * Discover all skills by scanning the skills/ directory
  * Returns array of skill directory names
  */
-export function discoverSkills(): string[] {
+export const discoverSkills = (): string[] => {
   try {
     const entries = readdirSync(SKILLS_DIR);
     return entries.filter((entry) => {
@@ -21,40 +16,39 @@ export function discoverSkills(): string[] {
       if (entry.endsWith("-workspace")) {
         return false;
       }
-      const fullPath = join(SKILLS_DIR, entry);
+      const fullPath = path.join(SKILLS_DIR, entry);
       return statSync(fullPath).isDirectory();
     });
   } catch (error) {
     console.error("Error discovering skills:", error);
     return [];
   }
-}
+};
 
 /**
  * Get the full path to a skill directory
  */
-export function getSkillPath(skillName: string): string {
-  return join(SKILLS_DIR, skillName);
-}
+export const getSkillPath = (skillName: string): string =>
+  path.join(SKILLS_DIR, skillName);
 
 /**
  * Read and return the SKILL.md content for a skill
  */
-export async function readSkillFile(skillName: string): Promise<string> {
+export const readSkillFile = (skillName: string): Promise<string> => {
   const skillPath = getSkillPath(skillName);
-  const skillFilePath = join(skillPath, "SKILL.md");
+  const skillFilePath = path.join(skillPath, "SKILL.md");
 
-  return await readFile(skillFilePath, "utf-8");
-}
+  return readFile(skillFilePath, "utf-8");
+};
 
 /**
  * Check if a file exists
  */
-export function fileExists(filePath: string): boolean {
+export const fileExists = (filePath: string): boolean => {
   try {
     statSync(filePath);
     return true;
   } catch {
     return false;
   }
-}
+};

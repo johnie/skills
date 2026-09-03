@@ -27,9 +27,7 @@ function processInput(input: unknown) {
 
 ## Syntax rule: the call target needs an explicit type annotation
 
-The cleanest form is a `function` declaration. An arrow function works **only** if you put the full
-type annotation on the binding itself — TypeScript requires the *call target* to have an explicit
-type, so an arrow whose type is inferred from its body cannot be used as an assertion.
+The cleanest form is a `function` declaration. An arrow function works **only** if you put the full type annotation on the binding itself — TypeScript requires the _call target_ to have an explicit type, so an arrow whose type is inferred from its body cannot be used as an assertion.
 
 ```typescript
 // WRONG — type is inferred from the body, so calls fail
@@ -82,7 +80,10 @@ function handleData(data: unknown) {
 ## Asserting non-null
 
 ```typescript
-function assertDefined<T>(value: T | null | undefined, label?: string): asserts value is T {
+function assertDefined<T>(
+  value: T | null | undefined,
+  label?: string
+): asserts value is T {
   if (value === null || value === undefined) {
     throw new Error(`Expected ${label ?? "value"} to be defined`);
   }
@@ -117,12 +118,12 @@ function createUser(input: { email: string }) {
 
 ## Type predicates vs assertion functions
 
-| Aspect | Type predicate (`is`) | Assertion function (`asserts`) |
-|---|---|---|
-| Return type | `boolean` | `void` (throws on failure) |
-| Usage pattern | `if (isX(v)) { … }` | `assertX(v); // continue` |
-| Error handling | Caller decides | Function throws |
-| Syntax | Arrow or `function` | **Must** be `function` |
+| Aspect         | Type predicate (`is`) | Assertion function (`asserts`) |
+| -------------- | --------------------- | ------------------------------ |
+| Return type    | `boolean`             | `void` (throws on failure)     |
+| Usage pattern  | `if (isX(v)) { … }`   | `assertX(v); // continue`      |
+| Error handling | Caller decides        | Function throws                |
+| Syntax         | Arrow or `function`   | **Must** be `function`         |
 
 ```typescript
 // Type predicate — caller handles the false branch

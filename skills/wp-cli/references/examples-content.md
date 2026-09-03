@@ -5,6 +5,7 @@ Import posts or pages from CSV data.
 ## CSV Format
 
 Create CSV file (`import.csv`):
+
 ```csv
 post_title,post_content,post_status,post_type,post_author
 "First Post","This is content","publish","post","1"
@@ -41,12 +42,14 @@ done
 ## Advanced Import with Metadata
 
 CSV with meta fields (`import-meta.csv`):
+
 ```csv
 post_title,post_content,post_status,custom_field_1,custom_field_2
 "Product 1","Description","publish","value1","value2"
 ```
 
 Import script:
+
 ```bash
 #!/bin/bash
 
@@ -68,6 +71,4 @@ tail -n +2 import-meta.csv | while IFS=',' read -r title content status meta1 me
 done
 ```
 
-> The naive `sed 's/"//g'` parsing above breaks on fields that legitimately contain commas or
-> quotes. For anything beyond simple data, use `wp post create` driven by a `jq`/CSV parser that
-> understands quoting, or the dedicated `wp-cli/import` and `humanmade/wp-cli-import-csv` packages.
+> The naive `sed 's/"//g'` parsing above breaks on fields that legitimately contain commas or quotes. For anything beyond simple data, use `wp post create` driven by a `jq`/CSV parser that understands quoting, or the dedicated `wp-cli/import` and `humanmade/wp-cli-import-csv` packages.

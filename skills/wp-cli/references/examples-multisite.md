@@ -52,8 +52,7 @@ wp site list --field=url | xargs -I {} sh -c 'echo "Site: {}"; wp --url={} plugi
 
 ## User Management in Multisite
 
-WP-CLI core has no `wp user add-to-site` / `remove-from-site` command. Use `wp eval` to call the
-core multisite functions directly, or `wp super-admin` for network-wide privileges.
+WP-CLI core has no `wp user add-to-site` / `remove-from-site` command. Use `wp eval` to call the core multisite functions directly, or `wp super-admin` for network-wide privileges.
 
 ```bash
 # Add an existing network user to a specific site with a role

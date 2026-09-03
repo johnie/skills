@@ -36,7 +36,7 @@ Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 ## Modes
 
 | Mode | Triggered by | Primary reference |
-|---|---|---|
+| --- | --- | --- |
 | Diagnose (default) | "CI is broken / red / failing", "why did this run fail?", a bare run ID or URL | [`references/failure-patterns.md`](references/failure-patterns.md) |
 | `--flaky` | "is this test flaky?", "it passes locally" | [`references/failure-patterns.md`](references/failure-patterns.md) (test signatures) |
 | `--slow` | "why is the build so slow?" | [`references/gh-commands.md`](references/gh-commands.md) (timing jq) |
@@ -87,7 +87,7 @@ If output is >5000 lines, narrow to a specific job: `gh run view <run-id> --job 
 Match log lines against [`references/failure-patterns.md`](references/failure-patterns.md). Pick one primary category:
 
 | Category | Strongest signals |
-|---|---|
+| --- | --- |
 | **test** | `FAIL`, `AssertionError`, `--- FAIL:`, snapshot mismatch |
 | **build** | `error TS`, `Build failed`, `Rollup failed to resolve`, `undefined:` |
 | **deps** | `ERESOLVE`, `404 Not Found`, `ETARGET`, `ECONNREFUSED` to registry |
@@ -96,7 +96,7 @@ Match log lines against [`references/failure-patterns.md`](references/failure-pa
 | **infra** | `Killed` (137), `No space left`, `heap out of memory`, runner shutdown |
 | **timeout** | `exceeded maximum execution time`, stuck for 10+ min |
 
-**When multiple categories match** (common — e.g., an OOM during tests looks like both `infra` and `test`): pick the most *upstream* cause, because that's what needs to be fixed. Priority: `auth` > `deps` > `build` > `infra` > `lint` > `test` > `timeout`. A test failing *because* deps didn't install is a deps bug, not a test bug. When it's genuinely ambiguous, surface both and ask the user which feels right — a wrong classification leads to a wrong fix.
+**When multiple categories match** (common — e.g., an OOM during tests looks like both `infra` and `test`): pick the most _upstream_ cause, because that's what needs to be fixed. Priority: `auth` > `deps` > `build` > `infra` > `lint` > `test` > `timeout`. A test failing _because_ deps didn't install is a deps bug, not a test bug. When it's genuinely ambiguous, surface both and ask the user which feels right — a wrong classification leads to a wrong fix.
 
 ### 5. Report
 
@@ -181,7 +181,7 @@ More session shapes (flaky / slow / history) are in [`references/analysis-templa
 ## Edge cases
 
 | Situation | Handling |
-|---|---|
+| --- | --- |
 | No failures found | Report "no failed runs on <scope>" and suggest widening (different branch, include success, workflow filter). |
 | `gh` rate limit (403) | Back off, tell the user which call hit the limit. |
 | Logs >5000 lines | Narrow to failing job, then grep for `error`/`FAIL`/`fatal` if still too large. |

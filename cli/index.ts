@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 import { run } from "@stricli/core";
+
 import { app } from "./app";
 import { buildContext } from "./context";
 

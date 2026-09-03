@@ -5,6 +5,7 @@ Real-world scenarios showing the full analysis-to-output process.
 ## Simple: Config Update (2 files, 1 commit)
 
 **`git status` output:**
+
 ```text
  M tsconfig.json
  M biome.json
@@ -15,6 +16,7 @@ Real-world scenarios showing the full analysis-to-output process.
 **Analysis:** Same reason for change (tighten strictness), same type (chore), closely related config files.
 
 **Result:**
+
 ```text
 chore: enable strict mode in tsconfig and biome
   - tsconfig.json, biome.json
@@ -25,6 +27,7 @@ chore: enable strict mode in tsconfig and biome
 ## Medium: 2 Features (5 files, 3 commits)
 
 **`git status` output:**
+
 ```text
  M src/routes/auth.ts
  M src/routes/auth.test.ts
@@ -34,6 +37,7 @@ chore: enable strict mode in tsconfig and biome
 ```
 
 **`git diff` summary:**
+
 - `auth.ts`: Add password reset endpoint
 - `auth.test.ts`: Tests for password reset
 - `rate-limit.ts`: Add sliding window algorithm
@@ -41,11 +45,13 @@ chore: enable strict mode in tsconfig and biome
 - `package.json`: Add `ioredis` dep (used by rate-limit)
 
 **Analysis:**
+
 - Password reset (auth.ts) and rate limiting (rate-limit.ts) are unrelated features
 - `ioredis` was added for the rate limiter -> groups with rate-limit
 - Tests split by feature
 
 **Result:**
+
 ```text
 1. feat(auth): add password reset endpoint
    - src/routes/auth.ts
@@ -58,6 +64,7 @@ chore: enable strict mode in tsconfig and biome
 ```
 
 Alternative (also acceptable - tests per feature):
+
 ```text
 1. feat(auth): add password reset endpoint
 2. test(auth): add password reset tests
@@ -70,6 +77,7 @@ Alternative (also acceptable - tests per feature):
 ## Complex: Mixed Changes (12 files, 6 commits)
 
 **`git status` output:**
+
 ```text
  M src/routes/users.ts
  M src/routes/users.test.ts
@@ -86,6 +94,7 @@ Alternative (also acceptable - tests per feature):
 ```
 
 **`git diff` summary:**
+
 - `users.ts`: Add email verification flow
 - `users.test.ts`: Tests for email verification
 - `email.ts`: Refactor to use template engine
@@ -99,6 +108,7 @@ Alternative (also acceptable - tests per feature):
 - `notification.ts`: New file, standalone notification service (untracked)
 
 **Analysis:**
+
 1. Email verification is a feature spanning users.ts + validators.ts + types + migration
 2. Old validators deletion is part of the validator refactor
 3. Email service refactor is separate from the feature (different reason: modernize templates)
@@ -107,6 +117,7 @@ Alternative (also acceptable - tests per feature):
 6. .env.example change relates to email service
 
 **Result:**
+
 ```text
 1. feat(users): add email verification flow
    - src/routes/users.ts, src/utils/validators.ts, src/types/user.ts,
@@ -135,12 +146,14 @@ Alternative (also acceptable - tests per feature):
 ### Rename Detection
 
 **`git diff --stat` shows:**
+
 ```text
  src/utils/{stringHelpers.ts => string-helpers.ts} | 0
  src/routes/api.ts                                  | 2 +-
 ```
 
 The route file updated its import path. These go together:
+
 ```text
 refactor(utils): rename stringHelpers to string-helpers
   - src/utils/string-helpers.ts, src/routes/api.ts
@@ -151,6 +164,7 @@ refactor(utils): rename stringHelpers to string-helpers
 **Changes:** Delete `src/lib/logger.ts`, add `src/lib/logger/index.ts` + `src/lib/logger/transports.ts`
 
 These are one logical change:
+
 ```text
 refactor(logger): split logger into module with transports
   - src/lib/logger.ts (deleted), src/lib/logger/index.ts, src/lib/logger/transports.ts
@@ -165,30 +179,37 @@ General rule: **separate test commits from feature commits** unless the test is 
 ## Anti-patterns
 
 ### Don't: One giant commit
+
 ```text
 feat: add email verification, refactor email service, add notifications
   - (all 12 files)
 ```
+
 Why bad: Can't revert email refactor without losing verification feature. Message is vague.
 
 ### Don't: Commit by file
+
 ```text
 1. feat(users): update users.ts
 2. feat(validators): update validators.ts
 3. chore(types): update user.ts
 ...
 ```
+
 Why bad: Individual commits are meaningless. "update users.ts" says nothing. Intermediate states may not compile.
 
 ### Don't: Group by directory
+
 ```text
 1. chore(src/routes): update route files
 2. chore(src/services): update service files
 3. chore(src/utils): update util files
 ```
+
 Why bad: Directory structure doesn't reflect logical grouping. Unrelated changes lumped together.
 
 ### Don't: Describe the diff, describe the intent
+
 ```text
 BAD:  fix(api): change status code from 400 to 422
 GOOD: fix(api): return 422 for validation errors instead of 400

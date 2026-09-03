@@ -179,7 +179,7 @@ Write an explicit predicate only when inference can't apply. It does not fire wh
 - the function has an explicit return type — annotating `: boolean` opts out
 - the parameter is reassigned anywhere in the body
 - the narrowing isn't derivable from a single returned expression, e.g. several `return` statements each narrowing differently
-- you need to assert a *different* type than control flow proves — most importantly a brand, where nothing in the body establishes it
+- you need to assert a _different_ type than control flow proves — most importantly a brand, where nothing in the body establishes it
 
 That last point is why the branded validator further down still needs `email is ValidEmail`: no amount of `includes("@")` tells the compiler about a nominal brand.
 
@@ -328,7 +328,9 @@ interface ErrorResponse {
 
 type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
 
-function isSuccess<T>(response: ApiResponse<T>): response is SuccessResponse<T> {
+function isSuccess<T>(
+  response: ApiResponse<T>
+): response is SuccessResponse<T> {
   return response.status === "success";
 }
 
@@ -352,7 +354,7 @@ async function handleUser() {
 ## When to Use Each Technique
 
 | Technique | Use Case |
-|-----------|----------|
+| --- | --- |
 | `typeof` | Primitive type checks |
 | `instanceof` | Class instance checks |
 | `in` operator | Property existence checks |

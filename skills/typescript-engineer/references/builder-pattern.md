@@ -66,7 +66,7 @@ export class DbSeeder<TDatabase extends DbShape> {
   // Each method returns DbSeeder with EXTENDED type information
   addUser = <Id extends string>(
     id: Id,
-    user: Omit<User, "id">,
+    user: Omit<User, "id">
   ): DbSeeder<TDatabase & { users: TDatabase["users"] & Record<Id, User> }> => {
     this.users[id] = { ...user, id };
     return this;
@@ -74,7 +74,7 @@ export class DbSeeder<TDatabase extends DbShape> {
 
   addPost = <Id extends string>(
     id: Id,
-    post: Omit<Post, "id">,
+    post: Omit<Post, "id">
   ): DbSeeder<TDatabase & { posts: TDatabase["posts"] & Record<Id, Post> }> => {
     this.posts[id] = { ...post, id };
     return this;
@@ -146,7 +146,7 @@ addUser = <Id extends string>(
 Use `&` to add new type information while preserving existing:
 
 ```typescript
-TDatabase & { users: TDatabase["users"] & Record<Id, User> }
+TDatabase & { users: TDatabase["users"] & Record<Id, User> };
 ```
 
 ### 3. Cast in Terminal Methods
@@ -186,9 +186,7 @@ class QueryBuilder<TState extends QueryState> {
     });
   }
 
-  from<T extends string>(
-    table: T
-  ): QueryBuilder<TState & { table: T }> {
+  from<T extends string>(table: T): QueryBuilder<TState & { table: T }> {
     return new QueryBuilder({ ...this.state, table });
   }
 
@@ -238,7 +236,9 @@ interface ServerConfig {
   timeout?: number;
 }
 
-class ConfigBuilder<TConfigured extends Partial<Record<keyof ServerConfig, true>>> {
+class ConfigBuilder<
+  TConfigured extends Partial<Record<keyof ServerConfig, true>>,
+> {
   private config: Partial<ServerConfig> = {};
 
   host(value: string): ConfigBuilder<TConfigured & { host: true }> {
@@ -257,9 +257,7 @@ class ConfigBuilder<TConfigured extends Partial<Record<keyof ServerConfig, true>
   }
 
   // Only allow build when required fields are set
-  build(
-    this: ConfigBuilder<{ host: true; port: true }>
-  ): ServerConfig {
+  build(this: ConfigBuilder<{ host: true; port: true }>): ServerConfig {
     return this.config as ServerConfig;
   }
 }
@@ -282,7 +280,7 @@ export class DbSeeder<
   TDatabase extends DbShape = {
     users: { defaultUser: User };
     posts: {};
-  }
+  },
 > {
   public users: DbShape["users"] = {
     defaultUser: { id: "default", name: "Default User" },

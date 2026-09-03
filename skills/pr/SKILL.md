@@ -23,7 +23,7 @@ Requested command and target: `$ARGUMENTS` — if that is blank or still shows t
 ## Choosing a command
 
 | User says… | Command |
-|---|---|
+| --- | --- |
 | "Open a PR", "make a PR", "ship this to review" | `create` |
 | "Update the PR description", "refresh the PR body", "add the latest commits to the PR" | `update` |
 | "Review PR #123", "look at this PR", "can you review <url>" | `review` |
@@ -39,7 +39,7 @@ If the request names no command and the branch has no PR yet, `create` is the sa
 ## Commands
 
 | Command | Purpose |
-|---|---|
+| --- | --- |
 | `create` | Create a PR with a structured body from commits on the branch. |
 | `create -v` | Show the draft, ask y/n before running `gh pr create`. |
 | `create --draft` | Create as draft (work-in-progress). |
@@ -74,7 +74,7 @@ If the request names no command and the branch has no PR yet, `create` is the sa
 Include a conditional section only when the trigger below is met. Empty placeholder sections are worse than no section — they train reviewers to skim.
 
 | Section | Include when the diff includes… |
-|---|---|
+| --- | --- |
 | `## Testing` | test files (`*.test.*`, `*.spec.*`, `__tests__/`) OR the change needs manual verification (UI, side effects) |
 | `## Deployment` | DB migrations, config, env vars, feature flags, CI workflow changes, infra |
 | `## Screenshots` | UI files: `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.css`, design assets |
@@ -118,6 +118,7 @@ Include a conditional section only when the trigger below is met. Empty placehol
 ## Handoff from `/commit`
 
 `/pr create` assumes the branch's commits follow the conventional-commit format produced by [`/commit`](../commit/SKILL.md). When that's the case:
+
 - PR title = primary commit's `type(scope): description`.
 - `## What` bullet list mirrors the commit subjects.
 - `## How` groups commits by scope.

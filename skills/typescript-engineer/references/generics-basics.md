@@ -34,7 +34,7 @@ When the type of one parameter depends on another, use generics:
 ```typescript
 // The return type depends on what keys exist in the config
 const createComponent = <TConfig extends Record<string, string>>(
-  config: TConfig,
+  config: TConfig
 ) => {
   return (variant: keyof TConfig, ...otherClasses: string[]): string => {
     return config[variant] + " " + otherClasses.join(" ");
@@ -92,7 +92,7 @@ Provide defaults for optional type parameters:
 ```typescript
 type WrapFunction<
   TFunc extends (...args: any) => any,
-  TAdditional = {} // Default to empty object
+  TAdditional = {}, // Default to empty object
 > = (
   ...args: Parameters<TFunc>
 ) => Promise<Awaited<ReturnType<TFunc>> & TAdditional>;
@@ -133,7 +133,7 @@ const createComponent = <TConfig>(config: Record<string, string>) => {
 
 // GOOD - TConfig IS the argument type
 const createComponent = <TConfig extends Record<string, string>>(
-  config: TConfig,
+  config: TConfig
 ) => {
   // TConfig is inferred from what's passed
 };
@@ -203,7 +203,7 @@ const strContainer = numContainer.map((n) => n.toString());
 ```typescript
 // A factory that creates type-safe component class generators
 export const createComponent = <TConfig extends Record<string, string>>(
-  config: TConfig,
+  config: TConfig
 ) => {
   // Return a function that requires valid variant keys
   return (variant: keyof TConfig, ...otherClasses: string[]): string => {

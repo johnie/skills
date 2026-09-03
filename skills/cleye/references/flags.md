@@ -10,34 +10,34 @@ A type function is any function that takes a string and returns the parsed value
 
 ```typescript
 const argv = cli({
-    flags: {
-        someBoolean: Boolean,
+  flags: {
+    someBoolean: Boolean,
 
-        someString: {
-            type: String,
-            description: "Some string flag",
-            default: "n/a"
-        },
+    someString: {
+      type: String,
+      description: "Some string flag",
+      default: "n/a",
+    },
 
-        someNumber: {
-            // Wrap the type function in an array to allow multiple values
-            type: [Number],
-            alias: "n",
-            description: "Array of numbers. (eg. -n 1 -n 2 -n 3)"
-        }
-    }
+    someNumber: {
+      // Wrap the type function in an array to allow multiple values
+      type: [Number],
+      alias: "n",
+      description: "Array of numbers. (eg. -n 1 -n 2 -n 3)",
+    },
+  },
 });
 
 // $ my-script --some-boolean --some-string hello --some-number 1 -n 2
 argv.flags.someBoolean; // => true        (boolean | undefined)
-argv.flags.someString;  // => "hello"     (string)
-argv.flags.someNumber;  // => [1, 2]      (number[])
+argv.flags.someString; // => "hello"     (string)
+argv.flags.someNumber; // => [1, 2]      (number[])
 ```
 
 ## Descriptor object properties
 
 | Property | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `type` | `Function` | Flag value parsing function (or `[Function]` for multiple values). |
 | `alias` | `string` | Single-character alias (e.g. `n` → `-n`). |
 | `default` | `any` | Default value when the flag is absent. |
@@ -72,8 +72,8 @@ Enable `booleanFlagNegation` to support `--no-<flag>` for boolean flags:
 
 ```typescript
 cli({
-    flags: { verbose: Boolean },
-    booleanFlagNegation: true
+  flags: { verbose: Boolean },
+  booleanFlagNegation: true,
 });
 
 // $ my-script --no-verbose   → argv.flags.verbose === false
@@ -110,8 +110,8 @@ Enable `strictFlags` to reject unknown flags with an error (and a did-you-mean s
 
 ```typescript
 cli({
-    flags: { foo: Boolean, bar: String },
-    strictFlags: true
+  flags: { foo: Boolean, bar: String },
+  strictFlags: true,
 });
 
 // $ my-script --baz

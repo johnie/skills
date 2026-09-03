@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, test } from "vitest";
 import { parse as parseYAML } from "yaml";
+
 import { discoverSkills, readSkillFile } from "../helpers/skills";
 
 /**
@@ -47,194 +48,200 @@ const MAX_DESCRIPTION_LENGTH = 1024;
 const MAX_LISTING_LENGTH = 1536;
 const MAX_NAME_LENGTH = 64;
 const MAX_COMPATIBILITY_LENGTH = 500;
-const KEBAB_CASE_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-const HTML_TAG_REGEX = /<\/\w+>|<\w+\s+\w+\s*=|<\w+\s*\/>/i;
-const FRONTMATTER_REGEX = /^---\n([\s\S]*?)\n---/;
+const KEBAB_CASE_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const HTML_TAG_REGEX = /<\/\w+>|<\w+\s+\w+\s*=|<\w+\s*\/>/iu;
+const FRONTMATTER_REGEX = /^---\n(?:[\s\S]*?)\n---/u;
 
 /** A tool rule: `Read`, or a scoped rule like `Bash(git commit *)`. */
-const TOOL_RULE_REGEX = /^[A-Z][A-Za-z]*(\(.+\))?$/;
+const TOOL_RULE_REGEX = /^[A-Z][A-Za-z]*(?:\(.+\))?$/u;
 /**
  * `Bash` and `Bash(*)` are equivalent and pre-approve every shell command
  * without a prompt. Skills must scope Bash per subcommand instead, because
  * Claude Code matches each subcommand of a chained command independently.
  */
-const UNSCOPED_BASH_REGEX = /^Bash(\(\s*\*\s*\))?$/;
+const UNSCOPED_BASH_REGEX = /^Bash(?:\(\s*\*\s*\))?$/u;
 
 const EFFORT_LEVELS = ["low", "medium", "high", "xhigh", "max"];
 const SHELLS = ["bash", "powershell"];
 
-function extractFrontmatter(content: string): string | null {
-  const match = content.match(FRONTMATTER_REGEX);
-  return match?.[1] ?? null;
+interface Frontmatter {
+  "allowed-tools"?: unknown;
+  "argument-hint"?: unknown;
+  agent?: unknown;
+  arguments?: unknown;
+  background?: unknown;
+  compatibility?: unknown;
+  context?: unknown;
+  "disable-model-invocation"?: unknown;
+  "disallowed-tools"?: unknown;
+  description?: unknown;
+  effort?: unknown;
+  hooks?: unknown;
+  license?: unknown;
+  metadata?: unknown;
+  model?: unknown;
+  name?: unknown;
+  paths?: unknown;
+  shell?: unknown;
+  "user-invocable"?: unknown;
+  when_to_use?: unknown;
 }
 
-function isStringArray(value: unknown): boolean {
-  return Array.isArray(value) && value.every((v) => typeof v === "string");
-}
+const extractFrontmatter = (content: string): string | null => {
+  const match = content.match(FRONTMATTER_REGEX);
+  return match?.[0]?.slice(4, -4) ?? null;
+};
 
 describe("Frontmatter Validation", () => {
   const skills = discoverSkills();
 
-  test("at least one skill exists", () => {
+  test("discovers at least one skill", () => {
     expect(skills.length).toBeGreaterThan(0);
   });
 
-  for (const skillName of skills) {
-    describe(`skill: ${skillName}`, () => {
-      let raw: string | null = null;
-      let parsed: Record<string, unknown> = {};
+  describe.each(skills)("skill: %s", (skillName) => {
+    let parsed: Frontmatter;
 
-      beforeAll(async () => {
-        const content = await readSkillFile(skillName);
-        raw = extractFrontmatter(content);
-        if (raw !== null) {
-          parsed = (parseYAML(raw) ?? {}) as Record<string, unknown>;
-        }
-      });
-
-      test("has a frontmatter block parsed as YAML", () => {
-        expect(raw).not.toBeNull();
-        expect(typeof parsed).toBe("object");
-      });
-
-      test("has required fields", () => {
-        for (const field of REQUIRED_FIELDS) {
-          expect(parsed).toHaveProperty(field);
-        }
-      });
-
-      test("name matches directory name", () => {
-        expect(parsed.name).toBe(skillName);
-      });
-
-      test("name is valid kebab-case (max 64 chars)", () => {
-        const name = parsed.name as string;
-        expect(name).toMatch(KEBAB_CASE_REGEX);
-        expect(name.length).toBeLessThanOrEqual(MAX_NAME_LENGTH);
-      });
-
-      test("description is a string with sufficient length", () => {
-        expect(typeof parsed.description).toBe("string");
-        expect((parsed.description as string).length).toBeGreaterThanOrEqual(
-          MIN_DESCRIPTION_LENGTH
-        );
-      });
-
-      test("description has no HTML-like tags and respects max length", () => {
-        const description = parsed.description as string;
-        // Disallow HTML tags (closing tags, tags with attributes, self-closing)
-        // but allow CLI-style argument placeholders (e.g. <url>, <number|url>)
-        expect(description).not.toMatch(HTML_TAG_REGEX);
-        expect(description.length).toBeLessThanOrEqual(MAX_DESCRIPTION_LENGTH);
-      });
-
-      test("description plus when_to_use fits the skill listing budget", () => {
-        const description = (parsed.description as string) ?? "";
-        const whenToUse = (parsed.when_to_use as string) ?? "";
-        expect(description.length + whenToUse.length).toBeLessThanOrEqual(
-          MAX_LISTING_LENGTH
-        );
-      });
-
-      test("only contains allowed fields", () => {
-        for (const key of Object.keys(parsed)) {
-          expect(ALLOWED_FIELDS).toContain(key);
-        }
-      });
-
-      test("tool lists are arrays of valid tool rules", () => {
-        for (const field of ["allowed-tools", "disallowed-tools"]) {
-          if (!(field in parsed)) {
-            continue;
-          }
-          const rules = parsed[field];
-          expect(isStringArray(rules)).toBe(true);
-          for (const rule of rules as string[]) {
-            expect(rule).toMatch(TOOL_RULE_REGEX);
-          }
-        }
-      });
-
-      test("allowed-tools does not pre-approve unscoped Bash", () => {
-        const rules = (parsed["allowed-tools"] ?? []) as string[];
-        const unscoped = rules.filter((rule) => UNSCOPED_BASH_REGEX.test(rule));
-        expect(unscoped).toEqual([]);
-      });
-
-      test("string fields have the right type", () => {
-        const stringFields = [
-          "license",
-          "when_to_use",
-          "argument-hint",
-          "model",
-          "agent",
-        ];
-        for (const field of stringFields) {
-          if (field in parsed) {
-            expect(typeof parsed[field]).toBe("string");
-          }
-        }
-      });
-
-      test("boolean fields have the right type", () => {
-        const booleanFields = [
-          "disable-model-invocation",
-          "user-invocable",
-          "background",
-        ];
-        for (const field of booleanFields) {
-          if (field in parsed) {
-            expect(typeof parsed[field]).toBe("boolean");
-          }
-        }
-      });
-
-      test("enum fields use documented values", () => {
-        if ("context" in parsed) {
-          expect(parsed.context).toBe("fork");
-        }
-        if ("effort" in parsed) {
-          expect(EFFORT_LEVELS).toContain(parsed.effort);
-        }
-        if ("shell" in parsed) {
-          expect(SHELLS).toContain(parsed.shell);
-        }
-      });
-
-      test("background and agent require context: fork", () => {
-        for (const field of ["background", "agent"]) {
-          if (field in parsed) {
-            expect(parsed.context).toBe("fork");
-          }
-        }
-      });
-
-      test("compatibility is valid if present", () => {
-        if ("compatibility" in parsed) {
-          expect(typeof parsed.compatibility).toBe("string");
-          expect((parsed.compatibility as string).length).toBeLessThanOrEqual(
-            MAX_COMPATIBILITY_LENGTH
-          );
-        }
-      });
-
-      test("metadata is a map if present", () => {
-        if ("metadata" in parsed) {
-          expect(typeof parsed.metadata).toBe("object");
-          expect(Array.isArray(parsed.metadata)).toBe(false);
-          expect(parsed.metadata).not.toBeNull();
-        }
-      });
-
-      test("paths and arguments are strings or string arrays if present", () => {
-        for (const field of ["paths", "arguments"]) {
-          if (!(field in parsed)) {
-            continue;
-          }
-          const value = parsed[field];
-          expect(typeof value === "string" || isStringArray(value)).toBe(true);
-        }
-      });
+    beforeAll(async () => {
+      const raw = extractFrontmatter(await readSkillFile(skillName));
+      if (raw === null) {
+        throw new Error(`${skillName} has no YAML frontmatter`);
+      }
+      // SAFETY: the tests below validate every supported field's runtime shape.
+      parsed = parseYAML(raw) as Frontmatter;
     });
-  }
+
+    test("has valid required identity fields", () => {
+      for (const requiredField of REQUIRED_FIELDS) {
+        expect(parsed).toHaveProperty(requiredField);
+      }
+      expect(parsed.name).toBe(skillName);
+      expect(parsed.name).toBeTypeOf("string");
+      // SAFETY: the preceding assertion ensures this value is a string.
+      const name = parsed.name as string;
+      expect(name).toMatch(KEBAB_CASE_REGEX);
+      expect(name.length).toBeLessThanOrEqual(MAX_NAME_LENGTH);
+    });
+
+    test("has a valid listing description", () => {
+      expect(parsed.description).toBeTypeOf("string");
+      // SAFETY: the preceding assertion ensures this value is a string.
+      const description = parsed.description as string;
+      expect(description.length).toBeGreaterThanOrEqual(MIN_DESCRIPTION_LENGTH);
+      expect(description).not.toMatch(HTML_TAG_REGEX);
+      expect(description.length).toBeLessThanOrEqual(MAX_DESCRIPTION_LENGTH);
+    });
+
+    test("fits the skill listing budget", () => {
+      expect(parsed.description).toBeTypeOf("string");
+      const whenToUse = parsed.when_to_use ?? "";
+      expect(whenToUse).toBeTypeOf("string");
+      // SAFETY: the preceding assertion ensures this value is a string.
+      const description = parsed.description as string;
+      expect(description.length + String(whenToUse).length).toBeLessThanOrEqual(
+        MAX_LISTING_LENGTH
+      );
+    });
+
+    test("only declares allowed tool configuration", () => {
+      for (const declaredField of Object.keys(parsed)) {
+        expect(ALLOWED_FIELDS).toContain(declaredField);
+      }
+
+      const toolFields = ["allowed-tools", "disallowed-tools"] as const;
+      for (const toolField of toolFields.filter(
+        (field) => parsed[field] !== undefined
+      )) {
+        const rules = parsed[toolField];
+        expect(rules).toBeInstanceOf(Array);
+        // SAFETY: the preceding assertion ensures this value is an array.
+        for (const rule of rules as string[]) {
+          expect(rule).toBeTypeOf("string");
+          expect(rule).toMatch(TOOL_RULE_REGEX);
+        }
+      }
+
+      const allowedTools = parsed["allowed-tools"] ?? [];
+      expect(allowedTools).toBeInstanceOf(Array);
+      // SAFETY: the preceding assertion ensures this value is an array.
+      expect(
+        (allowedTools as string[]).filter((rule) =>
+          UNSCOPED_BASH_REGEX.test(rule)
+        )
+      ).toStrictEqual([]);
+    });
+
+    test("uses valid optional values", () => {
+      const stringFields = [
+        "license",
+        "when_to_use",
+        "argument-hint",
+        "model",
+        "agent",
+      ] as const;
+      for (const stringField of stringFields.filter(
+        (field) => parsed[field] !== undefined
+      )) {
+        expect(parsed[stringField]).toBeTypeOf("string");
+      }
+
+      const booleanFields = [
+        "disable-model-invocation",
+        "user-invocable",
+        "background",
+      ] as const;
+      for (const booleanField of booleanFields.filter(
+        (field) => parsed[field] !== undefined
+      )) {
+        expect(parsed[booleanField]).toBeTypeOf("boolean");
+      }
+
+      const enumFields = [
+        { allowed: ["fork"], value: parsed.context },
+        { allowed: EFFORT_LEVELS, value: parsed.effort },
+        { allowed: SHELLS, value: parsed.shell },
+      ].filter(({ value: enumValue }) => enumValue !== undefined);
+      for (const { allowed, value: enumValue } of enumFields) {
+        expect(allowed).toContain(enumValue);
+      }
+
+      for (const _forkRequired of [parsed.agent, parsed.background].filter(
+        (optionalValue) => optionalValue !== undefined
+      )) {
+        expect(parsed.context).toBe("fork");
+      }
+
+      const compatibilities =
+        parsed.compatibility === undefined ? [] : [parsed.compatibility];
+      for (const compatibility of compatibilities) {
+        expect(compatibility).toBeTypeOf("string");
+        // SAFETY: the preceding assertion ensures this value is a string.
+        expect((compatibility as string).length).toBeLessThanOrEqual(
+          MAX_COMPATIBILITY_LENGTH
+        );
+      }
+
+      const metadataValues =
+        parsed.metadata === undefined ? [] : [parsed.metadata];
+      for (const metadata of metadataValues) {
+        expect(metadata).not.toBeNull();
+        expect(metadata).toBeTypeOf("object");
+        expect(metadata).not.toBeInstanceOf(Array);
+      }
+
+      const pathValues = [parsed.arguments, parsed.paths].filter(
+        (optionalValue) => optionalValue !== undefined
+      );
+      for (const pathValue of pathValues) {
+        const isString =
+          Object.prototype.toString.call(pathValue) === "[object String]";
+        const isStringArray =
+          Array.isArray(pathValue) &&
+          pathValue.every(
+            (item) => Object.prototype.toString.call(item) === "[object String]"
+          );
+        expect(isString || isStringArray).toBeTruthy();
+      }
+    });
+  });
 });

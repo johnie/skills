@@ -1,9 +1,10 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
-import type { Link, Root } from "mdast";
+import path from "node:path";
+
+import type { Link, Nodes, Root } from "mdast";
 import { remark } from "remark";
 import remarkFrontmatter from "remark-frontmatter";
 import { describe, expect, test } from "vitest";
+
 import {
   discoverSkills,
   fileExists,
@@ -12,205 +13,89 @@ import {
 } from "../helpers/skills";
 
 /**
- * Parse markdown content into an AST
+ * Parse markdown content into an AST.
  */
-function parseMarkdown(content: string): Root {
+const parseMarkdown = (content: string): Root => {
   const processor = remark().use(remarkFrontmatter, ["yaml"]);
   return processor.parse(content);
-}
+};
 
 /**
- * Extract all links from the AST
+ * Extract all links from the AST.
  */
-function extractLinks(ast: Root): Link[] {
+const extractLinks = (ast: Root): Link[] => {
   const links: Link[] = [];
-  function visit(node: any) {
+  const visit = (node: Nodes): void => {
     if (node.type === "link") {
       links.push(node);
     }
-    if (node.children) {
+    if ("children" in node) {
       for (const child of node.children) {
         visit(child);
       }
     }
-  }
+  };
   visit(ast);
   return links;
-}
+};
 
-const REFERENCES_PATH_RE = /^references\/\S+/;
-const WHITESPACE_RE = /\s+/;
+const REFERENCES_PATH_RE = /^references\/\S+/u;
 
 /**
- * Extract file paths from inline code nodes (e.g. `references/foo.md`)
+ * Extract file paths from inline code nodes (e.g. `references/foo.md`).
  */
-function extractInlineCodeReferences(ast: Root): string[] {
-  const refs: string[] = [];
-  function visit(node: any) {
+const extractInlineCodeReferences = (ast: Root): string[] => {
+  const references: string[] = [];
+  const visit = (node: Nodes): void => {
     if (node.type === "inlineCode" && REFERENCES_PATH_RE.test(node.value)) {
-      refs.push(node.value);
+      references.push(node.value);
     }
-    if (node.children) {
+    if ("children" in node) {
       for (const child of node.children) {
         visit(child);
       }
     }
-  }
+  };
   visit(ast);
-  return refs;
-}
+  return references;
+};
 
-/**
- * Check if a URL is external (http/https)
- */
-function isExternalUrl(url: string): boolean {
-  return url.startsWith("http://") || url.startsWith("https://");
-}
-
-/**
- * Get all local file references from links and inline code
- */
-function getLocalFileReferences(links: Link[], inlineRefs: string[]): string[] {
+const getLocalFileReferences = (
+  links: Link[],
+  inlineRefs: string[]
+): string[] => {
   const fromLinks = links
     .map((link) => link.url)
-    .filter((url) => !isExternalUrl(url))
-    .filter((url) => !url.startsWith("#")); // Skip anchor links
+    .filter(
+      (url) =>
+        !url.startsWith("#") &&
+        !url.startsWith("http://") &&
+        !url.startsWith("https://")
+    );
   return [...new Set([...fromLinks, ...inlineRefs])];
-}
-
-/**
- * Get all files in the references directory
- */
-function getReferencesFiles(skillPath: string): string[] {
-  const referencesPath = join(skillPath, "references");
-  try {
-    if (!fileExists(referencesPath)) {
-      return [];
-    }
-    const entries = readdirSync(referencesPath);
-    return entries.filter((entry) => {
-      const fullPath = join(referencesPath, entry);
-      return statSync(fullPath).isFile();
-    });
-  } catch {
-    return [];
-  }
-}
+};
 
 describe("Reference Validation", () => {
   const skills = discoverSkills();
 
-  if (skills.length === 0) {
-    test("at least one skill exists", () => {
-      expect(skills.length).toBeGreaterThan(0);
-    });
-  }
+  test("discovers at least one skill", () => {
+    expect(skills.length).toBeGreaterThan(0);
+  });
 
-  for (const skillName of skills) {
-    describe(`skill: ${skillName}`, () => {
-      let ast: Root;
-      let localRefs: string[];
-      const skillPath = getSkillPath(skillName);
+  test.each(skills)("%s has no broken local references", async (skillName) => {
+    const skillPath = getSkillPath(skillName);
+    const ast = parseMarkdown(await readSkillFile(skillName));
+    const localReferences = getLocalFileReferences(
+      extractLinks(ast),
+      extractInlineCodeReferences(ast)
+    );
+    const missingFiles = localReferences.filter(
+      (reference) => !fileExists(path.resolve(skillPath, reference))
+    );
 
-      test("can extract links from markdown", async () => {
-        const content = await readSkillFile(skillName);
-        ast = parseMarkdown(content);
-        const links = extractLinks(ast);
-        expect(Array.isArray(links)).toBe(true);
-      });
-
-      test("all local file references exist", async () => {
-        if (!ast) {
-          const content = await readSkillFile(skillName);
-          ast = parseMarkdown(content);
-        }
-        const links = extractLinks(ast);
-        const inlineRefs = extractInlineCodeReferences(ast);
-        localRefs = getLocalFileReferences(links, inlineRefs);
-
-        const missingFiles: string[] = [];
-        for (const ref of localRefs) {
-          const fullPath = resolve(skillPath, ref);
-          if (!fileExists(fullPath)) {
-            missingFiles.push(ref);
-          }
-        }
-
-        expect(missingFiles).toEqual([]);
-        if (missingFiles.length > 0) {
-          throw new Error(
-            `Missing files referenced in SKILL.md: ${missingFiles.join(", ")}`
-          );
-        }
-      });
-
-      test("warn on orphaned files in references/", async () => {
-        if (!localRefs) {
-          if (!ast) {
-            const content = await readSkillFile(skillName);
-            ast = parseMarkdown(content);
-          }
-          const links = extractLinks(ast);
-          const inlineRefs = extractInlineCodeReferences(ast);
-          localRefs = getLocalFileReferences(links, inlineRefs);
-        }
-
-        const referencesFiles = getReferencesFiles(skillPath);
-        if (referencesFiles.length === 0) {
-          // No references directory or files, skip this test
-          return;
-        }
-
-        // Get referenced files in the references directory
-        const referencedFiles = localRefs
-          .filter((ref) => ref.startsWith("references/"))
-          .map((ref) => ref.replace("references/", ""));
-
-        // Find orphaned files
-        const orphanedFiles = referencesFiles.filter(
-          (file) => !referencedFiles.includes(file)
-        );
-
-        // This is a warning test - we expect it to pass but log warnings
-        if (orphanedFiles.length > 0) {
-          console.warn(
-            `[${skillName}] Orphaned files in references/ (not referenced in SKILL.md): ${orphanedFiles.join(", ")}`
-          );
-        }
-
-        // Test always passes, this is just a warning
-        expect(true).toBe(true);
-      });
-
-      test("reference files are reasonably sized", () => {
-        const referencesFiles = getReferencesFiles(skillPath);
-        if (referencesFiles.length === 0) {
-          return;
-        }
-
-        const referencesPath = join(skillPath, "references");
-        for (const file of referencesFiles) {
-          const fullPath = join(referencesPath, file);
-          const content = readFileSync(fullPath, "utf-8");
-          const lines = content.split("\n");
-          const wordCount = content
-            .split(WHITESPACE_RE)
-            .filter((w) => w.length > 0).length;
-
-          if (lines.length > 300) {
-            console.warn(
-              `[${skillName}] references/${file} is ${lines.length} lines — consider adding a table of contents`
-            );
-          }
-          if (wordCount > 10_000) {
-            console.warn(
-              `[${skillName}] references/${file} is ${wordCount} words (recommended: <10,000)`
-            );
-          }
-        }
-
-        expect(true).toBe(true);
-      });
-    });
-  }
+    expect(
+      missingFiles,
+      `Missing files referenced in SKILL.md: ${missingFiles.join(", ")}`
+    ).toStrictEqual([]);
+  });
 });

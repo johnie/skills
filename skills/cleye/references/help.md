@@ -9,9 +9,9 @@ cleye uses all the information you provide — `name`, `parameters`, flag `descr
 Handled by default. To disable it, set `help: false`. The document can still be printed manually:
 
 ```typescript
-const argv = cli({ help: false, /* ... */ });
-argv.showHelp();              // print default help
-argv.showHelp({ /* HelpOptions */ }); // override content
+const argv = cli({ help: false /* ... */ });
+argv.showHelp(); // print default help
+argv.showHelp({/* HelpOptions */}); // override content
 ```
 
 ### Version (`--version`)
@@ -30,7 +30,11 @@ The version also appears in `--help`. To show a version in help _without_ auto-h
 > Tip: import `name`, `version`, and `description` from `package.json` to keep them in sync:
 >
 > ```typescript
-> import { name, version, description } from "./package.json" with { type: "json" };
+> import {
+>   name,
+>   version,
+>   description,
+> } from "./package.json" with { type: "json" };
 >
 > cli({ name, version, help: { description } });
 > ```
@@ -40,7 +44,7 @@ The version also appears in `--help`. To show a version in help _without_ auto-h
 `help` is either `false` or an object:
 
 | Property | Type | Description |
-|---|---|---|
+| --- | --- | --- |
 | `version` | `string` | Version shown in `--help`. |
 | `description` | `string` | Description shown in `--help`. |
 | `usage` | `string \| string[] \| false` | Usage examples. Pass `false` to disable the auto-generated usage. |
@@ -53,19 +57,19 @@ The version also appears in `--help`. To show a version in help _without_ auto-h
 
 ```typescript
 cli({
-    // ...
-    help: {
-        render(nodes, renderers) {
-            // Modify nodes — e.g. append a line
-            nodes.push("\nCheckout cleye: https://github.com/privatenumber/cleye");
+  // ...
+  help: {
+    render(nodes, renderers) {
+      // Modify nodes — e.g. append a line
+      nodes.push("\nCheckout cleye: https://github.com/privatenumber/cleye");
 
-            // Extend renderers — e.g. use `=` between flag and value
-            renderers.flagOperator = () => "=";
+      // Extend renderers — e.g. use `=` between flag and value
+      renderers.flagOperator = () => "=";
 
-            // Render and return
-            return renderers.render(nodes);
-        }
-    }
+      // Render and return
+      return renderers.render(nodes);
+    },
+  },
 });
 ```
 
@@ -85,9 +89,9 @@ The "Flags" table wraps cell content based on column and terminal width, with br
 
 ```typescript
 type IgnoreArgvCallback = (
-    type: "known-flag" | "unknown-flag" | "argument",
-    flagOrArgv: string,
-    value: string | undefined
+  type: "known-flag" | "unknown-flag" | "argument",
+  flagOrArgv: string,
+  value: string | undefined
 ) => boolean | void;
 ```
 

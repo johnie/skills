@@ -54,6 +54,7 @@ wp search-replace <old> <new> [<table>...]
 ```
 
 **Critical Gotchas**:
+
 - `guid` column warnings are normal - use `--skip-columns=guid` to suppress
 - Without `--precise`, serialized data may corrupt (slower but safer)
 - Always run with `--dry-run` first on production
@@ -146,6 +147,7 @@ wp plugin get <plugin>
 ```
 
 **Gotchas**:
+
 - `--force` overwrites without prompting - backup first
 - `wp plugin delete --all` only deletes inactive plugins (safety feature)
 - Network-activated plugins can't be deactivated on sub-sites
@@ -262,6 +264,7 @@ wp post term remove <id> <taxonomy> <term>...
 ```
 
 **Bulk delete pattern**:
+
 ```bash
 # Delete all draft posts — run the inner `wp post list` ALONE first to confirm the ID set
 wp post delete $(wp post list --post_status=draft --format=ids) --force
@@ -314,6 +317,7 @@ wp option patch <op> <key> <key-path> <value>  # Update nested values
 ```
 
 **Common options**:
+
 - `siteurl` - WordPress address
 - `home` - Site address
 - `blogname` - Site title
@@ -362,6 +366,7 @@ wp cron test                 # Test if cron is working
 ```
 
 **Gotcha**: WordPress cron requires site traffic. Use system cron for reliable execution:
+
 ```bash
 */15 * * * * wp cron event run --due-now --path=/var/www/html
 ```
@@ -421,22 +426,26 @@ wp site unarchive <id>
 ## Performance Tips
 
 1. **Use `--format=ids` for piping**:
+
    ```bash
    wp post delete $(wp post list --post_status=draft --format=ids)
    ```
 
 2. **Skip plugins/themes for speed**:
+
    ```bash
    wp --skip-plugins db export
    wp --skip-themes cache flush
    ```
 
 3. **Limit fields to reduce output**:
+
    ```bash
    wp user list --fields=ID,user_login
    ```
 
 4. **Use JSON for structured data**:
+
    ```bash
    wp option get active_plugins --format=json
    ```

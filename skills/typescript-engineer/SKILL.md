@@ -54,7 +54,7 @@ Identify the user's goal first, then load the matching rule file on demand.
 Match keywords in the user's request to load the right rule file.
 
 | Keyword / topic | Rule file |
-|---|---|
+| --- | --- |
 | `as const`, `typeof`, `satisfies`, enum alternative, derive types from values | [as-const-typeof.md](references/as-const-typeof.md) |
 | array element type, `[number]` index | [array-index-access.md](references/array-index-access.md) |
 | `Partial`, `Record`, `Omit`, `Pick`, `ReturnType`, `Parameters`, `Awaited`, `NoInfer`, utility type | [utility-types.md](references/utility-types.md) |
@@ -100,8 +100,12 @@ See [generics-basics.md](references/generics-basics.md).
 
 ```ts
 function isUser(value: unknown): value is { id: number; name: string } {
-  return typeof value === "object" && value !== null
-      && "id" in value && "name" in value;
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    "name" in value
+  );
 }
 ```
 
@@ -113,7 +117,7 @@ See [type-narrowing.md](references/type-narrowing.md) and [assertion-functions.m
 
 ```ts
 const palette = {
-  red:   [255, 0, 0],
+  red: [255, 0, 0],
   green: [0, 255, 0],
 } as const satisfies Record<string, readonly [number, number, number]>;
 // palette.red → readonly [255, 0, 0]

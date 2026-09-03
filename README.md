@@ -34,12 +34,14 @@ npx skills add johnie/skills --skill <skillName>
 Create semantically correct, granular git commits by analyzing staged and unstaged changes.
 
 **Features:**
+
 - Automatic staging of all tracked changes
 - Intelligent grouping of related changes into atomic commits
 - Conventional commit format with semantic types
 - Built-in safety checks for merge conflicts and protected branches
 
 **Commands:**
+
 - `/commit` - Auto-commit without confirmation
 - `/commit -v` or `/commit --verify` - Show plan and ask for confirmation
 - `/commit --dry-run` - Preview commit plan without executing
@@ -48,6 +50,7 @@ Create semantically correct, granular git commits by analyzing staged and unstag
 - `/commit push -v` - Push with verification prompt
 
 **Commit Types:**
+
 - `feat` - New feature
 - `fix` - Bug fix
 - `refactor` - Code restructuring
@@ -67,6 +70,7 @@ Create semantically correct, granular git commits by analyzing staged and unstag
 Create, update, and review GitHub PRs with structured templates and comprehensive workflows.
 
 **Features:**
+
 - Structured PR templates with What/Why/How sections
 - Smart generation from commits and diffs
 - Update existing PRs while preserving user edits
@@ -74,6 +78,7 @@ Create, update, and review GitHub PRs with structured templates and comprehensiv
 - Draft PR support for work-in-progress changes
 
 **Commands:**
+
 - `/pr create` - Create PR with structured template
 - `/pr create -v` - Preview draft before creating
 - `/pr create --draft` - Create as draft PR (WIP)
@@ -82,11 +87,13 @@ Create, update, and review GitHub PRs with structured templates and comprehensiv
 - `/pr review <pr>` - Review PR by number or URL
 
 **Workflows:**
+
 - **Create**: Analyzes commits and diffs to generate comprehensive PR descriptions with proper formatting
 - **Update**: Regenerates What/How/Changes sections while preserving Testing, Screenshots, and Deployment notes
 - **Review**: Provides structured feedback on code quality, testing, security, and performance
 
 **Template Sections:**
+
 - What - Concise summary of changes
 - Why - Context and motivation
 - How - Implementation approach
@@ -105,6 +112,7 @@ Create, update, and review GitHub PRs with structured templates and comprehensiv
 Fetch and analyze GitHub Actions logs via `gh` CLI. Diagnoses CI failures, detects flaky tests, profiles slow steps, and suggests fixes. Stop clicking through the web UI — the terminal is faster, searchable, and doesn't crash on large output.
 
 **Features:**
+
 - Automatic failure diagnosis with root cause analysis
 - Flaky test detection by comparing recent runs
 - Step timing profiling to find bottlenecks
@@ -113,6 +121,7 @@ Fetch and analyze GitHub Actions logs via `gh` CLI. Diagnoses CI failures, detec
 - Pattern matching against 80+ known failure signatures
 
 **Commands:**
+
 - `/gh-logs` - Auto-detect repo + branch, diagnose latest failure
 - `/gh-logs <run-id>` - Analyze a specific run
 - `/gh-logs --flaky` - Detect flaky tests across recent runs
@@ -121,6 +130,7 @@ Fetch and analyze GitHub Actions logs via `gh` CLI. Diagnoses CI failures, detec
 - `/gh-logs --watch` - Monitor a running workflow in real time
 
 **Failure Categories:**
+
 - Test failures (Jest, Vitest, pytest, Go, Rust)
 - Build errors (TypeScript, Webpack, esbuild, Docker)
 - Dependency issues (npm, pip, Docker registry)
@@ -130,6 +140,7 @@ Fetch and analyze GitHub Actions logs via `gh` CLI. Diagnoses CI failures, detec
 - Timeouts and stuck steps
 
 **Output:**
+
 - Structured diagnosis with category, root cause, log excerpt, and actionable fix
 - Flaky test reports with pass/fail ratios and stabilization suggestions
 - Step timing tables sorted by duration with optimization advice
@@ -145,24 +156,28 @@ Fetch and analyze GitHub Actions logs via `gh` CLI. Diagnoses CI failures, detec
 Build type-safe CLI applications with Stricli, Bloomberg's TypeScript CLI framework.
 
 **Features:**
+
 - Compile-time type checking for command parameters
 - Automatic help generation
 - Flexible command routing for multi-command CLIs
 - Support for flags, positional arguments, and custom parsers
 
 **Use Cases:**
+
 - Creating command-line tools with TypeScript
 - Defining commands with typed flags and positional arguments
 - Organizing multi-command CLIs with route maps
 - Compile-time parameter validation
 
 **Core APIs:**
+
 - `buildCommand` - Create typed commands with parameters
 - `buildRouteMap` - Organize multiple commands with routing
 - `buildApplication` - Wrap commands into executable apps
 - `run` - Execute the application
 
 **Parameter Types:**
+
 - Boolean flags (`--verbose`)
 - Counter flags (`-vvv`)
 - Enum flags (`--format json|yaml|text`)
@@ -180,23 +195,27 @@ Build type-safe CLI applications with Stricli, Bloomberg's TypeScript CLI framew
 Build type-safe CLIs with cleye, an intuitive argv parser that turns a declarative options object into strongly-typed parameters and flags with auto-generated help.
 
 **Features:**
+
 - Strongly-typed parameters and flags inferred from your config
 - Automatic `--help` and `--version` documentation generation
 - Subcommand support via `command()`
 - Powerful flag parsing (powered by `type-flag`)
 
 **Use Cases:**
+
 - Authoring a new cleye CLI with `cli({ ... })`
 - Defining typed flags and positional parameters
 - Organizing multi-command CLIs with `command()`
 - Validating input with custom type functions or `cleye/formats`
 
 **Core APIs:**
+
 - `cli(options, callback?, argvs?)` - Parse argv into typed parameters and flags
 - `command(options, callback?)` - Define and register subcommands
 - `cleye/formats` - Type helpers (`oneOf`, `commaList`, `integer`, `float`, `range`, `url`)
 
 **Parameter & Flag Types:**
+
 - Required `<param>`, optional `[param]`, and spread `[param...]` parameters
 - Type functions (String, Number, Boolean, custom)
 - Array flags for multiple values (`[Number]`)
@@ -213,6 +232,7 @@ Build type-safe CLIs with cleye, an intuitive argv parser that turns a declarati
 WordPress CLI operations for database management, plugins, themes, users, content, and site configuration.
 
 **Features:**
+
 - Safe database migrations with automatic backups
 - Bulk plugin and theme updates
 - User management and audits
@@ -220,6 +240,7 @@ WordPress CLI operations for database management, plugins, themes, users, conten
 - Remote execution via SSH
 
 **Command Categories:**
+
 - `wp db` - Database operations (export, import, query, optimize)
 - `wp core` - WordPress core management (install, update, verify)
 - `wp plugin` / `wp theme` - Plugin and theme management
@@ -231,6 +252,7 @@ WordPress CLI operations for database management, plugins, themes, users, conten
 - `wp config` - Configuration file management
 
 **Common Workflows:**
+
 - Site migration between environments
 - Bulk plugin updates with rollback support
 - User audits and cleanup
@@ -238,6 +260,7 @@ WordPress CLI operations for database management, plugins, themes, users, conten
 - Database backups and imports
 
 **Safety Features:**
+
 - Automatic backup reminders before destructive operations
 - Dry-run flags for testing commands
 - Explicit confirmation required for dangerous operations
@@ -253,12 +276,14 @@ WordPress CLI operations for database management, plugins, themes, users, conten
 Designs complex generic types, refactors `any` to strict alternatives, creates type guards and utility types, resolves TypeScript compiler errors, and explains type-level concepts.
 
 **Intent Paths:**
+
 - **Fix errors** - Run `tsc`, diagnose root cause, apply fix, verify
 - **Design types** - Clarify shape, pick technique, build incrementally
 - **Refactor for safety** - Audit `any` usage, plan replacements, apply file-by-file
 - **Explain/teach** - Identify concept, load relevant rule, explain with examples
 
 **Topics Covered:**
+
 - Generics, constraints, and type inference
 - Conditional types and `infer` keyword
 - Mapped types and template literal types
@@ -275,8 +300,7 @@ Designs complex generic types, refactors `any` to strict alternatives, creates t
 - Error diagnosis strategies
 - Version notes for TypeScript 5.5 through 7.x
 
-**Rule Files:**
-17 reference documents covering core patterns, advanced generics, type-level programming, type safety patterns, debugging, and version currency — with a keyword routing table for fast lookup.
+**Rule Files:** 17 reference documents covering core patterns, advanced generics, type-level programming, type safety patterns, debugging, and version currency — with a keyword routing table for fast lookup.
 
 </details>
 
@@ -288,6 +312,7 @@ Designs complex generic types, refactors `any` to strict alternatives, creates t
 Extract structured meeting summaries and action items from Spark Mail shared links. Processes single URLs or batch processes unchecked links from links.md.
 
 **Features:**
+
 - Extracts meeting metadata (date, participants, duration)
 - Captures summary and key discussion points
 - Parses action items with owners and due dates
@@ -297,16 +322,19 @@ Extract structured meeting summaries and action items from Spark Mail shared lin
 - Batch processing support with checkbox tracking
 
 **Commands:**
+
 - `/extract-spark-meetings <url>` - Process a single Spark Mail link
 - `/extract-spark-meetings` - Batch process all unchecked links from links.md
 
 **Output:**
+
 - Files saved to `spark-meetings/YYYY-MM-DD-{title}.md`
 - Rich frontmatter enables filtering by date, participant, or tag
 - Action item checkboxes for task tracking
 - Original Spark URL preserved for reference
 
 **Workflows:**
+
 - **Single URL**: Extracts one meeting and optionally updates links.md if URL is found
 - **Batch Mode**: Processes all unchecked (`- [ ]`) URLs from links.md sequentially, marking each as checked (`- [x]`) after successful extraction
 
@@ -334,12 +362,13 @@ pnpm run skills --help
 ```
 
 **Commands:**
-| Command | Alias | Description |
-|---------|-------|-------------|
-| `list` | `ls` | List all skills with their symlink status |
-| `link <name>` | - | Create symlink for a skill to ~/.claude/skills/ |
-| `unlink <name>` | - | Remove symlink for a skill |
-| `interactive` | `i` | Interactive TUI mode (default when no args) |
+
+| Command         | Alias | Description                                     |
+| --------------- | ----- | ----------------------------------------------- |
+| `list`          | `ls`  | List all skills with their symlink status       |
+| `link <name>`   | -     | Create symlink for a skill to ~/.claude/skills/ |
+| `unlink <name>` | -     | Remove symlink for a skill                      |
+| `interactive`   | `i`   | Interactive TUI mode (default when no args)     |
 
 ### Authoring a skill
 

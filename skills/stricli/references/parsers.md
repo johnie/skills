@@ -116,11 +116,11 @@ If the type is naturally a string literal union, `kind: "enum"` is often simpler
 
 ```typescript
 const portParser = (input: string): number => {
-    const port = Number.parseInt(input, 10);
-    if (Number.isNaN(port) || port < 1 || port > 65535) {
-        throw new Error(`Invalid port: ${input}`);
-    }
-    return port;
+  const port = Number.parseInt(input, 10);
+  if (Number.isNaN(port) || port < 1 || port > 65535) {
+    throw new Error(`Invalid port: ${input}`);
+  }
+  return port;
 };
 ```
 
@@ -132,11 +132,11 @@ Parsers can use `this` to access injected services.
 import type { CommandContext, InputParser } from "@stricli/core";
 
 interface AppContext extends CommandContext {
-    readonly aliases: Map<string, string>;
+  readonly aliases: Map<string, string>;
 }
 
 const aliasParser: InputParser<string, AppContext> = function (input) {
-    return this.aliases.get(input) ?? input;
+  return this.aliases.get(input) ?? input;
 };
 ```
 
@@ -148,16 +148,16 @@ Async parsers are supported.
 import type { CommandContext, InputParser } from "@stricli/core";
 
 interface AppContext extends CommandContext {
-    readonly registry: {
-        hasProject(name: string): Promise<boolean>;
-    };
+  readonly registry: {
+    hasProject(name: string): Promise<boolean>;
+  };
 }
 
 const projectParser: InputParser<string, AppContext> = async function (input) {
-    if (!(await this.registry.hasProject(input))) {
-        throw new Error(`Unknown project: ${input}`);
-    }
-    return input;
+  if (!(await this.registry.hasProject(input))) {
+    throw new Error(`Unknown project: ${input}`);
+  }
+  return input;
 };
 ```
 
@@ -165,11 +165,11 @@ const projectParser: InputParser<string, AppContext> = async function (input) {
 
 ```typescript
 const urlParser = (input: string): URL => {
-    const url = new URL(input);
-    if (!["http:", "https:"].includes(url.protocol)) {
-        throw new Error("URL must use http or https");
-    }
-    return url;
+  const url = new URL(input);
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new Error("URL must use http or https");
+  }
+  return url;
 };
 ```
 
@@ -179,11 +179,11 @@ The `as T` cast is a convenience — it does not validate the shape at runtime. 
 
 ```typescript
 const jsonParser = <T = unknown>(input: string): T => {
-    try {
-        return JSON.parse(input) as T;
-    } catch {
-        throw new Error(`Invalid JSON: ${input}`);
-    }
+  try {
+    return JSON.parse(input) as T;
+  } catch {
+    throw new Error(`Invalid JSON: ${input}`);
+  }
 };
 ```
 

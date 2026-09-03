@@ -71,6 +71,7 @@ type Step3 = Step2[number];
 ### "Type 'X' is not assignable to type 'Y'"
 
 The most common error. Check:
+
 1. Are you missing properties?
 2. Are property types incompatible?
 3. Is there a literal vs widened type mismatch?

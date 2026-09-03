@@ -1,10 +1,14 @@
 import { buildCommand } from "@stricli/core";
+
 import type { LocalContext } from "../context";
 import { linkSkill } from "../shared";
 
 export const linkCommand = buildCommand({
   docs: {
     brief: "Create a symlink for a skill",
+  },
+  func(this: LocalContext, _flags: Record<string, never>, name: string) {
+    linkSkill(name, this);
   },
   parameters: {
     flags: {},
@@ -18,8 +22,5 @@ export const linkCommand = buildCommand({
         },
       ],
     },
-  },
-  func(this: LocalContext, _flags: Record<string, never>, name: string) {
-    linkSkill(name, this);
   },
 });

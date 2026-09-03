@@ -26,15 +26,15 @@ Start: Look at all changed files
 
 Derive scope from file paths:
 
-| Path pattern | Scope |
-|---|---|
-| `src/routes/auth.ts` | `auth` |
-| `src/components/Button.tsx` | `button` or `ui` |
-| `lib/db/migrations/...` | `db` |
-| `tests/cart.test.ts` | `cart` |
+| Path pattern                    | Scope                           |
+| ------------------------------- | ------------------------------- |
+| `src/routes/auth.ts`            | `auth`                          |
+| `src/components/Button.tsx`     | `button` or `ui`                |
+| `lib/db/migrations/...`         | `db`                            |
+| `tests/cart.test.ts`            | `cart`                          |
 | `package.json`, `tsconfig.json` | _(no scope)_ or `deps`/`config` |
-| `src/utils/date.ts` | `utils` or `date` |
-| `.github/workflows/ci.yml` | `ci` |
+| `src/utils/date.ts`             | `utils` or `date`               |
+| `.github/workflows/ci.yml`      | `ci`                            |
 
 **When multiple files share a scope**: Use the common parent. E.g., `src/auth/login.ts` + `src/auth/register.ts` --> scope is `auth`.
 
@@ -45,7 +45,7 @@ Derive scope from file paths:
 When the type isn't obvious:
 
 | Situation | Type | Reasoning |
-|---|---|---|
+| --- | --- | --- |
 | Rename variable for clarity, no behavior change | `refactor` | Restructuring code |
 | Rename variable AND fix a bug in same file | Split into `fix` + `refactor` | Different reasons for change |
 | Move code to new file, no changes | `refactor` | Restructuring only |
@@ -62,6 +62,7 @@ When the type isn't obvious:
 ### Scenario: 6 files changed
 
 Files:
+
 1. `src/routes/users.ts` - Add avatar upload endpoint
 2. `src/utils/image.ts` - New image resize utility
 3. `src/routes/users.test.ts` - Tests for avatar upload
@@ -117,7 +118,7 @@ Problem: The dependency and utility only exist to serve the feature. Splitting t
 New (untracked) files need special handling:
 
 | Situation | Action |
-|---|---|
+| --- | --- |
 | New file is part of a feature (e.g., new component + modified route) | Group with related tracked changes |
 | New standalone file (e.g., new config, new utility) | Own commit |
 | New test file for existing modified code | Separate `test()` commit |

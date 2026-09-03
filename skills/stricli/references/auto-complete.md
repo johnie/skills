@@ -49,36 +49,36 @@ Use them to add hidden install/uninstall commands to your own CLI.
 ```typescript
 import { buildApplication, buildRouteMap } from "@stricli/core";
 import {
-    buildInstallCommand,
-    buildUninstallCommand
+  buildInstallCommand,
+  buildUninstallCommand,
 } from "@stricli/auto-complete";
 import { version } from "../package.json";
 import { statusCommand } from "./commands/status";
 
 const routes = buildRouteMap({
-    routes: {
-        status: statusCommand,
-        install: buildInstallCommand("my-cli", {
-            bash: "__my_cli_bash_complete"
-        }),
-        uninstall: buildUninstallCommand("my-cli", {
-            bash: true
-        })
+  routes: {
+    status: statusCommand,
+    install: buildInstallCommand("my-cli", {
+      bash: "__my_cli_bash_complete",
+    }),
+    uninstall: buildUninstallCommand("my-cli", {
+      bash: true,
+    }),
+  },
+  docs: {
+    brief: "Example CLI",
+    hideRoute: {
+      install: true,
+      uninstall: true,
     },
-    docs: {
-        brief: "Example CLI",
-        hideRoute: {
-            install: true,
-            uninstall: true
-        }
-    }
+  },
 });
 
 export const app = buildApplication(routes, {
-    name: "my-cli",
-    versionInfo: {
-        currentVersion: version
-    }
+  name: "my-cli",
+  versionInfo: {
+    currentVersion: version,
+  },
 });
 ```
 

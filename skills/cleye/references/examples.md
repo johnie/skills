@@ -8,34 +8,36 @@ Composite patterns that combine the building blocks covered in the other referen
 import { cli, command } from "cleye";
 
 const argv = cli({
-    name: "pm",
-    version: "1.2.3",
-    commands: [
-        command({
-            name: "install",
-            alias: "i",
-            parameters: ["<package name>"],
-            flags: {
-                saveDev: Boolean,
-                noSave: Boolean
-            }
-        }),
-        command({
-            name: "run",
-            parameters: ["<script>", "--", "[arguments...]"]
-        })
-    ]
+  name: "pm",
+  version: "1.2.3",
+  commands: [
+    command({
+      name: "install",
+      alias: "i",
+      parameters: ["<package name>"],
+      flags: {
+        saveDev: Boolean,
+        noSave: Boolean,
+      },
+    }),
+    command({
+      name: "run",
+      parameters: ["<script>", "--", "[arguments...]"],
+    }),
+  ],
 });
 
 switch (argv.command) {
-    case "install":
-        console.log(`Installing ${argv._.packageName} (dev=${!!argv.flags.saveDev})`);
-        break;
-    case "run":
-        console.log(`Running ${argv._.script} with`, argv._.arguments);
-        break;
-    default:
-        argv.showHelp(); // no command matched
+  case "install":
+    console.log(
+      `Installing ${argv._.packageName} (dev=${!!argv.flags.saveDev})`
+    );
+    break;
+  case "run":
+    console.log(`Running ${argv._.script} with`, argv._.arguments);
+    break;
+  default:
+    argv.showHelp(); // no command matched
 }
 
 // $ pm i lodash --save-dev
@@ -53,16 +55,18 @@ import { command } from "cleye";
 import { oneOf } from "cleye/formats";
 
 export const buildCommand = command(
-    {
-        name: "build",
-        flags: {
-            target: { type: oneOf("node", "browser"), default: "node" },
-            minify: Boolean
-        }
+  {
+    name: "build",
+    flags: {
+      target: { type: oneOf("node", "browser"), default: "node" },
+      minify: Boolean,
     },
-    (argv) => {
-        console.log(`Building for ${argv.flags.target}, minify=${!!argv.flags.minify}`);
-    }
+  },
+  (argv) => {
+    console.log(
+      `Building for ${argv.flags.target}, minify=${!!argv.flags.minify}`
+    );
+  }
 );
 ```
 
@@ -73,8 +77,8 @@ import { cli } from "cleye";
 import { buildCommand } from "./commands/build.js";
 
 cli({
-    name: "bundler",
-    commands: [buildCommand]
+  name: "bundler",
+  commands: [buildCommand],
 });
 ```
 
@@ -86,19 +90,19 @@ When a callback returns a Promise, `cli()` returns a Promise too:
 import { cli } from "cleye";
 
 await cli(
-    {
-        name: "deploy",
-        parameters: ["<env>"],
-        flags: { dryRun: Boolean }
-    },
-    async (argv) => {
-        if (argv.flags.dryRun) {
-            console.log(`Would deploy to ${argv._.env}`);
-            return;
-        }
-        await deploy(argv._.env);
-        console.log(`Deployed to ${argv._.env}`);
+  {
+    name: "deploy",
+    parameters: ["<env>"],
+    flags: { dryRun: Boolean },
+  },
+  async (argv) => {
+    if (argv.flags.dryRun) {
+      console.log(`Would deploy to ${argv._.env}`);
+      return;
     }
+    await deploy(argv._.env);
+    console.log(`Deployed to ${argv._.env}`);
+  }
 );
 ```
 
@@ -109,18 +113,18 @@ import { cli } from "cleye";
 import { integer, range, url } from "cleye/formats";
 
 const argv = cli({
-    name: "serve",
-    flags: {
-        port: { type: range(1024, 65_535), default: 8080 },
-        workers: { type: integer(), default: 1 },
-        origin: { type: url(), description: "Allowed CORS origin" }
-    }
+  name: "serve",
+  flags: {
+    port: { type: range(1024, 65_535), default: 8080 },
+    workers: { type: integer(), default: 1 },
+    origin: { type: url(), description: "Allowed CORS origin" },
+  },
 });
 
 // $ serve --port 3000 --workers 4 --origin https://example.com
-argv.flags.port;    // number in [1024, 65535]
+argv.flags.port; // number in [1024, 65535]
 argv.flags.workers; // integer
-argv.flags.origin;  // URL | undefined
+argv.flags.origin; // URL | undefined
 ```
 
 Invalid input is reported automatically because the type functions throw:
@@ -138,13 +142,13 @@ Pass a subset of argv straight through to a wrapped tool without cleye trying to
 import { cli } from "cleye";
 
 const argv = cli({
-    name: "wrap",
-    parameters: ["<tool>"],
-    flags: { verbose: Boolean },
-    // Ignore everything after the tool name so it can be forwarded verbatim
-    ignoreArgv(type) {
-        return type === "unknown-flag" || type === "argument";
-    }
+  name: "wrap",
+  parameters: ["<tool>"],
+  flags: { verbose: Boolean },
+  // Ignore everything after the tool name so it can be forwarded verbatim
+  ignoreArgv(type) {
+    return type === "unknown-flag" || type === "argument";
+  },
 });
 
 // Inspect what cleye chose to ignore vs. parse
@@ -160,14 +164,14 @@ Disable auto-handling and print on your own terms:
 import { cli } from "cleye";
 
 const argv = cli({
-    name: "tool",
-    version: "0.1.0",
-    help: false,
-    flags: { info: Boolean }
+  name: "tool",
+  version: "0.1.0",
+  help: false,
+  flags: { info: Boolean },
 });
 
 if (argv.flags.info) {
-    argv.showVersion();
-    argv.showHelp();
+  argv.showVersion();
+  argv.showHelp();
 }
 ```

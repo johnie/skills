@@ -22,11 +22,11 @@ Check the installed version before using anything here — on 1.2.x none of thes
 import { buildApplication, help, version } from "@stricli/core";
 
 export const app = buildApplication(root, {
-    name: "my-cli",
-    versionInfo: { currentVersion: "1.2.3" },
-    integrations: {
-        telemetry: telemetryIntegration,
-    },
+  name: "my-cli",
+  versionInfo: { currentVersion: "1.2.3" },
+  integrations: {
+    telemetry: telemetryIntegration,
+  },
 });
 ```
 
@@ -48,12 +48,12 @@ This is the single most likely way to break a working CLI while adopting 1.3.0.
 
 ```typescript
 type StricliIntegration<CONTEXT extends CommandContext> = {
-    // Runs at build time. Throw to reject an incompatible application config.
-    // The integration's name is added to the error for you.
-    readonly validate?: (root, config) => void;
-    readonly hooks?: LifecycleHooks<CONTEXT>;
-    // `name` comes from the record key, so it is omitted here.
-    readonly flag?: Omit<ApplicationFlag<CONTEXT>, "name">;
+  // Runs at build time. Throw to reject an incompatible application config.
+  // The integration's name is added to the error for you.
+  readonly validate?: (root, config) => void;
+  readonly hooks?: LifecycleHooks<CONTEXT>;
+  // `name` comes from the record key, so it is omitted here.
+  readonly flag?: Omit<ApplicationFlag<CONTEXT>, "name">;
 };
 ```
 
@@ -64,7 +64,7 @@ All three fields are optional — an integration can be hooks-only, flag-only, o
 Four hooks, two application-level and two command-level:
 
 | Hook | `this` | Fires |
-|---|---|---|
+| --- | --- | --- |
 | `app:start` | `CommandContext` | Application starts, before any command runs |
 | `app:end` | `CommandContext` | Just before the application ends; args include `exitCode` |
 | `command:start` | your `CONTEXT` | A command is about to execute |
@@ -74,17 +74,17 @@ Four hooks, two application-level and two command-level:
 import type { StricliIntegration } from "@stricli/core";
 
 const timing: StricliIntegration<LocalContext> = {
-    hooks: {
-        "app:start"() {
-            performance.mark("cli-start");
-        },
-        "app:end"({ exitCode }) {
-            performance.mark("cli-end");
-            this.process.stderr.write(
-                `exit ${exitCode} after ${performance.measure("cli", "cli-start", "cli-end").duration}ms\n`
-            );
-        },
+  hooks: {
+    "app:start"() {
+      performance.mark("cli-start");
     },
+    "app:end"({ exitCode }) {
+      performance.mark("cli-end");
+      this.process.stderr.write(
+        `exit ${exitCode} after ${performance.measure("cli", "cli-start", "cli-end").duration}ms\n`
+      );
+    },
+  },
 };
 ```
 
@@ -98,13 +98,13 @@ A flag on an integration runs during route scanning, before the target command e
 
 ```typescript
 const dryRun: StricliIntegration<LocalContext> = {
-    flag: {
-        brief: "Print the plan without executing",
-        kind: "boolean",
-        run(app, args) {
-            // `this` is the ApplicationContext, not your CONTEXT
-        },
+  flag: {
+    brief: "Print the plan without executing",
+    kind: "boolean",
+    run(app, args) {
+      // `this` is the ApplicationContext, not your CONTEXT
     },
+  },
 };
 ```
 
@@ -116,10 +116,10 @@ Both factories take a configuration object and return a `StricliIntegration`:
 
 ```typescript
 help({
-    alias: "h",          // single-char alias, or `false` to disable it
-    includeHidden: false, // the `--helpAll` behaviour
-    formatting: { caseStyle: "convert-camel-to-kebab" },
-})
+  alias: "h", // single-char alias, or `false` to disable it
+  includeHidden: false, // the `--helpAll` behaviour
+  formatting: { caseStyle: "convert-camel-to-kebab" },
+});
 ```
 
 Typed as `HelpIntegrationConfiguration` and `VersionIntegrationConfiguration`. `help` validates case-style compatibility at build time and throws if the scanner reads names as `original` while display converts camel to kebab — a genuine misconfiguration that used to fail at runtime.

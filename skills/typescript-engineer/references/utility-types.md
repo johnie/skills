@@ -236,10 +236,7 @@ Combine utilities to create reusable type helpers:
 
 ```typescript
 // A type that wraps any async function, extending its return type
-type WrapFunction<
-  TFunc extends (...args: any) => any,
-  TAdditional = {}
-> = (
+type WrapFunction<TFunc extends (...args: any) => any, TAdditional = {}> = (
   ...args: Parameters<TFunc>
 ) => Promise<Awaited<ReturnType<TFunc>> & TAdditional>;
 
@@ -260,19 +257,19 @@ const fetchUserWithMeta: WrapFunction<
 
 ## When to Use Each Utility
 
-| Utility | Use Case |
-|---------|----------|
-| `Parameters<T>` | Wrapping functions, creating function variants |
-| `ReturnType<T>` | Extracting return types when not explicitly exported |
-| `Awaited<T>` | Unwrapping Promise types |
-| `Record<K, V>` | Creating object types with dynamic keys |
-| `Partial<T>` | Update/patch operations |
-| `Required<T>` | Ensuring all config options are provided |
-| `Omit<T, K>` | Removing sensitive or internal fields |
-| `Pick<T, K>` | Creating focused subsets of types |
-| `Exclude<T, U>` | Filtering union types |
-| `Extract<T, U>` | Selecting from union types |
-| `NonNullable<T>` | Removing null/undefined after validation |
+| Utility          | Use Case                                             |
+| ---------------- | ---------------------------------------------------- |
+| `Parameters<T>`  | Wrapping functions, creating function variants       |
+| `ReturnType<T>`  | Extracting return types when not explicitly exported |
+| `Awaited<T>`     | Unwrapping Promise types                             |
+| `Record<K, V>`   | Creating object types with dynamic keys              |
+| `Partial<T>`     | Update/patch operations                              |
+| `Required<T>`    | Ensuring all config options are provided             |
+| `Omit<T, K>`     | Removing sensitive or internal fields                |
+| `Pick<T, K>`     | Creating focused subsets of types                    |
+| `Exclude<T, U>`  | Filtering union types                                |
+| `Extract<T, U>`  | Selecting from union types                           |
+| `NonNullable<T>` | Removing null/undefined after validation             |
 
 ## NoInfer\<T\> (TS 5.4+)
 
@@ -280,10 +277,7 @@ Prevents a type parameter position from contributing to inference. Useful when a
 
 ```typescript
 // Without NoInfer — second argument can widen the inferred type
-function createFSM<TState extends string>(
-  initial: TState,
-  states: TState[]
-) {}
+function createFSM<TState extends string>(initial: TState, states: TState[]) {}
 
 // "off" | "on" | "broken" — "broken" sneaks in via states
 createFSM("off", ["on", "off", "broken"]);

@@ -14,7 +14,7 @@ description: Strategies for diagnosing and understanding TypeScript type errors
 - [Investigating Library Types](#investigating-library-types)
 - [When Types Don't Match Reality](#when-types-dont-match-reality)
 - [Prevention Strategies](#prevention-strategies)
-- [IDE Tips](#ide-tips)
+- [Tooling Without an Editor](#tooling-without-an-editor)
 
 ## Overview
 
@@ -34,23 +34,22 @@ Type '{ name: string; }' is not assignable to type 'User'.
                                               The actual issue!
 ```
 
-### 2. Hover for Type Information
+### 2. Materialize the Type
 
-Use IDE hover tooltips extensively:
+Without an editor tooltip, write the type down and let the compiler print it:
 
 ```typescript
 const result = someFunction(arg);
-//    ^ Hover here to see the inferred type
+type Probe = typeof result;
+// Force the expanded type into a diagnostic, then run `tsc --noEmit`
+const _probe: never = null as unknown as Probe;
 ```
 
-### 3. Use Go-to-Definition
+When you already know what the type should be, assert it instead so the check stays in the codebase — `type _Check = Expect<Equal<Probe, Expected>>;` (see [type-testing.md](type-testing.md)).
 
-Navigate to type definitions to understand what's expected:
+### 3. Read the Declaration
 
-```typescript
-document.querySelector("body");
-//       ^ Go-to-definition to see overloads
-```
+Find what a signature expects by reading its `.d.ts` directly. `grep -n "querySelector" node_modules/typescript/lib/lib.dom.d.ts` lists every overload; a language-server hover or go-to-definition does the same when a tool exposes one.
 
 ### 4. Create Test Types
 
@@ -243,28 +242,29 @@ Create type aliases to understand the comparison:
 type Actual = typeof problematicValue;
 type Expected = ExpectedType;
 
-// Now hover these to compare
+// Probe each with `const _a: never = null as unknown as Actual;` and read the diagnostics
 ```
 
 ## Investigating Library Types
 
 ### Finding Type Definitions
 
-1. Go-to-definition on imports
+1. Resolve the import to its `.d.ts`: `node -e "console.log(require.resolve('lib'))"`, then follow the `types` field in the package's `package.json`
 2. Check `node_modules/@types/[library]`
 3. Check `node_modules/[library]/dist/*.d.ts`
 
 ### Understanding Overloads
 
-Look for `(+N overload)` in tooltips:
+Overloaded declarations list every signature in the `.d.ts`; the first one whose parameters match is used, and an argument that fits none reports `No overload matches this call` with details for only the last candidate:
 
 ```typescript
-document.addEventListener("click", handler);
-//       ^ Shows (+1 overload)
-
-// Go-to-definition to see all overloads
-// The first matching overload is used
+// Materialize the overloads; the diagnostic prints every signature:
+type AddListener = typeof document.addEventListener;
+const _probe: never = null as unknown as AddListener;
+// error TS2322: Type '{ <K extends keyof DocumentEventMap>(type: K, ...): void; (type: string, ...): void; }' is not assignable to type 'never'.
 ```
+
+See [function-overloads.md](function-overloads.md) for writing and ordering overloads.
 
 ## When Types Don't Match Reality
 
@@ -340,10 +340,12 @@ function process(input: string | string[]) {
 }
 ```
 
-## IDE Tips
+## Tooling Without an Editor
 
-1. **Use TypeScript Version Selector**: Match your project's version
-2. **Enable Inlay Hints**: See inferred types inline
-3. **Use Quick Fix**: Often suggests the correct solution
-4. **Check Problems Panel**: See all errors at once
-5. **Use Rename Symbol**: Safely rename types across files
+Everything an IDE shows in a tooltip can be materialized as source and checked with the compiler, which is the reliable path when you are working from a terminal:
+
+1. **Probe a type**: add `type Probe = typeof x;` (or `type Probe = ReturnType<typeof fn>;`) and force it into a diagnostic — `const _p: never = null as unknown as Probe;` prints the fully expanded type in the error message.
+2. **Assert a type**: `type _Check = Expect<Equal<Probe, Expected>>;` turns a wrong type into a compile error, so a passing `tsc --noEmit` is proof — see [type-testing.md](type-testing.md).
+3. **List every error at once**: `tsc --noEmit --pretty false` gives one line per diagnostic, easy to grep or count.
+4. **Match the project's version**: run `npx tsc` (the installed binary), never a global `tsc`, so the diagnostics match what the build sees.
+5. **Use the language server when a tool exposes it**: hover, go-to-definition, and quick-fix over an LSP/`tsserver` bridge are faster than probes when available; treat them as a shortcut, not a requirement.

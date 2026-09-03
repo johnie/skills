@@ -1,6 +1,6 @@
 ---
 name: typescript-versions
-description: What changed in TypeScript 5.5 through 7.x that affects type-level design and error diagnosis
+description: What changed in TypeScript 5.5 through 7.x that affects type-level design and error diagnosis, including 6.0 default changes and 7.0's native compiler
 ---
 
 # TypeScript Version Notes (5.5 → 7.x)
@@ -12,6 +12,7 @@ Only the changes that alter _advice_, not the full release notes. Check the proj
 - [Check the version first](#check-the-version-first)
 - [TypeScript 7.0 — the native compiler](#typescript-70--the-native-compiler)
 - [TypeScript 6.0 — the deprecation cutover](#typescript-60--the-deprecation-cutover)
+- [5.9 — inference tightening, `import defer`, `--module node20`](#59--inference-tightening-import-defer---module-node20)
 - [5.8 — `erasableSyntaxOnly`](#58--erasablesyntaxonly)
 - [5.7 — uninitialized variable checks](#57--uninitialized-variable-checks)
 - [5.6 — iterator and truthiness checks](#56--iterator-and-truthiness-checks)
@@ -31,13 +32,27 @@ Most of the guidance in this skill is version-independent, but the items below a
 7.0 replaced the JavaScript compiler with a native (Go) port. What actually matters day to day:
 
 - **`tsc` is still the command.** The `typescript` package exposes `bin/tsc` as before, so `tsc --noEmit` remains the right way to reproduce an error. There is no separate `tsgo` binary to invoke in a released 7.x — that name belonged to the `@typescript/native-preview` package during the preview period.
-- **Type-checking semantics are intended to match** the 6.x line. Treat a genuine behavioural difference as a bug worth reporting upstream, not as something to design around.
+- **Type-checking semantics match 6.0 with `--stableTypeOrdering` on** and no `ignoreDeprecations` set. Every 6.0 default change and deprecation (below) is a hard error in 7.0. Treat any other behavioural difference as a bug worth reporting upstream, not as something to design around.
 - **Speed changes workflow.** Full-project checks are cheap enough that "run `tsc --noEmit` and read the real error" beats reasoning from a snippet, even on large repos. Lean on it harder than you would have on 5.x.
-- **Compiler-API consumers are the actual breakage surface.** Custom transformers, ts-morph-style tooling, and anything importing from `typescript` directly may need work. That's build tooling, not type design — out of scope for this skill.
+- **No programmatic compiler API in 7.0.** `import ts from "typescript"` has nothing to import until 7.1 ships a new API. Tools that need one (typescript-eslint, ts-morph, custom transformers, Volar-based editor tooling for Vue/Svelte/Astro/MDX, Angular template checking) stay on 6.x via the bridge package `@typescript/typescript6`, which re-exports the 6.0 API and ships a `tsc6` binary. The documented layout aliases it in as `typescript` and installs 7.0 under another name so `npx tsc` is native and the tooling keeps its API. For type-design work this means: check with 7.0's `tsc`, but expect the editor in a Vue/Svelte/Astro project to still be reporting 6.x diagnostics.
+- **Template literal inference splits on Unicode code points.** With `type HeadTail<S> = S extends` `` `${infer Head}${infer Tail}` `` `? [Head, Tail] : never`, `HeadTail<"😀abc">` is now `["😀", "abc"]`; through 6.x it was `["\ud83d", "\ude00abc"]`. Recursive `Length`/`Reverse`/`Split` utilities change their answers for non-BMP input — see [template-literal-types.md](template-literal-types.md).
+- **JS files are checked like TS files.** Closure-style JSDoc (`@enum`, `@class`, bare `?`, postfix `!`, `function(string): void`) is no longer specially recognized — relevant when migrating JavaScript toward types.
 
 ## TypeScript 6.0 — the deprecation cutover
 
-6.0 is the final JavaScript-based release and exists mainly to remove long-deprecated options and align behaviour with 7.0. If a project is on 6.x and something stopped compiling after the upgrade, suspect a removed `tsconfig` option before suspecting a type bug.
+6.0 is the final JavaScript-based release and exists mainly to remove long-deprecated options and align behaviour with 7.0. If a project is on 6.x and something stopped compiling after the upgrade, suspect a default change or removed `tsconfig` option before suspecting a type bug.
+
+- **Defaults flipped:** `strict: true`, `module: "esnext"`, `target` floats to the latest stable ES version (`es2025` at release), `types: []` (only listed `@types` packages become globals; `["*"]` restores the old sweep), and `rootDir` is the `tsconfig.json` directory instead of the inferred common source root. The two symptoms to recognize: a sudden wave of strict-mode errors in a project that never set `strict`, and `Cannot find name 'describe'`/`process` because `@types/*` are no longer auto-included.
+- **Removed with no-op behaviour under `ignoreDeprecations: "6.0"`, hard errors in 7.0:** `target: es5`, `downlevelIteration`, `moduleResolution: node`/`node10`/`classic`, `module: amd`/`umd`/`systemjs`/`none`, `baseUrl`, `outFile`, `esModuleInterop: false`, `alwaysStrict: false`, `module` keyword for namespaces, `assert` on imports (use `with`).
+- **`--stableTypeOrdering`** makes 6.0 sort types and symbols the way 7.0's parallel checker does. Union order in declaration emit and error text stops depending on declaration order, and an error that appears only under the flag is an inference that happened to work by luck — fix it with an explicit type argument (`call<Explicit>(…)`) or a variable annotation. Diagnostic aid only (up to 25% slower); it is always on and unconfigurable in 7.0.
+- **Less context-sensitivity for `this`-less functions.** A function whose parameters lack annotations used to be skipped during type-argument inference whenever it _could_ reference `this` (method syntax, `function` expressions). 6.0 only treats it as context-sensitive if the body actually uses `this`, so `callIt({ consume(y) { … }, produce(x: number) { … } })` now infers `y` regardless of property order. Expect fewer `'y' is of type 'unknown'` errors on upgrade, and a few generic calls (notably generic JSX) that now need an explicit type argument.
+
+## 5.9 — inference tightening, `import defer`, `--module node20`
+
+- **Type-argument inference no longer leaks type variables** ([microsoft/TypeScript#61668](https://github.com/microsoft/TypeScript/pull/61668)). Some calls that inferred a leaked `T` now report errors or produce a different type. The fix is almost always an explicit type argument on the generic call; recommend that before restructuring the types.
+- **`import defer * as ns from "./mod"`** defers module evaluation until a member of `ns` is first accessed. Namespace form only — `import defer { x }` and `import defer x` are syntax errors — and it is never downleveled, so it needs `--module esnext` or `preserve` and a runtime or bundler that implements it.
+- **`--module node20`** is a frozen snapshot of Node 20 resolution (implies `--target es2023`), unlike `nodenext`, which keeps moving. Suggest it when a project wants resolution that will not change under its feet.
+- **`lib.d.ts`:** `ArrayBuffer` is no longer a supertype of typed arrays, so `Buffer`/`Uint8Array` passed where `ArrayBuffer` is expected now errors. Write `Uint8Array<ArrayBuffer>` explicitly, pass `.buffer`, or update `@types/node`.
 
 ## 5.8 — `erasableSyntaxOnly`
 
@@ -46,7 +61,7 @@ Most of the guidance in this skill is version-independent, but the items below a
 - `enum` declarations
 - `namespace`/`module` blocks with runtime members
 - constructor parameter properties (`constructor(private x: string) {}`)
-- non-declare class fields relying on TS-only emit
+- non-ECMAScript `import x = require(...)` / `import x = ns.y` aliases and `export =` assignments
 
 This makes the `as const` object pattern the default choice over `enum` rather than merely the recommended one — see [as-const-typeof.md](as-const-typeof.md). When a project sets this flag, a suggestion built on `enum` simply won't compile.
 
@@ -83,6 +98,7 @@ Also in 5.5: control-flow narrowing through constant indexed access, which makes
 | Prefer `enum` for a closed set of values | Unusable under `erasableSyntaxOnly` (5.8+). Use `as const` objects |
 | `F.Narrow` / `ts-toolbelt` for literal preservation | Superseded since 5.0 by `const` type parameters — see [deep-inference.md](deep-inference.md) |
 | Invoke the native compiler as `tsgo` | Preview-only name. Released 7.x uses `tsc` |
+| Count string length at the type level by peeling `${infer H}${infer T}` | Counts UTF-16 code units on ≤6.x, code points on 7.0+ — see [template-literal-types.md](template-literal-types.md) |
 
 ## See also
 

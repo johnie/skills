@@ -10,8 +10,7 @@ description: Achieving deep type inference with const type parameters and as con
 - [The Problem: Type Widening](#the-problem-type-widening)
 - [Solution 1: `const` Type Parameter (TS 5.0+) — Recommended](#solution-1-const-type-parameter-ts-50--recommended)
 - [Solution 2: User-Provided `as const`](#solution-2-user-provided-as-const)
-- [Solution 3: `F.Narrow` from ts-toolbelt](#solution-3-fnarrow-from-ts-toolbelt)
-- [Solution 4: Custom Narrow Type](#solution-4-custom-narrow-type)
+- [Legacy (pre-5.0)](#legacy-pre-50)
 - [Practical Example: Type-Safe Router](#practical-example-type-safe-router)
 - [Combining with Conditional Types](#combining-with-conditional-types)
 - [Comparison of Techniques](#comparison-of-techniques)
@@ -141,61 +140,9 @@ const router = makeRouter({
 - Types become readonly (may require type adjustments)
 - Easy to forget, leading to subtle bugs
 
-## Solution 3: `F.Narrow` from ts-toolbelt
+## Legacy (pre-5.0)
 
-The `ts-toolbelt` library provides `F.Narrow` for automatic deep narrowing:
-
-```typescript
-import { F } from "ts-toolbelt";
-
-const makeRouter = <TConfig extends BaseRouterConfig>(
-  config: F.Narrow<TConfig>
-) => {
-  return { config };
-};
-
-const router = makeRouter({
-  "/": {},
-  "/search": {
-    search: ["query", "page"],
-  },
-});
-
-// TConfig is now:
-// {
-//   "/": {};
-//   "/search": {
-//     search: ["query", "page"]; // Literal tuple preserved!
-//   };
-// }
-```
-
-### How F.Narrow Works
-
-`F.Narrow` recursively narrows types to their literal forms:
-
-- Strings become literal string types
-- Numbers become literal number types
-- Arrays become tuples
-- Objects have their properties narrowed
-
-## Solution 4: Custom Narrow Type
-
-If you can't use ts-toolbelt and need to support pre-5.0 TypeScript:
-
-```typescript
-type Narrow<T> = T extends (...args: any[]) => any
-  ? T
-  : T extends []
-    ? []
-    : T extends readonly [infer First, ...infer Rest]
-      ? [Narrow<First>, ...Narrow<Rest>]
-      : T extends object
-        ? { [K in keyof T]: Narrow<T[K]> }
-        : T;
-
-// Note: This is simplified and may not cover all edge cases
-```
+Before `const` type parameters existed, libraries forced literal inference by wrapping the parameter type in a recursive conditional such as `F.Narrow<T>` from `ts-toolbelt` or a hand-written `Narrow<T>` that mapped strings to literals and arrays to tuples. Those helpers still appear in older codebases — recognize `config: F.Narrow<TConfig>` or `config: Narrow<TConfig>` as "preserve literals" and migrate to `<const TConfig extends …>(config: TConfig)`, which is built in, needs no dependency, and handles the edge cases the custom versions missed. This skill covers 5.x through 7.x, so there is no supported target where the legacy form is still required — see [typescript-versions.md](typescript-versions.md).
 
 ## Practical Example: Type-Safe Router
 
@@ -273,8 +220,7 @@ const post = api.call("getPost"); // Type: "Post"
 | --- | --- | --- |
 | `const` type param | Built-in, clean, recommended | TypeScript 5.0+ only |
 | `as const` | No dependencies | Manual, readonly types |
-| `F.Narrow` | Automatic, flexible | External dependency |
-| Custom Narrow | No dependencies, customizable | Complex, may miss edge cases |
+| `F.Narrow` / custom `Narrow<T>` | Worked before 5.0 | Legacy; replace with `const` type params |
 
 ## Common Pitfalls
 
@@ -327,4 +273,4 @@ type DeepConfig = {
 4. **Test with complex examples** to ensure inference works
 5. **Document the inference behavior** for API consumers
 
-`F.Narrow` is documented above for reading existing code, not for new work. `const` type parameters have been available since 5.0 and the current release line is 7.x, so "supporting older TypeScript" almost never justifies pulling in `ts-toolbelt` today. See [typescript-versions.md](typescript-versions.md).
+Code that still wraps parameters in `F.Narrow<T>` or a hand-rolled `Narrow<T>` is a migration target, not a pattern to copy — see [Legacy (pre-5.0)](#legacy-pre-50).

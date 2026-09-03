@@ -87,7 +87,7 @@
 ```markdown
 ## What
 
-Fixes null pointer exception in user profile page.
+Fixes null pointer exception when loading a user profile.
 
 ## Why
 
@@ -95,11 +95,11 @@ Users reported crashes when viewing profiles with missing avatar data.
 
 ## How
 
-Adds null check before accessing avatar URL property. Returns default avatar if null.
+Adds null check before accessing the avatar URL in the profile service. Returns the default avatar URL if null.
 
 ## Changes
 
-- Add null check in `ProfileCard.tsx`
+- Add null check in `profile.service.ts`
 - Add default avatar constant
 ```
 
@@ -108,7 +108,7 @@ Adds null check before accessing avatar URL property. Returns default avatar if 
 ```markdown
 ## What
 
-Fixes null pointer exception in user profile page.
+Fixes null pointer exception when loading a user profile.
 
 ## Why
 
@@ -116,11 +116,11 @@ Users reported crashes when viewing profiles with missing avatar data.
 
 ## How
 
-Adds null check before accessing avatar URL property. Returns default avatar if null.
+Adds null check before accessing the avatar URL in the profile service. Returns the default avatar URL if null.
 
 ## Changes
 
-- Add null check in `ProfileCard.tsx`
+- Add null check in `profile.service.ts`
 - Add default avatar constant
 - Add test case for null avatar scenario
 
@@ -214,7 +214,9 @@ Creates new `user_preferences` table with foreign key to users. Adds migration w
 
 ## Deployment
 
-- Run database migration before deploying: `npm run migrate` (use the project's package manager)
+- Run the migration before deploying: `<pm> run migrate`
 - Migration is backwards compatible - no downtime required
-- Rollback: `npm run migrate:rollback` removes table
+- Rollback: `<pm> run migrate:rollback` removes the table
 ```
+
+`<pm>` stands for the project's package manager (`npm`, `pnpm`, `yarn`); write the real command in the PR body.

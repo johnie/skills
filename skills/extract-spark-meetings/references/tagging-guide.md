@@ -91,12 +91,9 @@ tags:
 
 ## Tagging Best Practices
 
-1. **Always include meeting type** - Use exactly one type tag
-2. **Add 1-3 topic tags** - Don't over-tag; focus on primary topics
-3. **Include cadence for recurring meetings** - Helps identify patterns
-4. **Be consistent** - Use the same tags for similar meetings
-5. **Keep lowercase** - All tags should be lowercase for consistency
-6. **Use hyphens for multi-word tags** - e.g., `all-hands`, `one-on-one`
+1. **Be consistent** - Use the same tags for similar meetings
+2. **Keep lowercase** - All tags should be lowercase for consistency
+3. **Use hyphens for multi-word tags** - e.g., `all-hands`, `one-on-one`
 
 ## Custom Tags
 

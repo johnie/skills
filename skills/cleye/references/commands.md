@@ -1,6 +1,6 @@
 # Commands
 
-Commands let you organize multiple "scripts" under a single CLI — like `npm install` and `npm run` living inside `npm`. A command is defined with `command()` and registered in the `commands` array of `cli()`.
+Commands let you organize multiple "scripts" under a single CLI — like `npm install` and `npm run` living inside `npm`. On 2.x a command is defined with `command()` and registered in the `commands` array of `cli()`. The 3.x beta replaces this with a `commands` record and recursive `cli()` calls; see [`v3-migration.md`](v3-migration.md).
 
 ## Defining and registering commands
 

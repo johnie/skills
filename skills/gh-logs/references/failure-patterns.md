@@ -14,7 +14,7 @@ Signature database for matching log output to failure categories. When analyzing
 | Auth / permission | `GITHUB_TOKEN`, secrets, SSH keys | [Auth / Permission Failures](#auth--permission-failures) |
 | Timeout | Job timeout, step timeout, stuck processes | [Timeout Failures](#timeout-failures) |
 
-When multiple patterns match, pick the most upstream cause. Priority: `auth` > `deps` > `build` > `infra` > `lint` > `test` > `timeout`. A test that fails because deps didn't install is a deps bug.
+When several patterns match, apply the upstream-first priority from SKILL.md step 4.
 
 ## Test Failures
 
@@ -161,7 +161,7 @@ When multiple patterns match, pick the most upstream cause. Priority: `auth` > `
 | Pattern | Meaning |
 | --- | --- |
 | `The runner has received a shutdown signal` | Runner preempted/terminated |
-| `Job was cancelled` | Manual or concurrency cancellation |
+| `Job was cancelled` | Manual or concurrency cancellation — unless a timeout signature appears earlier in the log |
 | `This request was automatically failed` | GitHub infrastructure issue |
 | `The hosted runner encountered an error` | Runner provisioning failure |
 
@@ -186,7 +186,7 @@ When multiple patterns match, pick the most upstream cause. Priority: `auth` > `
 
 **Common root causes**: Forgot to run formatter before committing, pre-commit hook not set up locally.
 
-**Typical fixes**: Run the project's formatter via its package manager (e.g. `pnpm exec ultracite fix`, `npx prettier --write .`, `eslint --fix`), commit the changes.
+**Typical fixes**: Run the project's formatter and linter with their fix flags (whatever the repo's lint script wraps — `prettier --write`, `eslint --fix`, `biome check --write`), commit the changes.
 
 ## Auth / Permission Failures
 
@@ -207,7 +207,7 @@ When multiple patterns match, pick the most upstream cause. Priority: `auth` > `
 | Pattern | Meaning |
 | --- | --- |
 | `The job running on runner ... has exceeded the maximum execution time` | Job timeout (default 6h) |
-| `The operation was canceled` | Step timeout |
+| `The operation was canceled` after a long silent step | Step `timeout-minutes` hit; the run shows as cancelled but the cause is a hang |
 | No output for >10 minutes then cancellation | Stuck/hanging process |
 
 **Common root causes**: Infinite loop, deadlock, waiting for user input in CI, test hanging on network call.

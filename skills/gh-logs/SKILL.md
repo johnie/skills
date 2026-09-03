@@ -12,6 +12,7 @@ allowed-tools:
   - Bash(gh run watch *)
   - Bash(gh api repos/*/actions/*)
   - Bash(git branch *)
+  - Bash(${CLAUDE_SKILL_DIR}/scripts/classify-log.sh *)
 ---
 
 # gh-logs
@@ -41,7 +42,7 @@ Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 | `--flaky` | "is this test flaky?", "it passes locally" | [`references/failure-patterns.md`](references/failure-patterns.md) (test signatures) |
 | `--slow` | "why is the build so slow?" | [`references/gh-commands.md`](references/gh-commands.md) (timing jq) |
 | `--history [n]` | "has this been failing for a while?" (default 10) | [`references/analysis-templates.md`](references/analysis-templates.md) |
-| `--watch` | "watch this run and tell me when it's done" | [`references/analysis-templates.md`](references/analysis-templates.md) |
+| `--watch` | "watch this run and tell me when it's done" | [`references/gh-commands.md`](references/gh-commands.md) (`gh run watch` flags) |
 
 Every mode reports through a template in [`references/analysis-templates.md`](references/analysis-templates.md). A `<workflow-name>` argument narrows any mode to one workflow. Full `gh` invocation cookbook: [`references/gh-commands.md`](references/gh-commands.md).
 
@@ -77,14 +78,17 @@ This tells you which jobs failed and which steps inside them.
 ### 3. Fetch the failing logs
 
 ```bash
-gh run view <run-id> --log-failed
+gh run view <run-id> --log-failed > /tmp/run-<run-id>.log
+${CLAUDE_SKILL_DIR}/scripts/classify-log.sh /tmp/run-<run-id>.log
 ```
 
-If output is >5000 lines, narrow to a specific job: `gh run view <run-id> --job <job-id> --log-failed`. If still too large, `gh api` the raw log and `grep` for `error`/`FAIL`/`fatal`.
+Run the classifier before reading the log by hand: failed-step output is routinely 5000+ lines, and the script greps it against one signature regex per category, printing the hit count and the first five matching lines (with line numbers) for each, then `primary: <category>` — the most upstream category that matched. That narrows a wall of text to the lines that matter and tells you where to `sed -n` next.
+
+If the log is still unwieldy, narrow to one job: `gh run view <run-id> --job <job-id> --log-failed`. If even that is too large, `gh api` the raw log and grep for `error`/`FAIL`/`fatal`.
 
 ### 4. Classify
 
-Match log lines against [`references/failure-patterns.md`](references/failure-patterns.md). Pick one primary category:
+Start from the classifier's `primary:` line, then confirm against the surrounding log and [`references/failure-patterns.md`](references/failure-patterns.md) — the script only sees signatures, not causality. Pick one primary category:
 
 | Category | Strongest signals |
 | --- | --- |
@@ -120,16 +124,16 @@ For each failed run, extract failed test names from the log. Tests that fail in 
 
 ### Slow step profiling — `--slow`
 
-Step-level timestamps come from the REST jobs endpoint (`gh run view --json jobs` exposes timing only on jobs, not steps):
+`gh run view --json jobs` returns `startedAt` / `completedAt` on every step (gh 2.60+, camelCase):
 
 ```bash
-gh api repos/{owner}/{repo}/actions/runs/<run-id>/jobs --jq '
-  [.jobs[].steps[] | select(.completed_at != null and .started_at != null) |
-   {name, duration: ((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601))}] |
-  sort_by(-.duration)'
+gh run view <run-id> --json jobs --jq '
+  [.jobs[].steps[] | select(.completedAt != null and .startedAt != null) |
+   {name, duration: ((.completedAt | fromdateiso8601) - (.startedAt | fromdateiso8601))}] |
+  sort_by(-.duration) | .[] | "\(.duration)s\t\(.name)"'
 ```
 
-Durations come back sorted descending — identify bottlenecks and suggest cache, parallelism, or dropping the step. For a coarse job-level view, `gh run view <run-id> --json jobs --jq '.jobs[] | {name, startedAt, completedAt}'` avoids the extra API call.
+Durations come back sorted descending — identify bottlenecks and suggest cache, parallelism, or dropping the step. On gh older than 2.60 the steps carry no timestamps; use the REST fallback in [`references/gh-commands.md`](references/gh-commands.md) (same filter, snake_case fields).
 
 ### History — `--history [n]`
 
@@ -189,7 +193,7 @@ More session shapes (flaky / slow / history) are in [`references/analysis-templa
 | Not authenticated | `gh auth login`. |
 | Private repo / no access | `gh` returns 404; explain required permissions. |
 | Multiple failed jobs | Diagnose each; lead the report with the most upstream cause. |
-| Cancelled runs | Infra category. Check if cancellation was manual, timeout, or concurrency. |
+| Cancelled runs | Infra category, unless the log carries a timeout signature (`exceeded the maximum execution time`, `The operation was canceled` after a long silent step) — then it's `timeout`. Check whether cancellation was manual, concurrency, or timeout. |
 
 ## Reference index
 

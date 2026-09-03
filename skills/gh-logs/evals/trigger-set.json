@@ -7,7 +7,10 @@
     "query": "the build on main just failed, can you dig into the logs and tell me what broke?",
     "should_trigger": true
   },
-  { "query": "/gh-logs --flaky", "should_trigger": true },
+  {
+    "query": "src/queue/consumer.test.ts keeps failing in CI but passes every time locally, is it flaky or is something actually wrong",
+    "should_trigger": true
+  },
   {
     "query": "I think the signature-validation test in webhook.test.ts is flaky — it fails on about 1 in 5 runs. Can you confirm and figure out why?",
     "should_trigger": true
@@ -24,9 +27,12 @@
     "query": "watch this running workflow and tell me when it finishes, and what went wrong if it fails",
     "should_trigger": true
   },
-  { "query": "gh run 8474127722 — diagnose", "should_trigger": true },
   {
-    "query": "the deploy workflow is broken after my last push",
+    "query": "gh run 8474127722 failed on the release workflow last night and nobody on the team can tell me why — diagnose it",
+    "should_trigger": true
+  },
+  {
+    "query": "the deploy workflow is broken after my last push to feat/cdn-headers, it was green before so something in that commit did it. what does the log say?",
     "should_trigger": true
   },
   { "query": "re-run all the failed jobs on this PR", "should_trigger": false },
@@ -39,12 +45,12 @@
     "should_trigger": false
   },
   {
-    "query": "show me the secrets configured in this repo",
+    "query": "the failing job is a known flake, add a retry step to .github/workflows/ci.yml",
     "should_trigger": false
   },
   { "query": "run gh pr create for this branch", "should_trigger": false },
   {
-    "query": "how do github actions matrix strategies work?",
+    "query": "CI is red because biome found 3 lint errors in src/api/ — just fix the lint errors",
     "should_trigger": false
   },
   {

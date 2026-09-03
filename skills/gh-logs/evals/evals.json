@@ -1,0 +1,50 @@
+{
+  "skill_name": "gh-logs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "CI is red on my branch and I have no idea why. Pull the logs for the latest failed run on this branch and tell me what broke and how to fix it.",
+      "expected_output": "Run inside a checked-out clone of a repository with GitHub Actions history whose current branch has at least one failed workflow run, with `gh auth status` succeeding. The answer is a diagnosis report: a category line naming exactly one of test, build, deps, lint, auth, infra, timeout; the failed step and job; a 1-2 sentence root cause; a log excerpt quoting the lines that proved it; a concrete fix; and a command that re-runs CI or otherwise confirms the fix. Nothing is written back to GitHub.",
+      "files": [],
+      "expectations": [
+        "The response contains a 'Category' line whose value is exactly one of: test, build, deps, lint, auth, infra, timeout",
+        "The response quotes at least one verbatim line from the fetched log (a line that appears in the `gh run view --log-failed` output)",
+        "The response names the failed step and the job it belongs to",
+        "The response includes a 'Fix' section containing at least one shell command or code/config change",
+        "The response includes a 'Verify' section containing a command (e.g. `gh run watch`, `gh run rerun`, or a local test command)",
+        "The transcript runs `gh run list` with `--branch` or `--status failure` to locate the run, and `gh run view` with `--log-failed` to fetch logs",
+        "The transcript runs `scripts/classify-log.sh` on the saved log before quoting log lines",
+        "The transcript does not run `gh run rerun`, `gh workflow run`, `gh pr comment`, `gh issue`, `git push`, or any other command that writes to GitHub"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Some tests in this repo seem to fail randomly in CI and then pass on rerun. Look at the recent runs on this branch and tell me which tests are actually flaky, with numbers, and what you think is causing each one.",
+      "expected_output": "Run inside a clone of a repository with at least 10 recent GitHub Actions runs on the current branch, some failed and some passed, with `gh auth status` succeeding. The answer is a flaky-test report: how many runs were analyzed, a table listing each suspected flaky test with its pass count, fail count, and failure rate, and for each test a suspected mechanism (race condition, timing dependency, shared port, external service, test ordering, shared state) with evidence and a stabilization suggestion. If no test both passed and failed across the window, the report says so explicitly instead of inventing flakes.",
+      "files": [],
+      "expectations": [
+        "The response states how many runs were analyzed and on which branch",
+        "The response contains a table with columns for test name, pass count, fail count, and a percentage or ratio",
+        "Every test listed in the table has both a non-zero pass count and a non-zero fail count, or the response explicitly says no flaky tests were detected",
+        "For each flaky test, the response names a suspected mechanism from: race condition, timing dependency, shared port, external service, test ordering, shared state",
+        "For each flaky test, the response gives a concrete stabilization suggestion",
+        "The transcript runs `gh run list` with `--limit` of at least 10 and `--json` including `conclusion`",
+        "The transcript fetches logs for more than one failed run (multiple `gh run view` calls with `--log-failed` or `--log`)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Our CI workflow feels way slower than it used to. Profile the most recent run and show me which steps are eating the time, then tell me what to do about it.",
+      "expected_output": "Run inside a clone of a repository with GitHub Actions history, `gh` version 2.60 or newer, and `gh auth status` succeeding. The answer is a step-timing profile for one run: a table of steps sorted by duration descending with each step's duration and share of total, a bottleneck callout, and at least one concrete suggestion involving caching (e.g. actions/cache, setup-node cache, Docker layer cache), parallelism (matrix, job splitting), or dropping/skipping a step. Step timing is read from `gh run view <id> --json jobs` using the camelCase `startedAt`/`completedAt` fields, not from the REST jobs endpoint.",
+      "files": [],
+      "expectations": [
+        "The response contains a table of steps with a duration column",
+        "The rows of the step table are ordered by duration, largest first",
+        "The response names a single bottleneck step with its duration",
+        "The response suggests at least one change involving caching, parallelism, or removing/skipping a step",
+        "The transcript runs `gh run view` with `--json jobs` and a `--jq` filter referencing `startedAt` and `completedAt` on `.jobs[].steps[]`",
+        "The transcript does not call `gh api repos/.../actions/runs/.../jobs` for step timing"
+      ]
+    }
+  ]
+}

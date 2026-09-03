@@ -36,6 +36,10 @@
     "should_trigger": true
   },
   {
+    "query": "src/cli.ts has `cli({ flags: { port: Number } })` at the top and i need to add a `serve` subcommand that takes a `<dir>` param, keep the existing flags working",
+    "should_trigger": true
+  },
+  {
     "query": "in my stricli app, how do i wire up subcommands like `mycli user create` and `mycli user list` with buildRouteMap?",
     "should_trigger": false
   },
@@ -56,7 +60,7 @@
     "should_trigger": false
   },
   {
-    "query": "add argv parsing to my Python CLI with argparse, it needs a --dry-run and a positional path",
+    "query": "write the README usage section for my cleye-based tool, the commands are already done in src/cli/",
     "should_trigger": false
   },
   {
@@ -64,11 +68,7 @@
     "should_trigger": false
   },
   {
-    "query": "generate zsh completion for my bash script in ~/bin/deploy",
-    "should_trigger": false
-  },
-  {
-    "query": "bundle my node CLI into a single file with esbuild and add a shebang",
+    "query": "my cleye cli works, now publish it to npm with a bin entry and a shebang so `npx mytool` runs",
     "should_trigger": false
   },
   {

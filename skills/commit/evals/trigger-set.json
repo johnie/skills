@@ -3,8 +3,11 @@
     "query": "ok i've been hacking on the auth stuff for an hour and there's like 5 files changed that are kind of a mess — a fix for the cookie expiry thing, some refactor of the refresh token helper, and i bumped vitest. can you commit this properly?",
     "should_trigger": true
   },
-  { "query": "commit", "should_trigger": true },
-  { "query": "/commit push", "should_trigger": true },
+  {
+    "query": "src/api/client.ts and src/api/types.ts are staged already, and there's an unstaged change in README.md plus a new file src/api/retry.ts — sort out the commits for me",
+    "should_trigger": true
+  },
+  { "query": "commit these and push to origin", "should_trigger": true },
   {
     "query": "Split this working tree into atomic commits before I open a PR. The diff has a new rate limiter + a README update + a config tweak in biome.jsonc.",
     "should_trigger": true
@@ -15,7 +18,11 @@
     "should_trigger": true
   },
   {
-    "query": "my branch has 3 unstaged files and 2 already-staged — please figure out the right commits",
+    "query": "show me how you'd split this diff into commits but don't actually commit anything yet",
+    "should_trigger": true
+  },
+  {
+    "query": "just stage the files that belong to the payments fix, i'll write the message myself",
     "should_trigger": true
   },
   {
@@ -23,7 +30,7 @@
     "should_trigger": true
   },
   {
-    "query": "i'm done for the day, save my work to git",
+    "query": "commit the unit test outputs in coverage/ folder",
     "should_trigger": true
   },
   {
@@ -35,7 +42,7 @@
     "should_trigger": false
   },
   {
-    "query": "what's the difference between git merge and git rebase?",
+    "query": "commit everything with exactly the message my PM gave me: WIP",
     "should_trigger": false
   },
   {
@@ -52,15 +59,11 @@
   },
   { "query": "open a pull request for this branch", "should_trigger": false },
   {
-    "query": "delete the feat/old-migration branch locally and on the remote",
+    "query": "git stash my changes, I need to switch branches",
     "should_trigger": false
   },
   {
     "query": "check if my working tree is clean before i start a release",
-    "should_trigger": false
-  },
-  {
-    "query": "commit the unit test outputs in coverage/ folder",
     "should_trigger": false
   },
   { "query": "my CI failed, can you tell me why?", "should_trigger": false }

@@ -1,0 +1,47 @@
+{
+  "skill_name": "commit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I've got a bunch of stuff in my working tree: a fix for the token expiry bug in src/auth/session.ts, I cleaned up some helpers in src/utils/format.ts along the way, bumped zod in package.json (lockfile changed too), and wrote a new test file tests/session.test.ts. Commit this properly.",
+      "expected_output": "Run inside a scratch git repo prepared to the described state: an existing commit history on a feature branch, unstaged edits to src/auth/session.ts (behavioral bug fix) and src/utils/format.ts (pure refactor, no behavior change), a version bump to zod in package.json with a matching pnpm-lock.yaml change, and an untracked tests/session.test.ts. Expected: 3-4 commits created (fix, refactor, chore for the dependency bump, and either a separate test commit or the test attached to the fix), each with a conventional-commit subject, the lockfile travelling with package.json, no hook bypass.",
+      "files": [],
+      "expectations": [
+        "git log shows exactly 3 or 4 new commits on top of the starting HEAD",
+        "Every new commit subject matches the regex ^(feat|fix|refactor|chore|docs|test|style|perf)(\\([a-z0-9/-]+\\))?: [a-z]",
+        "Every new commit subject is 72 characters or fewer",
+        "package.json and pnpm-lock.yaml are in the same commit",
+        "src/auth/session.ts and src/utils/format.ts are in different commits",
+        "tests/session.test.ts is not in the same commit as src/auth/session.ts",
+        "No git commit command in the transcript uses --no-verify",
+        "git status --short is empty after the run"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "show me how you'd split this into commits but don't commit anything yet — I want to review the plan first",
+      "expected_output": "Run inside a scratch git repo prepared to the described state: unstaged changes to src/api/client.ts and src/api/client.test.ts plus a modified .github/workflows/ci.yml. Expected: a numbered commit plan listing each proposed subject and the files under it, then the turn ends without staging or committing.",
+      "files": [],
+      "expectations": [
+        "The response contains a numbered plan with at least 2 proposed commits, each showing a conventional-commit subject and the files it would contain",
+        "No git commit command appears in the transcript",
+        "No git add command appears in the transcript",
+        "git status --short output before and after the run is identical",
+        "git rev-parse HEAD is unchanged after the run"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "commit my changes",
+      "expected_output": "Run inside a scratch git repo prepared to the described state: a merge in progress where src/config/env.ts has unresolved conflict markers and is listed as an unmerged path, plus an unrelated clean modification to README.md. Expected: the skill stops before staging anything, names src/config/env.ts as the conflicted file, and asks the user to resolve the conflict first.",
+      "files": [],
+      "expectations": [
+        "The response names src/config/env.ts as an unmerged or conflicted file",
+        "The response asks the user to resolve the conflict before committing",
+        "No git add command appears in the transcript",
+        "No git commit command appears in the transcript",
+        "git diff --name-only --diff-filter=U still lists src/config/env.ts after the run"
+      ]
+    }
+  ]
+}

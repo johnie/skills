@@ -15,9 +15,10 @@ wp user list --role=administrator --format=count
 # Find users with no role (usually spam)
 wp user list --format=json | jq '.[] | select(.roles | length == 0)'
 
-# Find users registered in specific timeframe
+# Find users registered before a cutoff (ISO date string compares lexically in jq)
+# e.g. CUTOFF=$(date -v-1y +%F) on macOS/BSD, CUTOFF=$(date -d '1 year ago' +%F) on GNU
 wp user list --format=json | \
-  jq '.[] | select(.user_registered < "2023-01-01")'
+  jq --arg cutoff "<cutoff-date>" '.[] | select(.user_registered < $cutoff)'
 
 # Check for users with no posts/comments
 wp user list --format=json | \

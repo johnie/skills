@@ -25,7 +25,8 @@ wp option get home >> migration-notes.txt
 # On LOCAL - Backup database
 wp db export migration-$(date +%Y%m%d).sql
 
-# Optional: Exclude logs and transients for smaller file
+# Optional: Exclude log/cache tables for a smaller file. The table names are
+# plugin-specific examples (Action Scheduler, Wordfence) — list yours with `wp db tables`.
 wp db export migration-clean.sql --exclude_tables=wp_actionscheduler_logs,wp_wfLeeches
 
 # Compress for transfer
@@ -47,7 +48,7 @@ wp search-replace 'http://localhost:8000' 'https://example.com' \
   --report-changed-only
 
 # Also update file paths if they contain absolute paths
-wp search-replace '/Users/dev/mysite' '/var/www/html' \
+wp search-replace '<local-abs-path>' '/var/www/html' \
   --skip-columns=guid
 
 # Export the modified database
@@ -158,13 +159,29 @@ wp search-replace 'old' 'new' wp_options --dry-run --precise
 
 ### Regex Search-Replace
 
-```bash
-# WP-CLI doesn't support regex directly, use SQL for complex patterns
-wp db query "UPDATE wp_posts SET post_content = REPLACE(post_content, 'pattern', 'replacement')"
+`wp search-replace` takes a PCRE pattern with `--regex`. It still walks every row through WP's serialization-aware replacer, so a match inside a serialized array updates the string-length prefix correctly. That is the reason to prefer it over raw SQL for anything that might live in `wp_options`, `wp_postmeta`, or a page builder's meta.
 
-# Or use regex in database query — REGEXP_REPLACE requires MySQL 8.0+ or MariaDB 10.0.5+.
-# Older servers will error with "FUNCTION REGEXP_REPLACE does not exist"; fall back to REPLACE or a PHP-side job.
-# Back up first: search-replace via raw SQL bypasses WP's serialization handling and can corrupt serialized data.
+```bash
+# Dry-run first — regex matches are easy to over-scope
+wp search-replace 'https?://(www\.)?old\.com' 'https://new.com' \
+  --regex --regex-flags=i --dry-run --report --skip-columns=guid
+
+# Backreferences: \1 refers to the first capture group
+wp search-replace '/uploads/(\d{4})/(\d{2})/' '/media/\1-\2/' \
+  --regex --skip-columns=guid
+
+# Cap replacements per row (per serialized value inside a row)
+wp search-replace 'old-shortcode' 'new-shortcode' wp_posts \
+  --regex --regex-limit=1 --dry-run
+```
+
+The pattern is written without delimiters; wp-cli wraps it using `chr(1)` by default, so slashes in the pattern need no escaping. `--regex-delimiter` only matters if the pattern itself contains that byte — leave it alone.
+
+Regex mode is 15–20x slower than a plain string replace — scope it to the tables that need it (`wp search-replace ... wp_posts wp_postmeta`).
+
+Fall back to raw SQL only when the pattern cannot be expressed in PCRE or the table is outside WordPress entirely. `REGEXP_REPLACE` needs MySQL 8.0+ or MariaDB 10.0.5+; older servers error with "FUNCTION REGEXP_REPLACE does not exist". Back up first: raw SQL bypasses WP's serialization handling and corrupts serialized data whose string lengths change.
+
+```bash
 wp db query "UPDATE wp_posts SET post_content = REGEXP_REPLACE(post_content, 'pattern', 'replacement')"
 ```
 

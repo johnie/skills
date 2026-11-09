@@ -12,6 +12,7 @@
         "./skills/extract-spark-meetings",
         "./skills/gh-logs",
         "./skills/pr",
+        "./skills/reshape",
         "./skills/stricli",
         "./skills/typescript-engineer",
         "./skills/wp-cli"

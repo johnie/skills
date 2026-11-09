@@ -1,0 +1,43 @@
+{
+  "skill_name": "reshape",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Reshape checkout only: changing its VAT rate currently requires editing three files. Leave reporting alone. Do not include optional comment or test cleanup.",
+      "expected_output": "Prepare a scratch project with checkout/rate.mjs exporting VAT_RATE = 0.2, checkout/total.mjs exporting total(net) as net * 1.2, and checkout/receipt.mjs exporting tax(net) as net * 0.2. reporting/rate.mjs independently exports REPORT_RATE = 0.2. Provide a runnable check for total(100) = 120 and tax(100) = 20, including zero inputs. Expected: checkout uses one authoritative VAT rate without changing its exports or reporting. Record baseline and post-refactor check results.",
+      "files": [],
+      "expectations": [
+        "Checkout total and tax derive from one authoritative VAT rate, so a rate change no longer requires editing both calculations",
+        "All reporting files are byte-identical before and after the run",
+        "The total and tax exports preserve their results for 100 and zero inputs",
+        "Execution evidence shows the behavior check ran before the first source edit and after the refactor"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Reshape the payment client. Its retry loop looks like a special case; simplify only where the provider contract permits. Do not include optional comment or test cleanup.",
+      "expected_output": "Prepare a scratch project whose payments/client.mjs exports send(request, sleep). It calls request at most three times, retries only status 429, awaits sleep(response.retryAfterMs) between attempts, returns the successful response, and throws Error('rate limit exhausted') after three 429 responses. A provider contract documents these requirements. Provide deterministic checks with an injected sleeper for success after throttling, exact wait values, exhausted retries, and a non-429 response without retry. Expected: retain the required retry behavior, explain why it stays, and avoid introducing a generic retry framework when no structural problem is evidenced.",
+      "files": [],
+      "expectations": [
+        "A 429 response followed by success still makes two requests and waits the specified retryAfterMs before the second request",
+        "Three consecutive 429 responses still make exactly three requests and two waits, then throw the original exhaustion error",
+        "A non-429 response is returned without an additional request or wait",
+        "The final decision explains the provider requirement and does not claim the retry was unnecessary merely because it is a special case",
+        "No generic retry framework or unused extension points are introduced"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Reshape this small project. Checkout and reporting have identical percentage calculations, but checkout follows tax rules and reporting follows separately versioned analytics rules. No optional comment or test cleanup. Subagents are unavailable; complete the review yourself.",
+      "expected_output": "Prepare a scratch project with checkout/tax.mjs exporting tax(amount, rate) and reporting/adjustment.mjs exporting adjustment(amount, rate); each independently returns Math.round(amount * rate * 100) / 100. Requirements document separate owners and independent release schedules. Provide checks for tax(19.99, 0.2) = 4 and adjustment(19.99, 0.2) = 4, plus zero inputs. Expected: keep the independent rules separate, verify behavior, and finish with an evidence-based no-change decision rather than inventing a shared percentage abstraction or waiting for unavailable agents.",
+      "files": [],
+      "expectations": [
+        "Checkout and reporting retain independent implementations with no shared business-rule helper or cross-domain import",
+        "Both public functions preserve their documented rounding and zero-input behavior",
+        "The final decision cites the independent requirements as the reason not to merge the calculations",
+        "The review finishes without requiring or attempting unavailable subagents",
+        "All source files are byte-identical when the evidence supports no structural change"
+      ]
+    }
+  ]
+}

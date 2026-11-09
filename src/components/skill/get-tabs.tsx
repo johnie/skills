@@ -7,7 +7,7 @@ import { CopyButton } from "@/components/copy-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
-export interface GetTab {
+interface GetTab {
   value: string;
   label: string;
   /** What the copy button in the tab bar copies while this tab is open. */

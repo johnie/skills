@@ -1,11 +1,7 @@
 // A relative import, not the `content-collections` path alias its docs suggest: rshono's server build
 // externalizes bare specifiers it doesn't know, so an alias would be loaded at runtime instead of bundled.
-import {
-  allFiles,
-  allReferences,
-  allSkills,
-} from "../../.content-collections/generated";
-import type { Skill } from "./skill-metadata";
+import { allReferences, allSkills } from "../../.content-collections/generated";
+import type { Skill } from "./skill-schema";
 
 export type {
   Reference,
@@ -13,21 +9,13 @@ export type {
 } from "../../.content-collections/generated";
 
 /**
- * Every `skills/<name>/SKILL.md` and its `references/*.md`, rendered by `content-collections.ts` at build time.
- * Server-only: the documents carry rendered HTML, so client components get the trimmed `skills` listing.
+ * Every `skills/<name>/SKILL.md` and its `references/*.md`, assembled by `content-collections.ts` at build time.
+ * Server-only: the documents carry rendered HTML and the markdown bundle, so client components get the
+ * `skills` listing instead.
  */
 const documents = allSkills.toSorted((a, b) => a.name.localeCompare(b.name));
 
-export const skills: Skill[] = documents.map(
-  ({ name, category, summary, reads, writes, never }) => ({
-    category,
-    name,
-    never,
-    reads,
-    summary,
-    writes,
-  })
-);
+export const skills: Skill[] = documents.map(({ listing }) => listing);
 
 export const getSkill = (name: string) =>
   documents.find((skill) => skill.name === name);
@@ -41,75 +29,3 @@ export const skillPaths = () => documents.map(({ name }) => ({ name }));
 
 export const referencePaths = () =>
   allReferences.map(({ skill, slug }) => ({ name: skill, reference: slug }));
-
-export interface SkillMarkdown {
-  body: string;
-  etag: string;
-}
-
-/** A skill's installable files in bundle order: `SKILL.md`, then `references/` and `scripts/` by path. */
-const bundleFiles = (name: string) =>
-  allFiles
-    .filter((file) => file.skill === name)
-    .toSorted(
-      (a, b) =>
-        Number(a.path !== "SKILL.md") - Number(b.path !== "SKILL.md") ||
-        a.path.localeCompare(b.path)
-    );
-
-const bundleBody = (name: string) =>
-  bundleFiles(name)
-    .map(
-      ({ path, source }) =>
-        `<file path="${path}">\n${source.endsWith("\n") ? source : `${source}\n`}</file>\n`
-    )
-    .join("\n");
-
-/** What the markdown bundle holds, for drawing it on the skill page: each file's path and line count, and its size. */
-export const skillBundleOutline = (name: string) => ({
-  bytes: new TextEncoder().encode(bundleBody(name)).byteLength,
-  files: bundleFiles(name).map(({ path, source }) => ({
-    lines: source.split("\n").length - Number(source.endsWith("\n")),
-    path,
-  })),
-});
-
-const buildMarkdown = async (name: string): Promise<SkillMarkdown> => {
-  const body = bundleBody(name);
-
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(body)
-  );
-
-  const hex = Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, "0")
-  ).join("");
-
-  return { body, etag: `"${hex.slice(0, 32)}"` };
-};
-
-const markdownBySkill = new Map<string, Promise<SkillMarkdown>>();
-
-/**
- * Every file of a skill in one markdown document: `SKILL.md`, then `references/` and `scripts/` by path, each
- * verbatim inside `<file path="…">`. Paths are relative to the skill directory, so the relative links the files
- * already use (`references/flags.md`) name the file they point at, no rewriting needed. Built and hashed once per
- * isolate; `undefined` for an unknown skill.
- */
-export const skillMarkdown = (name: string) => {
-  if (getSkill(name) === undefined) {
-    return;
-  }
-
-  const cached = markdownBySkill.get(name);
-
-  if (cached !== undefined) {
-    return cached;
-  }
-
-  const built = buildMarkdown(name);
-  markdownBySkill.set(name, built);
-
-  return built;
-};

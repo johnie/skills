@@ -1,7 +1,8 @@
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { ReactNode } from "react";
 
-import { site } from "@/lib/site";
+import { referenceHref, skillHref, skillSourceUrl } from "@/lib/site";
 import type { Reference, SkillDocument } from "@/lib/skills";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +51,7 @@ export const SkillBreadcrumb = ({
       <li aria-hidden>/</li>
       <li>
         <a
-          href={`/${skill.name}`}
+          href={skillHref(skill.name)}
           className="text-muted-foreground hover:text-foreground no-underline"
         >
           {skill.name}
@@ -68,8 +69,7 @@ export const SkillBreadcrumb = ({
   </nav>
 );
 
-/** Small uppercase mono label used above sidebar groups. */
-export const SideLabel = ({ children }: { children: string }) => (
+export const SmallLabel = ({ children }: { children: ReactNode }) => (
   <p className="text-muted-foreground font-mono text-[11px] tracking-widest uppercase">
     {children}
   </p>
@@ -85,16 +85,16 @@ export const SkillFileNav = ({
   fileName: string;
 }) => {
   const files = [
-    { fileName: "SKILL.md", href: `/${skill.name}` },
+    { fileName: "SKILL.md", href: skillHref(skill.name) },
     ...references.map((reference) => ({
       fileName: reference.fileName,
-      href: `/${skill.name}/references/${reference.slug}`,
+      href: referenceHref(skill.name, reference.slug),
     })),
   ];
 
   return (
     <nav aria-label="Skill files" className="font-mono text-xs">
-      <SideLabel>Files</SideLabel>
+      <SmallLabel>Files</SmallLabel>
       <ul className="mt-3 space-y-0.5">
         {files.map((file) => {
           const current = file.fileName === fileName;
@@ -121,40 +121,21 @@ export const SkillFileNav = ({
   );
 };
 
-/** `Bash(git commit *)` → tool `Bash`, scope `git commit *`; a bare `Read` has no scope. */
-const TOOL_RULE = /^(?<tool>[A-Za-z]+)(?:\((?<scope>.+)\))?$/u;
-
 /**
  * The skill's `allowed-tools`, grouped by tool. These are pre-approved for the turn the skill runs in, so the
  * agent uses them without asking; they don't restrict anything else.
  */
 export const SkillPrivileges = ({ skill }: { skill: SkillDocument }) => {
-  const scopesByTool = new Map<string, string[]>();
-
-  for (const rule of skill.allowedTools) {
-    const groups = TOOL_RULE.exec(rule)?.groups;
-    const tool = groups?.["tool"] ?? rule;
-    const scope = groups?.["scope"];
-    const scopes = scopesByTool.get(tool) ?? [];
-
-    if (scope !== undefined) {
-      scopes.push(scope);
-    }
-
-    scopesByTool.set(tool, scopes);
-  }
-
-  if (scopesByTool.size === 0) {
+  if (skill.privileges.length === 0) {
     return null;
   }
 
-  const entries = [...scopesByTool];
-  const unscoped = entries.filter(([, scopes]) => scopes.length === 0);
-  const scoped = entries.filter(([, scopes]) => scopes.length > 0);
+  const unscoped = skill.privileges.filter(({ scopes }) => scopes.length === 0);
+  const scoped = skill.privileges.filter(({ scopes }) => scopes.length > 0);
 
   return (
     <div>
-      <SideLabel>Agent privileges</SideLabel>
+      <SmallLabel>Agent privileges</SmallLabel>
       <p className="text-muted-foreground mt-2 text-xs">
         Pre-approved, so the agent runs these without asking.
       </p>
@@ -164,7 +145,7 @@ export const SkillPrivileges = ({ skill }: { skill: SkillDocument }) => {
             aria-label="Tools allowed without a scope"
             className="flex flex-wrap gap-1.5"
           >
-            {unscoped.map(([tool]) => (
+            {unscoped.map(({ tool }) => (
               <li key={tool} className="border px-1.5 py-0.5">
                 {tool}
               </li>
@@ -173,7 +154,7 @@ export const SkillPrivileges = ({ skill }: { skill: SkillDocument }) => {
         )}
         {scoped.length > 0 && (
           <dl className="space-y-4">
-            {scoped.map(([tool, scopes]) => (
+            {scoped.map(({ tool, scopes }) => (
               <div key={tool}>
                 <dt>{tool}</dt>
                 <dd className="text-muted-foreground mt-1.5 border-l pl-3">
@@ -209,7 +190,7 @@ export const SkillFile = ({
         skills/{skill.name}/{fileName}
       </span>
       <a
-        href={`${site.githubUrl}/blob/main/skills/${skill.name}/${fileName}`}
+        href={skillSourceUrl(skill.name, fileName)}
         className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-1 no-underline"
       >
         GitHub

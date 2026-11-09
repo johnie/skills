@@ -1,70 +1,70 @@
 import { buildCommand } from "@stricli/core";
+import type { CommandContext } from "@stricli/core";
+import kleur from "kleur";
 import prompts from "prompts";
 
-import type { LocalContext } from "../context";
+import { discoverSkills } from "../../catalog/skills";
 import {
-  getAvailableSkills,
-  getIcon,
-  getSymlinkStatus,
   linkSkill,
+  linkState,
+  skillLine,
+  TARGET_DIR,
   unlinkSkill,
-} from "../shared";
+} from "../links";
+
+/** Shows every skill with its link state, applies the changed selection, and asks again until cancelled. */
+const promptLoop = async (context: CommandContext): Promise<void> => {
+  const states = discoverSkills().map((name) => ({
+    name,
+    state: linkState(name),
+  }));
+
+  const response = await prompts({
+    choices: states.map(({ name, state }) => ({
+      selected: state === "linked",
+      title: skillLine(name, state),
+      value: name,
+    })),
+    hint: "Space to toggle, Enter to apply, Ctrl+C to quit",
+    instructions: false,
+    message: `Skill Manager (${kleur.dim(TARGET_DIR)})`,
+    name: "skills",
+    type: "multiselect",
+  });
+
+  if (response.skills === undefined) {
+    return;
+  }
+
+  const selected = new Set<string>(response.skills);
+
+  for (const { name, state } of states) {
+    const linked = state === "linked";
+
+    if (selected.has(name) === linked) {
+      continue;
+    }
+
+    // One skill that can't change shouldn't end the session: report it and prompt again.
+    try {
+      const line = linked ? unlinkSkill(name) : linkSkill(name);
+      context.process.stdout.write(`${line}\n`);
+    } catch (error) {
+      context.process.stderr.write(
+        `${kleur.red(Error.isError(error) ? error.message : String(error))}\n`
+      );
+    }
+  }
+
+  return promptLoop(context);
+};
 
 export const interactiveCommand = buildCommand({
   docs: {
     brief: "Interactive TUI mode for managing skills",
   },
-  func(this: LocalContext) {
-    const promptLoop = async (): Promise<void> => {
-      const skills = getAvailableSkills(this);
-      const statusList = skills.map((name) => getSymlinkStatus(name, this));
-
-      const choices = statusList.map((skill) => {
-        const icon = getIcon(skill, this);
-        const suffix = skill.isBroken ? this.colors.warn(" (broken)") : "";
-
-        return {
-          selected: skill.isLinked,
-          title: `${icon} ${skill.name}${suffix}`,
-          value: skill.name,
-        };
-      });
-
-      const response = await prompts({
-        choices,
-        hint: "Space to toggle, Enter to apply, Ctrl+C to quit",
-        instructions: false,
-        message: `Skill Manager (${this.colors.dim(this.targetDir)})`,
-        name: "skills",
-        type: "multiselect",
-      });
-
-      if (response.skills === undefined) {
-        return;
-      }
-
-      const selectedSkills = new Set<string>(response.skills);
-
-      const currentlyLinked = new Set<string>(
-        statusList.filter((skill) => skill.isLinked).map((skill) => skill.name)
-      );
-
-      for (const skillName of selectedSkills) {
-        if (!currentlyLinked.has(skillName)) {
-          linkSkill(skillName, this);
-        }
-      }
-
-      for (const skillName of currentlyLinked) {
-        if (!selectedSkills.has(skillName)) {
-          unlinkSkill(skillName, this);
-        }
-      }
-
-      return promptLoop();
-    };
-
-    return promptLoop();
+  func(this: CommandContext) {
+    return promptLoop(this);
   },
   parameters: {},
 });

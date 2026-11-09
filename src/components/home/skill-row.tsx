@@ -3,8 +3,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 
 import { CopyButton } from "@/components/copy-button";
 import { Badge } from "@/components/ui/badge";
-import { skillInstallCommand } from "@/lib/site";
-import type { Skill } from "@/lib/skill-metadata";
+import { skillHref, skillInstallCommand } from "@/lib/site";
+import type { Skill } from "@/lib/skill-schema";
 import { cn } from "@/lib/utils";
 
 export const SkillRow = ({
@@ -32,7 +32,7 @@ export const SkillRow = ({
         <div className="flex flex-wrap items-center gap-2.5">
           <h3 className="font-mono text-base font-medium">
             <a
-              href={`/${skill.name}`}
+              href={skillHref(skill.name)}
               className="flex items-center gap-1.5 no-underline decoration-1 underline-offset-4 group-hover:underline after:absolute after:inset-0"
             >
               {skill.name}

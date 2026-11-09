@@ -1,97 +1,56 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-import type { Heading, Link, Nodes, Root } from "mdast";
-import { remark } from "remark";
-import remarkFrontmatter from "remark-frontmatter";
+import type { Root } from "mdast";
 import { describe, expect, it } from "vitest";
 
-import { discoverSkills, fileExists, getSkillPath } from "../helpers/skills";
-
-/**
- * Parse markdown content into an AST.
- */
-const parseMarkdown = (content: string): Root => {
-  const processor = remark().use(remarkFrontmatter, ["yaml"]);
-
-  return processor.parse(content);
-};
-
-const visit = (node: Nodes, onNode: (node: Nodes) => void): void => {
-  onNode(node);
-
-  if ("children" in node) {
-    for (const child of node.children) {
-      visit(child, onNode);
-    }
-  }
-};
-
-/**
- * Extract all links from the AST.
- */
-const extractLinks = (ast: Root): Link[] => {
-  const links: Link[] = [];
-  visit(ast, (node) => {
-    if (node.type === "link") {
-      links.push(node);
-    }
-  });
-
-  return links;
-};
+import { isExternalLink } from "../../catalog/links";
+import { discoverSkills, skillPath } from "../../catalog/skills";
+import { nodesOf, parseMarkdown } from "../helpers/markdown";
 
 const REFERENCES_PATH_RE = /^references\/\S+/u;
-
-/**
- * Extract file paths from inline code nodes (e.g. `references/foo.md`).
- */
-const extractInlineCodeReferences = (ast: Root): string[] => {
-  const references: string[] = [];
-  visit(ast, (node) => {
-    if (node.type === "inlineCode" && REFERENCES_PATH_RE.test(node.value)) {
-      references.push(node.value);
-    }
-  });
-
-  return references;
-};
-
-/**
- * Plain text of a heading as the model reads it in source. `<T>` in a heading
- * parses as inline HTML, but it is type-parameter text to a reader, so keep it.
- */
-const headingText = (heading: Heading): string => {
-  let text = "";
-  visit(heading, (node) => {
-    if (
-      node.type === "text" ||
-      node.type === "inlineCode" ||
-      node.type === "html"
-    ) {
-      text += node.value;
-    }
-  });
-
-  return text;
-};
-
 const NON_SLUG_CHARS_RE = /[^\p{L}\p{N}\s-]/gu;
 const WHITESPACE_RE = /\s/gu;
+const MARKDOWN_EXT = ".md";
 
 /**
- * GitHub's heading slug: lowercase, drop punctuation, spaces become hyphens.
- * Duplicate headings get `-1`, `-2`, … suffixes.
+ * Targets of links and link definitions, plus inline code that names a reference file (`references/foo.md`):
+ * the model follows all three.
+ */
+const localTargets = (ast: Root): string[] =>
+  nodesOf(ast)
+    .flatMap((node) => {
+      if (node.type === "link" || node.type === "definition") {
+        return [node.url];
+      }
+
+      return node.type === "inlineCode" && REFERENCES_PATH_RE.test(node.value)
+        ? [node.value]
+        : [];
+    })
+    .filter((target) => !isExternalLink(target));
+
+/**
+ * GitHub's heading slugs: lowercase, drop punctuation, spaces become hyphens; duplicate headings get `-1`,
+ * `-2`, … suffixes. The text is the heading as the model reads it in source: `<T>` parses as inline HTML, but
+ * it is type-parameter text to a reader, so it stays.
  */
 const headingSlugs = (ast: Root): Set<string> => {
   const seen = new Map<string, number>();
   const slugs = new Set<string>();
-  visit(ast, (node) => {
-    if (node.type !== "heading") {
-      return;
-    }
 
-    const base = headingText(node)
+  for (const heading of nodesOf(ast).filter(
+    (node) => node.type === "heading"
+  )) {
+    const base = nodesOf(heading)
+      .map((node) =>
+        node.type === "text" ||
+        node.type === "inlineCode" ||
+        node.type === "html"
+          ? node.value
+          : ""
+      )
+      .join("")
       .toLowerCase()
       .replaceAll(NON_SLUG_CHARS_RE, "")
       .replaceAll(WHITESPACE_RE, "-");
@@ -99,103 +58,61 @@ const headingSlugs = (ast: Root): Set<string> => {
     const count = seen.get(base) ?? 0;
     seen.set(base, count + 1);
     slugs.add(count === 0 ? base : `${base}-${count}`);
-  });
+  }
 
   return slugs;
 };
 
-const EXTERNAL_URL_RE = /^https?:\/\//u;
-
-interface SkillMarkdownFile {
-  /** Path relative to the skill root, e.g. `references/foo.md`. */
-  file: string;
-  ast: Root;
-}
-
-const MARKDOWN_EXT = ".md";
+const slugsIn = (file: string) =>
+  headingSlugs(parseMarkdown(readFileSync(file, "utf-8")));
 
 /**
- * SKILL.md plus every markdown file under references/. Anchors inside
- * references matter as much as in SKILL.md: a table of contents with a bad
- * anchor sends the model to the wrong section.
+ * SKILL.md plus every markdown file under references/. Anchors inside references matter as much as in
+ * SKILL.md: a table of contents with a bad anchor sends the model to the wrong section.
  */
-const loadSkillMarkdown = (skillName: string): SkillMarkdownFile[] => {
-  const skillPath = getSkillPath(skillName);
-  const files = ["SKILL.md"];
-  const referencesDir = path.join(skillPath, "references");
+const skillMarkdownFiles = (root: string): string[] => {
+  const references = path.join(root, "references");
 
-  if (fileExists(referencesDir)) {
-    for (const entry of readdirSync(referencesDir)) {
-      if (path.extname(entry) === MARKDOWN_EXT) {
-        files.push(`references/${entry}`);
-      }
-    }
-  }
-
-  return files.map((file) => ({
-    ast: parseMarkdown(readFileSync(path.join(skillPath, file), "utf-8")),
-    file,
-  }));
+  return [
+    path.join(root, "SKILL.md"),
+    ...(existsSync(references) ? readdirSync(references) : [])
+      .filter((entry) => path.extname(entry) === MARKDOWN_EXT)
+      .map((entry) => path.join(references, entry)),
+  ];
 };
 
-describe("Reference Validation", () => {
-  const skills = discoverSkills();
+describe("Reference validation", () => {
+  it.each(discoverSkills())(
+    "%s has no broken local references",
+    (skillName) => {
+      const root = skillPath(skillName);
 
-  it("discovers at least one skill", () => {
-    expect(skills.length).toBeGreaterThan(0);
-  });
+      const broken = skillMarkdownFiles(root).flatMap((source) => {
+        const ast = parseMarkdown(readFileSync(source, "utf-8"));
 
-  it.each(skills)("%s has no broken local references", (skillName) => {
-    const skillPath = getSkillPath(skillName);
-    const documents = loadSkillMarkdown(skillName);
+        return [...new Set(localTargets(ast))].flatMap((target) => {
+          const [filePart = "", fragment] = target.split("#");
+          const label = `${path.relative(root, source)} -> ${target}`;
 
-    const slugsByFile = new Map(
-      documents.map(({ file, ast }) => [file, headingSlugs(ast)])
-    );
+          const resolved =
+            filePart === ""
+              ? source
+              : path.resolve(path.dirname(source), filePart);
 
-    const broken: string[] = [];
+          if (!existsSync(resolved)) {
+            return [`${label} (missing file)`];
+          }
 
-    for (const { file, ast } of documents) {
-      const sourceDir = path.dirname(path.join(skillPath, file));
+          const checksAnchor =
+            fragment !== undefined && path.extname(resolved) === MARKDOWN_EXT;
 
-      const targets = [
-        ...extractLinks(ast).map((link) => link.url),
-        ...extractInlineCodeReferences(ast),
-      ].filter((url) => !EXTERNAL_URL_RE.test(url));
+          return checksAnchor && !slugsIn(resolved).has(fragment)
+            ? [`${label} (no heading with that anchor)`]
+            : [];
+        });
+      });
 
-      for (const target of new Set(targets)) {
-        const [filePart = "", fragment] = target.split("#");
-
-        const resolved =
-          filePart === ""
-            ? path.join(skillPath, file)
-            : path.resolve(sourceDir, filePart);
-
-        if (!fileExists(resolved)) {
-          broken.push(`${file} -> ${target} (missing file)`);
-
-          continue;
-        }
-
-        if (fragment === undefined || path.extname(resolved) !== MARKDOWN_EXT) {
-          continue;
-        }
-
-        const targetFile = path.relative(skillPath, resolved);
-
-        const slugs =
-          slugsByFile.get(targetFile) ??
-          headingSlugs(parseMarkdown(readFileSync(resolved, "utf-8")));
-
-        if (!slugs.has(fragment)) {
-          broken.push(`${file} -> ${target} (no heading with that anchor)`);
-        }
-      }
+      expect(broken).toStrictEqual([]);
     }
-
-    expect(
-      broken,
-      `Broken references:\n  ${broken.join("\n  ")}`
-    ).toStrictEqual([]);
-  });
+  );
 });

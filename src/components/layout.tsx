@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 
 import "../styles.css";
 
-export const appName = process.env.PUBLIC_APP_NAME ?? "johnie / skills";
+const appName = "johnie / skills";
 
 export const Layout = ({
   title,

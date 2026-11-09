@@ -2,7 +2,7 @@
   "hooks": {
     "PostToolUse": [
       {
-        "command": "pnpm run fix --skip=correctness/noUnusedImports",
+        "command": "pnpm run fix",
         "type": "command"
       }
     ]

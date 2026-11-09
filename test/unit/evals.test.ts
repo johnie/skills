@@ -2,12 +2,11 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 
-import { discoverSkills, getSkillPath, readSkillFile } from "../helpers/skills";
+import { discoverSkills, skillPath } from "../../catalog/skills";
 
-const TRIGGER_SET = "evals/trigger-set.json";
-const BEHAVIORAL_SET = "evals/evals.json";
-const MIN_ITEMS = 16;
+const text = z.string().trim().min(1);
 
 /**
  * Both classes need real coverage; an all-positive set can't detect
@@ -15,28 +14,63 @@ const MIN_ITEMS = 16;
  * too little signal once it splits train/test.
  */
 const MIN_PER_CLASS = 8;
-const MIN_EVALS = 2;
-const MIN_EXPECTATIONS = 3;
 
-interface TriggerCase {
-  query: string;
-  should_trigger: boolean;
-}
+const unique = (values: unknown[]) => new Set(values).size === values.length;
 
-interface BehavioralEval {
-  id: number;
-  prompt: string;
-  expected_output: string;
-  files?: string[];
-  expectations: string[];
-}
+const TriggerSet = z
+  .array(z.object({ query: text, should_trigger: z.boolean() }))
+  .refine(
+    (cases) =>
+      [true, false].every(
+        (expected) =>
+          cases.filter((item) => item.should_trigger === expected).length >=
+          MIN_PER_CLASS
+      ),
+    { error: `needs at least ${MIN_PER_CLASS} cases per class` }
+  )
+  .refine((cases) => unique(cases.map((item) => item.query.toLowerCase())), {
+    error: "queries must be unique",
+  })
+  .refine((cases) => !cases.some((item) => item.query.startsWith("/")), {
+    // An explicit `/skill-name` invocation loads the skill regardless of its description, so such a query can
+    // never fail and teaches the optimizer nothing about triggering.
+    error: "slash-command queries bypass description matching",
+  });
 
-interface BehavioralSet {
-  skill_name: string;
-  evals: BehavioralEval[];
-}
+const BehavioralSet = z.object({
+  evals: z
+    .array(
+      z.object({
+        expectations: z.array(text).min(3),
+        expected_output: text,
+        files: z.array(z.string()).optional(),
+        id: z.number(),
+        prompt: text,
+      })
+    )
+    .min(2)
+    .refine((evals) => unique(evals.map((item) => item.id)), {
+      error: "ids must be unique",
+    }),
+  skill_name: z.string(),
+});
 
-const SKILL_NAME_RE = /^name:\s*(?<name>\S+)/mu;
+/** The skills shipping `evals/<file>`: both sets are optional per skill. */
+const skillsWith = (file: string) =>
+  discoverSkills()
+    .map((skillName) => ({
+      path: path.join(skillPath(skillName), "evals", file),
+      skillName,
+    }))
+    .filter((entry) => existsSync(entry.path));
+
+const parse = <T>(schema: z.ZodType<T>, file: string) => {
+  const result = schema.safeParse(JSON.parse(readFileSync(file, "utf-8")));
+
+  expect(result.error && z.prettifyError(result.error)).toBeUndefined();
+
+  return result.data;
+};
 
 /**
  * Trigger sets drive description tuning: each query is run against the skill
@@ -45,59 +79,16 @@ const SKILL_NAME_RE = /^name:\s*(?<name>\S+)/mu;
  * so they are validated here rather than left to drift.
  */
 describe("Trigger eval sets", () => {
-  // A trigger set is optional per skill, so only skills that ship one are validated.
-  const withTriggerSets = discoverSkills()
-    .map((skillName) => ({
-      path: path.join(getSkillPath(skillName), TRIGGER_SET),
-      skillName,
-    }))
-    .filter(({ path: triggerSetPath }) => existsSync(triggerSetPath));
+  const withTriggerSets = skillsWith("trigger-set.json");
 
   it("at least one skill ships a trigger set", () => {
-    expect(withTriggerSets.length).toBeGreaterThan(0);
+    expect(withTriggerSets).not.toHaveLength(0);
   });
 
   it.each(withTriggerSets)(
-    "$skillName has a balanced trigger eval set",
-    ({ path: triggerSetPath }) => {
-      // SAFETY: this test validates each fixture's runtime shape before use.
-      const cases = JSON.parse(
-        readFileSync(triggerSetPath, "utf-8")
-      ) as TriggerCase[];
-
-      expect(cases).toBeInstanceOf(Array);
-      expect(cases.length).toBeGreaterThanOrEqual(MIN_ITEMS);
-
-      for (const item of cases) {
-        expect(item.query.trim().length).toBeGreaterThan(0);
-        expect(item.should_trigger).toBeTypeOf("boolean");
-      }
-
-      const positive = cases.filter((item) => item.should_trigger).length;
-      expect(positive).toBeGreaterThanOrEqual(MIN_PER_CLASS);
-      expect(cases.length - positive).toBeGreaterThanOrEqual(MIN_PER_CLASS);
-    }
-  );
-
-  it.each(withTriggerSets)(
-    "$skillName trigger queries are unique natural-language prompts",
-    ({ path: triggerSetPath }) => {
-      // SAFETY: shape is validated by the sibling test above.
-      const cases = JSON.parse(
-        readFileSync(triggerSetPath, "utf-8")
-      ) as TriggerCase[];
-
-      const queries = cases.map((item) => item.query.trim().toLowerCase());
-      expect(new Set(queries).size).toBe(queries.length);
-
-      // An explicit `/skill-name` invocation loads the skill regardless of its
-      // description, so such a query can never fail and teaches the optimizer
-      // nothing about triggering.
-      const slashInvocations = queries.filter((query) => query.startsWith("/"));
-      expect(
-        slashInvocations,
-        `Slash-command queries bypass description matching: ${slashInvocations.join(", ")}`
-      ).toStrictEqual([]);
+    "$skillName has a balanced set of unique natural-language queries",
+    (entry) => {
+      expect(parse(TriggerSet, entry.path)).toBeDefined();
     }
   );
 });
@@ -107,48 +98,20 @@ describe("Trigger eval sets", () => {
  * prompt and enough concrete expectations for a grader to score a run.
  */
 describe("Behavioral eval sets", () => {
-  const withEvals = discoverSkills()
-    .map((skillName) => ({
-      path: path.join(getSkillPath(skillName), BEHAVIORAL_SET),
-      skillName,
-    }))
-    .filter(({ path: evalsPath }) => existsSync(evalsPath));
-
-  it.each(withEvals)(
+  it.each(skillsWith("evals.json"))(
     "$skillName has a valid behavioral eval set",
-    async ({ path: evalsPath, skillName }) => {
-      // SAFETY: this test validates each fixture's runtime shape before use.
-      const set = JSON.parse(readFileSync(evalsPath, "utf-8")) as BehavioralSet;
-      const skillFile = await readSkillFile(skillName);
-      const frontmatterName = skillFile.match(SKILL_NAME_RE)?.groups?.["name"];
-      expect(set.skill_name).toBe(frontmatterName);
-      expect(set.evals).toBeInstanceOf(Array);
-      expect(set.evals.length).toBeGreaterThanOrEqual(MIN_EVALS);
+    ({ path: evalsPath, skillName }) => {
+      const set = parse(BehavioralSet, evalsPath);
 
-      const ids = set.evals.map((item) => item.id);
-      expect(new Set(ids).size).toBe(ids.length);
+      expect(set?.skill_name).toBe(skillName);
 
-      const skillPath = getSkillPath(skillName);
+      const missing = (set?.evals ?? []).flatMap((item) =>
+        (item.files ?? [])
+          .filter((file) => !existsSync(path.join(skillPath(skillName), file)))
+          .map((file) => `eval ${item.id} references missing file ${file}`)
+      );
 
-      for (const item of set.evals) {
-        expect(item.id).toBeTypeOf("number");
-        expect(item.prompt.trim().length).toBeGreaterThan(0);
-        expect(item.expected_output.trim().length).toBeGreaterThan(0);
-        expect(item.expectations.length).toBeGreaterThanOrEqual(
-          MIN_EXPECTATIONS
-        );
-
-        for (const expectation of item.expectations) {
-          expect(expectation.trim().length).toBeGreaterThan(0);
-        }
-
-        for (const file of item.files ?? []) {
-          expect(
-            existsSync(path.join(skillPath, file)),
-            `eval ${item.id} references missing file ${file}`
-          ).toBeTruthy();
-        }
-      }
+      expect(missing).toStrictEqual([]);
     }
   );
 });

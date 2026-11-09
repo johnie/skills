@@ -1,26 +1,22 @@
 import { buildCommand } from "@stricli/core";
+import type { CommandContext } from "@stricli/core";
+import kleur from "kleur";
 
-import type { LocalContext } from "../context";
-import { getAvailableSkills, getIcon, getSymlinkStatus } from "../shared";
+import { discoverSkills } from "../../catalog/skills";
+import { linkState, skillLine, TARGET_DIR } from "../links";
 
 export const listCommand = buildCommand({
   docs: {
     brief: "List all skills with their link status",
   },
-  func(this: LocalContext) {
-    const skills = getAvailableSkills(this);
+  func(this: CommandContext) {
+    const lines = discoverSkills().map((name) =>
+      skillLine(name, linkState(name))
+    );
 
-    this.process.stdout.write("\nSkill Manager - Claude\n");
-    this.process.stdout.write(this.colors.dim(`Target: ${this.targetDir}\n\n`));
-
-    for (const skillName of skills) {
-      const status = getSymlinkStatus(skillName, this);
-      const icon = getIcon(status, this);
-      const suffix = status.isBroken ? this.colors.warn(" (broken)") : "";
-      this.process.stdout.write(`${icon} ${skillName}${suffix}\n`);
-    }
-
-    this.process.stdout.write("\n");
+    this.process.stdout.write(
+      `\nSkill Manager - Claude\n${kleur.dim(`Target: ${TARGET_DIR}`)}\n\n${lines.join("\n")}\n\n`
+    );
   },
   parameters: {},
 });

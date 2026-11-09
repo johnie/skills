@@ -400,7 +400,7 @@ pnpm run deploy  # build, then ship it to Cloudflare
 Every skill page also answers `Accept: text/markdown` with the whole skill in one response: `SKILL.md`, then `references/` and `scripts/`, each verbatim inside `<file path="…">` with paths relative to the skill directory, so the skill's own relative links still match. It carries an `ETag` (revalidation returns `304`) and `Vary: Accept`; browsers keep getting the page.
 
 ```bash
-curl -H 'Accept: text/markdown' https://<site>/skills/commit
+curl -H 'Accept: text/markdown' https://<site>/commit
 ```
 
 Only `PUBLIC_`-prefixed environment variables reach the browser. `.env` and `.env.local` are read once at startup, so restart `pnpm dev` after editing them. `wrangler.jsonc` configures the Worker (`skills`), the custom domain `skills.johnie.se`, and enables preview URLs; the build never overwrites it. Run `pnpm run deploy` to apply these settings to Cloudflare.

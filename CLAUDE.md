@@ -46,10 +46,10 @@ This is a **skills repository** for Claude Code. Skills are domain-specific prom
 - `.claude-plugin/marketplace.json` - Hand-maintained plugin manifest. **Add every new skill here**; a test fails if it drifts from `skills/`
 - `src/` - Website (rshono). Read <https://www.rshono.com/llms.txt> before guessing at a framework convention
   - `routes.ts` - Route table, the one file rshono requires
-  - `server.ts` - Hono app mounted ahead of the pages: middleware, API routes, redirects, error reporting. `GET /skills/:name` with `Accept: text/markdown` answers the skill bundle from `skillMarkdown` in `lib/skills.ts`; every other request falls through to the page
+  - `server.ts` - Hono app mounted ahead of the pages: middleware, API routes, redirects, error reporting. `GET /:name` with `Accept: text/markdown` answers the skill bundle from `skillMarkdown` in `lib/skills.ts`; every other request falls through to the page. The old `/skills/*` paths 301 to the same path without the prefix
   - `components/` - Pages (server components) and components; interactive parts are `'use client'`
     - `home/` - Landing page sections; `skill-directory.tsx` (tabs + search) is the only client section
-    - `skill.tsx`, `reference.tsx` - Prerendered pages for each skill (`/skills/:name`) and reference file (`/skills/:name/references/:reference`); `skill/skill-shell.tsx` is their shared layout, built from the pieces in `skill/parts.tsx`
+    - `skill.tsx`, `reference.tsx` - Prerendered pages for each skill (`/:name`) and reference file (`/:name/references/:reference`); `skill/skill-shell.tsx` is their shared layout, built from the pieces in `skill/parts.tsx`
   - `lib/site.ts` - Site links and install commands; `lib/github.ts` - The header's stargazer count, fetched unauthenticated and cached an hour per isolate (prerendered pages keep the build-time count)
   - `lib/skills.ts` - The only importer of the generated collections (`.content-collections/generated`, gitignored). Imported by relative path, not the alias content-collections suggests: rshono's server build externalizes unknown bare specifiers. Server-only: documents carry rendered HTML, so client components get the trimmed `skills` listing
   - `lib/skill-schema.ts` (zod schemas for the frontmatter and `skills.config.ts`, also run by `test/unit/skills-config.test.ts`), `lib/skill-metadata.ts` (categories, listing `Skill` type), `lib/remark-skill-links.ts` (rewrites GitHub-style relative links to site routes) - Loaded by `content-collections.ts` under plain Node: no `@/` aliases there

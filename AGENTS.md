@@ -17,7 +17,8 @@ pnpm run skills unlink <name>  # Unlink a skill
 
 # Website (rshono: Hono + Rspack + React Server Components, deployed to Cloudflare)
 pnpm dev              # content-collections watcher + dev server with HMR, http://localhost:3000
-pnpm build            # Generate content collections, then the production build for Cloudflare
+pnpm build            # Generate content collections and OG images, then the production build for Cloudflare
+pnpm og               # Regenerate the OG images (public/og.png, public/og/<skill>.png)
 pnpm preview          # Build, then run it in workerd on port 8787
 pnpm run deploy       # Build, then ship it to Cloudflare
 pnpm typecheck        # tsc --noEmit
@@ -53,11 +54,12 @@ This is a **skills repository** for Claude Code. Skills are domain-specific prom
     - `skill.tsx`, `reference.tsx` - Prerendered pages for each skill (`/:name`) and reference file (`/:name/references/:reference`); `skill/skill-shell.tsx` is their shared layout, built from the pieces in `skill/parts.tsx`
   - `lib/github.ts` - The header's stargazer count, fetched unauthenticated and cached an hour per isolate (prerendered pages keep the build-time count)
   - `lib/skills.ts` - The only importer of the generated collections (`.content-collections/generated`, gitignored). Imported by relative path, not the alias content-collections suggests: rshono's server build externalizes unknown bare specifiers. Server-only: documents carry rendered HTML and the markdown bundle, so client components get the `skills` listing
-  - `lib/site.ts` - Site links, install commands, and the only place that builds a skill's URLs (`skillHref`, `referenceHref`, `skillSourceUrl`)
+  - `lib/site.ts` - Site links, install commands, and the only place that builds a skill's URLs (`skillHref`, `referenceHref`, `skillSourceUrl`, `ogImageHref`)
   - `lib/skill-schema.ts` (zod schema for `skills.config.ts` and the listing `Skill` type, also run by `test/unit/skills-config.test.ts`), `lib/skill-metadata.ts` (categories), `lib/skill-bundle.ts` (the markdown bundle: body, ETag, outline), `lib/remark-skill-links.ts` (rewrites GitHub-style relative links to site routes) - Loaded by `content-collections.ts` under plain Node: no `@/` aliases there
   - `fonts/` - Vendored Geist Serif (OFL). Its only npm source, `geist`, is `next/font`-only and peers on Next; Geist and Geist Mono come from `@fontsource-variable`
   - The site has no border radius: `--radius` is `0` in `src/styles.css`, and shadcn `base-lyra` components are already `rounded-none`. Don't add `rounded-*` classes
-- `public/` - Served verbatim at the web root
+- `public/` - Served verbatim at the web root. `og.png` and `og/` are generated and gitignored
+- `scripts/og-images.tsx` - The 1200×630 social cards (Vercel-style: logo, mono labels, Geist title), rendered at build time with satori + resvg from the content-collections output into `public/`. Build time, not a runtime route: the skills are fixed at build, so the cards ship as static assets with no render CPU or caching to manage. Rendering per request does work (`cf-workers-og`, with `.wasm` imports left for wrangler and the route's import lazy so rshono's Node prerender never loads them) if a card ever needs data that changes after deploy. Satori takes WOFF but not WOFF2, so it reads the static `@fontsource/geist*` cuts. `Layout` points `og:image` at the card (`image` prop, the site card by default)
 - `content-collections.ts` - Collections for `skills/*/SKILL.md` and `skills/*/references/*.md` (validated, rendered to HTML: GFM, heading ids, Shiki with both themes as CSS variables), plus `files`: every installable skill file verbatim. Each skill document is assembled here once: its listing, its `allowed-tools` grouped by tool, and its markdown bundle. `content-collections build` exits non-zero on a validation error, including a frontmatter that breaks `catalog/frontmatter.ts`
 - `skills.config.ts` - The website listing per skill (category, summary, reads, writes, never), kept out of SKILL.md. Every skill needs an entry unless its name is in `exclude`, which keeps it off the site but still installable
 - `rshono.config.ts` - Deploy target (`cloudflare`) and the Rspack hook that runs Tailwind via `postcss.config.mjs`

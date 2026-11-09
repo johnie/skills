@@ -18,6 +18,10 @@ export const skillHref = (skill: string) => `/${skill}`;
 export const referenceHref = (skill: string, slug: string) =>
   `/${skill}/references/${slug}`;
 
+/** The social card for a skill's pages, or the site's own without one. Written to `public/` by `scripts/og-images.tsx`. */
+export const ogImageHref = (skill?: string) =>
+  skill === undefined ? "/og.png" : `/og/${skill}.png`;
+
 /** `file` is relative to the skill directory: `SKILL.md`, `scripts/fetch.sh`. */
 export const skillSourceUrl = (skill: string, file: string) =>
   `${site.githubUrl}/blob/main/skills/${skill}/${file}`;

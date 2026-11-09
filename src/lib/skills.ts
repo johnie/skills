@@ -47,19 +47,26 @@ export interface SkillMarkdown {
   etag: string;
 }
 
-const buildMarkdown = async (name: string): Promise<SkillMarkdown> => {
-  const body = allFiles
+/** A skill's installable files in bundle order: `SKILL.md`, then `references/` and `scripts/` by path. */
+const bundleFiles = (name: string) =>
+  allFiles
     .filter((file) => file.skill === name)
     .toSorted(
       (a, b) =>
         Number(a.path !== "SKILL.md") - Number(b.path !== "SKILL.md") ||
         a.path.localeCompare(b.path)
-    )
+    );
+
+const bundleBody = (name: string) =>
+  bundleFiles(name)
     .map(
       ({ path, source }) =>
         `<file path="${path}">\n${source.endsWith("\n") ? source : `${source}\n`}</file>\n`
     )
     .join("\n");
+
+const buildMarkdown = async (name: string): Promise<SkillMarkdown> => {
+  const body = bundleBody(name);
 
   const digest = await crypto.subtle.digest(
     "SHA-256",

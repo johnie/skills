@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     // Environment setup & latest features
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
@@ -12,6 +12,8 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
+    // `@/…` resolves to `src/…` in rshono's compiler too; this keeps the editor in agreement.
+    "paths": { "@/*": ["./src/*"] },
 
     // Best practices
     "strict": true,
@@ -24,5 +26,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true
-  }
+  },
+  // Without this, tsc also walks the gitignored skill-creator workspaces, whose fixtures are broken on purpose.
+  "include": ["src", "cli", "test", "*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

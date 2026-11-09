@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  discoverSkills,
-  formatFindings,
-  getAllSkillContent,
-  scanContent,
-} from "../helpers/skills";
+import { discoverSkills } from "../../catalog/skills";
+import { scanSkill } from "../helpers/skills";
 import type { LinePattern } from "../helpers/skills";
 
 /**
@@ -35,17 +31,10 @@ const LEAK_PATTERNS: LinePattern[] = [
 ];
 
 describe("Generality", () => {
-  const skills = discoverSkills();
-
-  it.each(skills)("%s carries no repo-specific leaks", async (skillName) => {
-    const findings = scanContent(
-      await getAllSkillContent(skillName),
-      LEAK_PATTERNS
-    );
-
-    expect(
-      findings,
-      `Repo-specific content found:\n${formatFindings(findings)}`
-    ).toStrictEqual([]);
-  });
+  it.each(discoverSkills())(
+    "%s carries no repo-specific leaks",
+    (skillName) => {
+      expect(scanSkill(skillName, LEAK_PATTERNS)).toStrictEqual([]);
+    }
+  );
 });

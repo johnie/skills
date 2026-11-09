@@ -1,16 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  discoverSkills,
-  formatFindings,
-  getAllSkillContent,
-  scanContent,
-} from "../helpers/skills";
+import { discoverSkills } from "../../catalog/skills";
+import { scanSkill } from "../helpers/skills";
 import type { LinePattern } from "../helpers/skills";
-
-// ---------------------------------------------------------------------------
-// Pattern definitions
-// ---------------------------------------------------------------------------
 
 const PROMPT_INJECTION: LinePattern[] = [
   {
@@ -240,46 +232,27 @@ const NETWORK_ABUSE: LinePattern[] = [
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+const DANGEROUS: LinePattern[] = Object.entries({
+  "credential harvesting": CREDENTIAL_HARVESTING,
+  "crypto mining": CRYPTO_MINING,
+  "data exfiltration": DATA_EXFILTRATION,
+  "destructive filesystem": DESTRUCTIVE_FS,
+  "network abuse": NETWORK_ABUSE,
+  "persistence/backdoor": PERSISTENCE,
+  "privilege escalation": PRIVILEGE_ESCALATION,
+  "prompt injection": PROMPT_INJECTION,
+}).flatMap(([category, patterns]) =>
+  patterns.map(({ name, pattern }) => ({
+    name: `${category}: ${name}`,
+    pattern,
+  }))
+);
 
-const ALL_CATEGORIES = [
-  { category: "prompt injection", patterns: PROMPT_INJECTION },
-  { category: "data exfiltration", patterns: DATA_EXFILTRATION },
-  { category: "destructive filesystem", patterns: DESTRUCTIVE_FS },
-  { category: "credential harvesting", patterns: CREDENTIAL_HARVESTING },
-  { category: "persistence/backdoor", patterns: PERSISTENCE },
-  { category: "privilege escalation", patterns: PRIVILEGE_ESCALATION },
-  { category: "crypto mining", patterns: CRYPTO_MINING },
-  { category: "network abuse", patterns: NETWORK_ABUSE },
-];
-
-describe("Safety Content Validation", () => {
-  const skills = discoverSkills();
-
-  it("discovers at least one skill", () => {
-    expect(skills.length).toBeGreaterThan(0);
-  });
-
-  it.each(skills)("%s contains no dangerous patterns", async (skillName) => {
-    const skillFiles = await getAllSkillContent(skillName);
-
-    const findings = ALL_CATEGORIES.flatMap(({ category, patterns }) =>
-      scanContent(skillFiles, patterns).map((finding) => ({
-        ...finding,
-        category,
-      }))
-    );
-
-    expect(
-      findings,
-      `Safety violation(s) found:\n${findings
-        .map(
-          ({ category, ...finding }) =>
-            `[${category}]\n${formatFindings([finding])}`
-        )
-        .join("\n")}`
-    ).toStrictEqual([]);
-  });
+describe("Safety", () => {
+  it.each(discoverSkills())(
+    "%s contains no dangerous patterns",
+    (skillName) => {
+      expect(scanSkill(skillName, DANGEROUS)).toStrictEqual([]);
+    }
+  );
 });

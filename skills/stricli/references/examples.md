@@ -8,6 +8,7 @@ Combines `buildRouteMap` aliases, scanner case style, and version info into a re
 
 ```typescript
 import { buildApplication, buildRouteMap } from "@stricli/core";
+
 import { version } from "../package.json";
 import { createCommand } from "./commands/create";
 import { listCommand } from "./commands/list";
@@ -111,6 +112,7 @@ export const deployCommand = buildCommand<
 ```typescript
 // src/app.ts
 import { buildApplication } from "@stricli/core";
+
 import { version } from "../package.json";
 import { deployCommand } from "./commands/deploy";
 
@@ -126,6 +128,7 @@ export const app = buildApplication(deployCommand, {
 ```typescript
 // src/index.ts
 import { run } from "@stricli/core";
+
 import { app } from "./app";
 
 await run(app, process.argv.slice(2), {
@@ -141,6 +144,7 @@ Uses the `buildContextForTest()` helper from [context.md — Testing with Contex
 
 ```typescript
 import { run } from "@stricli/core";
+
 import { app } from "../src/app";
 
 it("deploys in dry-run mode", async () => {

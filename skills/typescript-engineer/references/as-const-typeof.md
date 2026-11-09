@@ -219,7 +219,10 @@ type SafeMethod = (typeof HTTP_METHODS)["GET"];
 // Type: "GET"
 
 type MutatingMethod = (typeof HTTP_METHODS)[
-  "POST" | "PUT" | "DELETE" | "PATCH"];
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "PATCH"];
 // Type: "POST" | "PUT" | "DELETE" | "PATCH"
 
 function makeRequest(method: HttpMethod, url: string): void {

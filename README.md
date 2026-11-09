@@ -340,6 +340,24 @@ Extract structured meeting summaries and action items from Spark Mail shared lin
 
 </details>
 
+<details>
+<summary><b>/reshape</b> - Structural codebase refactoring</summary>
+
+<br>
+
+Restructure a codebase around what changes together: expose hidden dependencies, separate unrelated concerns, and remove unnecessary layers.
+
+**Commands:**
+
+- `/reshape` - Review and refactor the codebase
+- `/reshape <area or concern>` - Limit the refactor to that focus and necessary caller updates
+
+Comment and test cleanup are optional; the skill asks which to include before making changes.
+
+Establishes a behavior baseline, verifies each coherent refactor, and retains justified exceptions. Similar code is shared only when it represents the same requirement.
+
+</details>
+
 ## Development
 
 This repository includes a CLI for managing skill symlinks during local development. When developing or testing skills, you need to symlink them to `~/.claude/skills/` where Claude Code discovers them.

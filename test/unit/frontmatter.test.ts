@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { parse as parseYAML } from "yaml";
 
 import { discoverSkills, readSkillFile } from "../helpers/skills";
@@ -44,6 +44,7 @@ const ALLOWED_FIELDS: string[] = [...SPEC_FIELDS, ...CLAUDE_CODE_FIELDS];
 const REQUIRED_FIELDS = ["name", "description"];
 const MIN_DESCRIPTION_LENGTH = 50;
 const MAX_DESCRIPTION_LENGTH = 1024;
+
 /** Claude Code truncates `description` + `when_to_use` at this length in the skill listing. */
 const MAX_LISTING_LENGTH = 1536;
 const MAX_NAME_LENGTH = 64;
@@ -54,6 +55,7 @@ const FRONTMATTER_REGEX = /^---\n(?:[\s\S]*?)\n---/u;
 
 /** A tool rule: `Read`, or a scoped rule like `Bash(git commit *)`. */
 const TOOL_RULE_REGEX = /^[A-Z][A-Za-z]*(?:\(.+\))?$/u;
+
 /**
  * `Bash` and `Bash(*)` are equivalent and pre-approve every shell command
  * without a prompt. Skills must scope Bash per subcommand instead, because
@@ -89,13 +91,14 @@ interface Frontmatter {
 
 const extractFrontmatter = (content: string): string | null => {
   const match = content.match(FRONTMATTER_REGEX);
+
   return match?.[0]?.slice(4, -4) ?? null;
 };
 
 describe("Frontmatter Validation", () => {
   const skills = discoverSkills();
 
-  test("discovers at least one skill", () => {
+  it("discovers at least one skill", () => {
     expect(skills.length).toBeGreaterThan(0);
   });
 
@@ -104,17 +107,20 @@ describe("Frontmatter Validation", () => {
 
     beforeAll(async () => {
       const raw = extractFrontmatter(await readSkillFile(skillName));
+
       if (raw === null) {
         throw new Error(`${skillName} has no YAML frontmatter`);
       }
+
       // SAFETY: the tests below validate every supported field's runtime shape.
       parsed = parseYAML(raw) as Frontmatter;
     });
 
-    test("has valid required identity fields", () => {
+    it("has valid required identity fields", () => {
       for (const requiredField of REQUIRED_FIELDS) {
         expect(parsed).toHaveProperty(requiredField);
       }
+
       expect(parsed.name).toBe(skillName);
       expect(parsed.name).toBeTypeOf("string");
       // SAFETY: the preceding assertion ensures this value is a string.
@@ -123,7 +129,7 @@ describe("Frontmatter Validation", () => {
       expect(name.length).toBeLessThanOrEqual(MAX_NAME_LENGTH);
     });
 
-    test("has a valid listing description", () => {
+    it("has a valid listing description", () => {
       expect(parsed.description).toBeTypeOf("string");
       // SAFETY: the preceding assertion ensures this value is a string.
       const description = parsed.description as string;
@@ -132,7 +138,7 @@ describe("Frontmatter Validation", () => {
       expect(description.length).toBeLessThanOrEqual(MAX_DESCRIPTION_LENGTH);
     });
 
-    test("fits the skill listing budget", () => {
+    it("fits the skill listing budget", () => {
       expect(parsed.description).toBeTypeOf("string");
       const whenToUse = parsed.when_to_use ?? "";
       expect(whenToUse).toBeTypeOf("string");
@@ -143,17 +149,19 @@ describe("Frontmatter Validation", () => {
       );
     });
 
-    test("only declares allowed tool configuration", () => {
+    it("only declares allowed tool configuration", () => {
       for (const declaredField of Object.keys(parsed)) {
         expect(ALLOWED_FIELDS).toContain(declaredField);
       }
 
       const toolFields = ["allowed-tools", "disallowed-tools"] as const;
+
       for (const toolField of toolFields.filter(
         (field) => parsed[field] !== undefined
       )) {
         const rules = parsed[toolField];
         expect(rules).toBeInstanceOf(Array);
+
         // SAFETY: the preceding assertion ensures this value is an array.
         for (const rule of rules as string[]) {
           expect(rule).toBeTypeOf("string");
@@ -171,7 +179,7 @@ describe("Frontmatter Validation", () => {
       ).toStrictEqual([]);
     });
 
-    test("uses valid optional values", () => {
+    it("uses valid optional values", () => {
       const stringFields = [
         "license",
         "when_to_use",
@@ -179,6 +187,7 @@ describe("Frontmatter Validation", () => {
         "model",
         "agent",
       ] as const;
+
       for (const stringField of stringFields.filter(
         (field) => parsed[field] !== undefined
       )) {
@@ -190,6 +199,7 @@ describe("Frontmatter Validation", () => {
         "user-invocable",
         "background",
       ] as const;
+
       for (const booleanField of booleanFields.filter(
         (field) => parsed[field] !== undefined
       )) {
@@ -201,6 +211,7 @@ describe("Frontmatter Validation", () => {
         { allowed: EFFORT_LEVELS, value: parsed.effort },
         { allowed: SHELLS, value: parsed.shell },
       ].filter(({ value: enumValue }) => enumValue !== undefined);
+
       for (const { allowed, value: enumValue } of enumFields) {
         expect(allowed).toContain(enumValue);
       }
@@ -213,6 +224,7 @@ describe("Frontmatter Validation", () => {
 
       const compatibilities =
         parsed.compatibility === undefined ? [] : [parsed.compatibility];
+
       for (const compatibility of compatibilities) {
         expect(compatibility).toBeTypeOf("string");
         // SAFETY: the preceding assertion ensures this value is a string.
@@ -223,6 +235,7 @@ describe("Frontmatter Validation", () => {
 
       const metadataValues =
         parsed.metadata === undefined ? [] : [parsed.metadata];
+
       for (const metadata of metadataValues) {
         expect(metadata).not.toBeNull();
         expect(metadata).toBeTypeOf("object");
@@ -232,14 +245,17 @@ describe("Frontmatter Validation", () => {
       const pathValues = [parsed.arguments, parsed.paths].filter(
         (optionalValue) => optionalValue !== undefined
       );
+
       for (const pathValue of pathValues) {
         const isString =
           Object.prototype.toString.call(pathValue) === "[object String]";
+
         const isStringArray =
           Array.isArray(pathValue) &&
           pathValue.every(
             (item) => Object.prototype.toString.call(item) === "[object String]"
           );
+
         expect(isString || isStringArray).toBeTruthy();
       }
     });

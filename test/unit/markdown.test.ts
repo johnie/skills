@@ -1,7 +1,7 @@
 import type { Code, Heading, Nodes, Root } from "mdast";
 import { remark } from "remark";
 import remarkFrontmatter from "remark-frontmatter";
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { discoverSkills, readSkillFile } from "../helpers/skills";
 
@@ -12,6 +12,7 @@ const HARD_MAX_LINES = 800;
  */
 const parseMarkdown = (content: string): Root => {
   const processor = remark().use(remarkFrontmatter, ["yaml"]);
+
   return processor.parse(content);
 };
 
@@ -26,17 +27,21 @@ const hasFrontmatterFirst = (ast: Root): boolean =>
  */
 const extractHeadings = (ast: Root): Heading[] => {
   const headings: Heading[] = [];
+
   const visit = (node: Nodes): void => {
     if (node.type === "heading") {
       headings.push(node);
     }
+
     if ("children" in node) {
       for (const child of node.children) {
         visit(child);
       }
     }
   };
+
   visit(ast);
+
   return headings;
 };
 
@@ -50,6 +55,7 @@ interface ValidationResult {
  */
 const hasValidHeadingHierarchy = (headings: Heading[]): ValidationResult => {
   let previousLevel = 0;
+
   for (const [index, heading] of headings.entries()) {
     const level = heading.depth;
 
@@ -78,17 +84,21 @@ const hasValidHeadingHierarchy = (headings: Heading[]): ValidationResult => {
  */
 const extractCodeBlocks = (ast: Root): Code[] => {
   const codeBlocks: Code[] = [];
+
   const visit = (node: Nodes): void => {
     if (node.type === "code") {
       codeBlocks.push(node);
     }
+
     if ("children" in node) {
       for (const child of node.children) {
         visit(child);
       }
     }
   };
+
   visit(ast);
+
   return codeBlocks;
 };
 
@@ -104,17 +114,18 @@ const allCodeBlocksHaveLang = (codeBlocks: Code[]): ValidationResult => {
       };
     }
   }
+
   return { valid: true };
 };
 
 describe("Markdown Structure Validation", () => {
   const skills = discoverSkills();
 
-  test("discovers at least one skill", () => {
+  it("discovers at least one skill", () => {
     expect(skills.length).toBeGreaterThan(0);
   });
 
-  test.each(skills)("%s has valid SKILL.md structure", async (skillName) => {
+  it.each(skills)("%s has valid SKILL.md structure", async (skillName) => {
     const content = await readSkillFile(skillName);
     const ast = parseMarkdown(content);
     expect(ast.type).toBe("root");

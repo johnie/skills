@@ -11,16 +11,20 @@ const SKILLS_DIR = path.join(import.meta.dirname, "../../skills");
 export const discoverSkills = (): string[] => {
   try {
     const entries = readdirSync(SKILLS_DIR);
+
     return entries.filter((entry) => {
       // skill-creator eval workspaces are siblings, not skills
       if (entry.endsWith("-workspace")) {
         return false;
       }
+
       const fullPath = path.join(SKILLS_DIR, entry);
+
       return statSync(fullPath).isDirectory();
     });
   } catch (error) {
     console.error("Error discovering skills:", error);
+
     return [];
   }
 };
@@ -47,6 +51,7 @@ export const readSkillFile = (skillName: string): Promise<string> => {
 export const fileExists = (filePath: string): boolean => {
   try {
     statSync(filePath);
+
     return true;
   } catch {
     return false;
@@ -96,23 +101,29 @@ const collectTextFiles = (dir: string, prefix: string): SkillFile[] => {
   if (!fileExists(dir)) {
     return [];
   }
+
   const result: SkillFile[] = [];
+
   for (const entry of readdirSync(dir)) {
     const fullPath = path.join(dir, entry);
     const relative = `${prefix}/${entry}`;
     const stats = statSync(fullPath);
+
     if (stats.isDirectory()) {
       result.push(...collectTextFiles(fullPath, relative));
       continue;
     }
+
     if (
       !stats.isFile() ||
       BINARY_EXTENSIONS.has(path.extname(entry).toLowerCase())
     ) {
       continue;
     }
+
     result.push({ content: readFileSync(fullPath, "utf-8"), file: relative });
   }
+
   return result;
 };
 
@@ -141,12 +152,16 @@ export const scanContent = (
   patterns: LinePattern[]
 ): Finding[] => {
   const findings: Finding[] = [];
+
   for (const { file, content } of files) {
     const lines = content.split("\n");
+
     for (let index = 0; index < lines.length; index += 1) {
       const line = lines[index] ?? "";
+
       for (const { name, pattern } of patterns) {
         const match = line.match(pattern);
+
         if (match) {
           findings.push({
             file,
@@ -158,6 +173,7 @@ export const scanContent = (
       }
     }
   }
+
   return findings;
 };
 

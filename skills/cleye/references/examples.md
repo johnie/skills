@@ -74,6 +74,7 @@ _cli.ts_
 
 ```typescript
 import { cli } from "cleye";
+
 import { buildCommand } from "./commands/build.js";
 
 cli({

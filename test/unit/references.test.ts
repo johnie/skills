@@ -4,7 +4,7 @@ import path from "node:path";
 import type { Heading, Link, Nodes, Root } from "mdast";
 import { remark } from "remark";
 import remarkFrontmatter from "remark-frontmatter";
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { discoverSkills, fileExists, getSkillPath } from "../helpers/skills";
 
@@ -13,11 +13,13 @@ import { discoverSkills, fileExists, getSkillPath } from "../helpers/skills";
  */
 const parseMarkdown = (content: string): Root => {
   const processor = remark().use(remarkFrontmatter, ["yaml"]);
+
   return processor.parse(content);
 };
 
 const visit = (node: Nodes, onNode: (node: Nodes) => void): void => {
   onNode(node);
+
   if ("children" in node) {
     for (const child of node.children) {
       visit(child, onNode);
@@ -35,6 +37,7 @@ const extractLinks = (ast: Root): Link[] => {
       links.push(node);
     }
   });
+
   return links;
 };
 
@@ -50,6 +53,7 @@ const extractInlineCodeReferences = (ast: Root): string[] => {
       references.push(node.value);
     }
   });
+
   return references;
 };
 
@@ -68,6 +72,7 @@ const headingText = (heading: Heading): string => {
       text += node.value;
     }
   });
+
   return text;
 };
 
@@ -85,14 +90,17 @@ const headingSlugs = (ast: Root): Set<string> => {
     if (node.type !== "heading") {
       return;
     }
+
     const base = headingText(node)
       .toLowerCase()
-      .replace(NON_SLUG_CHARS_RE, "")
-      .replace(WHITESPACE_RE, "-");
+      .replaceAll(NON_SLUG_CHARS_RE, "")
+      .replaceAll(WHITESPACE_RE, "-");
+
     const count = seen.get(base) ?? 0;
     seen.set(base, count + 1);
     slugs.add(count === 0 ? base : `${base}-${count}`);
   });
+
   return slugs;
 };
 
@@ -115,6 +123,7 @@ const loadSkillMarkdown = (skillName: string): SkillMarkdownFile[] => {
   const skillPath = getSkillPath(skillName);
   const files = ["SKILL.md"];
   const referencesDir = path.join(skillPath, "references");
+
   if (fileExists(referencesDir)) {
     for (const entry of readdirSync(referencesDir)) {
       if (path.extname(entry) === MARKDOWN_EXT) {
@@ -122,6 +131,7 @@ const loadSkillMarkdown = (skillName: string): SkillMarkdownFile[] => {
       }
     }
   }
+
   return files.map((file) => ({
     ast: parseMarkdown(readFileSync(path.join(skillPath, file), "utf-8")),
     file,
@@ -131,20 +141,23 @@ const loadSkillMarkdown = (skillName: string): SkillMarkdownFile[] => {
 describe("Reference Validation", () => {
   const skills = discoverSkills();
 
-  test("discovers at least one skill", () => {
+  it("discovers at least one skill", () => {
     expect(skills.length).toBeGreaterThan(0);
   });
 
-  test.each(skills)("%s has no broken local references", (skillName) => {
+  it.each(skills)("%s has no broken local references", (skillName) => {
     const skillPath = getSkillPath(skillName);
     const documents = loadSkillMarkdown(skillName);
+
     const slugsByFile = new Map(
       documents.map(({ file, ast }) => [file, headingSlugs(ast)])
     );
 
     const broken: string[] = [];
+
     for (const { file, ast } of documents) {
       const sourceDir = path.dirname(path.join(skillPath, file));
+
       const targets = [
         ...extractLinks(ast).map((link) => link.url),
         ...extractInlineCodeReferences(ast),
@@ -152,21 +165,28 @@ describe("Reference Validation", () => {
 
       for (const target of new Set(targets)) {
         const [filePart, fragment] = target.split("#");
+
         const resolved =
           filePart === ""
             ? path.join(skillPath, file)
             : path.resolve(sourceDir, filePart);
+
         if (!fileExists(resolved)) {
           broken.push(`${file} -> ${target} (missing file)`);
+
           continue;
         }
+
         if (fragment === undefined || path.extname(resolved) !== MARKDOWN_EXT) {
           continue;
         }
+
         const targetFile = path.relative(skillPath, resolved);
+
         const slugs =
           slugsByFile.get(targetFile) ??
           headingSlugs(parseMarkdown(readFileSync(resolved, "utf-8")));
+
         if (!slugs.has(fragment)) {
           broken.push(`${file} -> ${target} (no heading with that anchor)`);
         }

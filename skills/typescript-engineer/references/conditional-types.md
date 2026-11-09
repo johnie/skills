@@ -279,7 +279,8 @@ type ProcessResult<T> = T extends string
 
 // Simpler with discriminated union
 type Result =
-  { type: "string"; value: string } | { type: "number"; value: number };
+  | { type: "string"; value: string }
+  | { type: "number"; value: number };
 ```
 
 ### Forgetting the False Branch

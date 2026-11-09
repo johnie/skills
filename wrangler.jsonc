@@ -1,6 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "johnie-skills",
+  "name": "skills",
+  "routes": [{ "pattern": "skills.johnie.se", "custom_domain": true }],
+  "preview_urls": true,
   // The worker bundle `rshono build` emits for the cloudflare target.
   "main": "dist/server/main.mjs",
   // Pinned: wrangler's bundled workerd refuses a date newer than its own, so `wrangler dev` would not start.

@@ -1,13 +1,14 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { discoverSkills, getSkillPath, readSkillFile } from "../helpers/skills";
 
 const TRIGGER_SET = "evals/trigger-set.json";
 const BEHAVIORAL_SET = "evals/evals.json";
 const MIN_ITEMS = 16;
+
 /**
  * Both classes need real coverage; an all-positive set can't detect
  * over-triggering, and fewer than 8 per class gives the description optimizer
@@ -52,17 +53,18 @@ describe("Trigger eval sets", () => {
     }))
     .filter(({ path: triggerSetPath }) => existsSync(triggerSetPath));
 
-  test("at least one skill ships a trigger set", () => {
+  it("at least one skill ships a trigger set", () => {
     expect(withTriggerSets.length).toBeGreaterThan(0);
   });
 
-  test.each(withTriggerSets)(
+  it.each(withTriggerSets)(
     "$skillName has a balanced trigger eval set",
     ({ path: triggerSetPath }) => {
       // SAFETY: this test validates each fixture's runtime shape before use.
       const cases = JSON.parse(
         readFileSync(triggerSetPath, "utf-8")
       ) as TriggerCase[];
+
       expect(cases).toBeInstanceOf(Array);
       expect(cases.length).toBeGreaterThanOrEqual(MIN_ITEMS);
 
@@ -77,13 +79,14 @@ describe("Trigger eval sets", () => {
     }
   );
 
-  test.each(withTriggerSets)(
+  it.each(withTriggerSets)(
     "$skillName trigger queries are unique natural-language prompts",
     ({ path: triggerSetPath }) => {
       // SAFETY: shape is validated by the sibling test above.
       const cases = JSON.parse(
         readFileSync(triggerSetPath, "utf-8")
       ) as TriggerCase[];
+
       const queries = cases.map((item) => item.query.trim().toLowerCase());
       expect(new Set(queries).size).toBe(queries.length);
 
@@ -111,7 +114,7 @@ describe("Behavioral eval sets", () => {
     }))
     .filter(({ path: evalsPath }) => existsSync(evalsPath));
 
-  test.each(withEvals)(
+  it.each(withEvals)(
     "$skillName has a valid behavioral eval set",
     async ({ path: evalsPath, skillName }) => {
       // SAFETY: this test validates each fixture's runtime shape before use.
@@ -126,6 +129,7 @@ describe("Behavioral eval sets", () => {
       expect(new Set(ids).size).toBe(ids.length);
 
       const skillPath = getSkillPath(skillName);
+
       for (const item of set.evals) {
         expect(item.id).toBeTypeOf("number");
         expect(item.prompt.trim().length).toBeGreaterThan(0);
@@ -133,9 +137,11 @@ describe("Behavioral eval sets", () => {
         expect(item.expectations.length).toBeGreaterThanOrEqual(
           MIN_EXPECTATIONS
         );
+
         for (const expectation of item.expectations) {
           expect(expectation.trim().length).toBeGreaterThan(0);
         }
+
         for (const file of item.files ?? []) {
           expect(
             existsSync(path.join(skillPath, file)),

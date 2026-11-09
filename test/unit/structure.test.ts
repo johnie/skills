@@ -1,11 +1,12 @@
 import { accessSync, constants, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { discoverSkills, fileExists, getSkillPath } from "../helpers/skills";
 
 const ALLOWED_SUBDIRS = new Set(["references", "scripts", "assets", "evals"]);
+
 const DISALLOWED_FILES = new Set([
   "README.md",
   "CHANGELOG.md",
@@ -30,6 +31,7 @@ const getDirectoryEntries = (dirPath: string): DirectoryEntries => {
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry);
       const stats = statSync(fullPath);
+
       if (stats.isDirectory()) {
         dirs.push(entry);
       } else if (stats.isFile()) {
@@ -46,11 +48,11 @@ const getDirectoryEntries = (dirPath: string): DirectoryEntries => {
 describe("Directory Structure Validation", () => {
   const skills = discoverSkills();
 
-  test("discovers at least one skill", () => {
+  it("discovers at least one skill", () => {
     expect(skills.length).toBeGreaterThan(0);
   });
 
-  test.each(skills)("%s matches the skill package contract", (skillName) => {
+  it.each(skills)("%s matches the skill package contract", (skillName) => {
     const skillPath = getSkillPath(skillName);
     const skillFile = path.join(skillPath, "SKILL.md");
     expect(fileExists(skillFile)).toBeTruthy();
@@ -65,6 +67,7 @@ describe("Directory Structure Validation", () => {
     const extraneousFiles = files.filter(
       (file) => file !== "SKILL.md" && DISALLOWED_FILES.has(file)
     );
+
     expect(
       extraneousFiles,
       `Extraneous files found: ${extraneousFiles.join(", ")}. These files should not be in the skill directory.`
@@ -72,14 +75,17 @@ describe("Directory Structure Validation", () => {
 
     const scriptsPath = path.join(skillPath, "scripts");
     const { files: scriptFiles } = getDirectoryEntries(scriptsPath);
+
     const nonExecutable = scriptFiles.filter((file) => {
       try {
         accessSync(path.join(scriptsPath, file), constants.X_OK);
+
         return false;
       } catch {
         return true;
       }
     });
+
     expect(
       nonExecutable,
       `Scripts missing executable permission: ${nonExecutable.join(", ")}`

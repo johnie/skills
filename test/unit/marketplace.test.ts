@@ -1,11 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { discoverSkills } from "../helpers/skills";
 
 const REPO_ROOT = path.join(import.meta.dirname, "../..");
+
 const MARKETPLACE_PATH = path.join(
   REPO_ROOT,
   ".claude-plugin/marketplace.json"
@@ -36,17 +37,18 @@ describe("Plugin marketplace manifest", () => {
   const marketplace = readMarketplace();
   const skills = discoverSkills();
 
-  test("declares exactly one plugin", () => {
+  it("declares exactly one plugin", () => {
     expect(marketplace.plugins).toHaveLength(1);
   });
 
-  test("lists every skill on disk, and only those", () => {
+  it("lists every skill on disk, and only those", () => {
     const declared = [...(marketplace.plugins[0]?.skills ?? [])].toSorted();
     const expected = skills.map((name) => `./skills/${name}`).toSorted();
 
     const missing = expected.filter(
       (skillPath) => !declared.includes(skillPath)
     );
+
     const dangling = declared.filter(
       (skillPath) => !expected.includes(skillPath)
     );
@@ -61,7 +63,7 @@ describe("Plugin marketplace manifest", () => {
     ).toStrictEqual([]);
   });
 
-  test("skill paths are unique", () => {
+  it("skill paths are unique", () => {
     const declared = marketplace.plugins[0]?.skills ?? [];
     expect(new Set(declared).size).toBe(declared.length);
   });

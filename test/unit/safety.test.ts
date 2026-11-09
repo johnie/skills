@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   discoverSkills,
@@ -258,18 +258,20 @@ const ALL_CATEGORIES = [
 describe("Safety Content Validation", () => {
   const skills = discoverSkills();
 
-  test("discovers at least one skill", () => {
+  it("discovers at least one skill", () => {
     expect(skills.length).toBeGreaterThan(0);
   });
 
-  test.each(skills)("%s contains no dangerous patterns", async (skillName) => {
+  it.each(skills)("%s contains no dangerous patterns", async (skillName) => {
     const skillFiles = await getAllSkillContent(skillName);
+
     const findings = ALL_CATEGORIES.flatMap(({ category, patterns }) =>
       scanContent(skillFiles, patterns).map((finding) => ({
         ...finding,
         category,
       }))
     );
+
     expect(
       findings,
       `Safety violation(s) found:\n${findings

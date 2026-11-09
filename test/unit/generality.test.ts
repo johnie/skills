@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
   discoverSkills,
@@ -37,11 +37,12 @@ const LEAK_PATTERNS: LinePattern[] = [
 describe("Generality", () => {
   const skills = discoverSkills();
 
-  test.each(skills)("%s carries no repo-specific leaks", async (skillName) => {
+  it.each(skills)("%s carries no repo-specific leaks", async (skillName) => {
     const findings = scanContent(
       await getAllSkillContent(skillName),
       LEAK_PATTERNS
     );
+
     expect(
       findings,
       `Repo-specific content found:\n${formatFindings(findings)}`

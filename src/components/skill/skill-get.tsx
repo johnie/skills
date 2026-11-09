@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
 import { GetTabs } from "@/components/skill/get-tabs";
+import { SmallLabel } from "@/components/skill/parts";
 import { site, skillFetchCommand, skillInstallCommand } from "@/lib/site";
-import { skillBundleOutline } from "@/lib/skills";
 import type { SkillDocument } from "@/lib/skills";
 
 const kilobytes = new Intl.NumberFormat("en", {
@@ -10,12 +10,6 @@ const kilobytes = new Intl.NumberFormat("en", {
   style: "unit",
   unit: "kilobyte",
 });
-
-const SmallLabel = ({ children }: { children: ReactNode }) => (
-  <p className="text-muted-foreground font-mono text-[11px] tracking-widest uppercase">
-    {children}
-  </p>
-);
 
 /** A shell command; `children` follow it on the line, e.g. an optional flag. Copying is the tab bar's job. */
 const CommandLine = ({
@@ -62,7 +56,7 @@ const CliPanel = ({ skill }: { skill: SkillDocument }) => (
 
 /** The one markdown document `curl` gets back, outlined file by file. */
 const CurlPanel = ({ skill }: { skill: SkillDocument }) => {
-  const { bytes, files } = skillBundleOutline(skill.name);
+  const { bytes, files } = skill.bundle;
   const longest = Math.max(...files.map(({ lines }) => lines));
 
   return (
@@ -108,7 +102,6 @@ const CurlPanel = ({ skill }: { skill: SkillDocument }) => {
   );
 };
 
-/** How to get the skill: the skills CLI, or its page fetched as markdown. */
 export const SkillGet = ({
   skill,
   className,

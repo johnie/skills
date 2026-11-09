@@ -14,7 +14,7 @@ export default function SkillPage({ params }: PageProps<"/:name">) {
   }
 
   return (
-    <Layout title={skill.name} description={skill.summary}>
+    <Layout title={skill.name} description={skill.listing.summary}>
       <SkillShell
         skill={skill}
         references={referencesOf(skill.name)}

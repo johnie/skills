@@ -20,7 +20,7 @@ export default function ReferencePage({
   return (
     <Layout
       title={`${reference.title} · ${skill.name}`}
-      description={skill.summary}
+      description={skill.listing.summary}
     >
       <SkillShell
         skill={skill}

@@ -13,7 +13,8 @@ import {
 import { Kbd } from "@/components/ui/kbd";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { categoryIds, categoryLabels } from "@/lib/skill-metadata";
-import type { CategoryId, Skill } from "@/lib/skill-metadata";
+import type { CategoryId } from "@/lib/skill-metadata";
+import type { Skill } from "@/lib/skill-schema";
 
 type Filter = CategoryId | "all";
 
@@ -28,17 +29,11 @@ const matches = (skill: Skill, filter: Filter, query: string) => {
     return true;
   }
 
-  return [
-    skill.name,
-    skill.category,
-    skill.summary,
-    skill.reads,
-    skill.writes,
-    skill.never,
-  ].some((field) => field.toLowerCase().includes(needle));
+  return Object.values(skill).some((field) =>
+    field.toLowerCase().includes(needle)
+  );
 };
 
-/** Focuses `ref` when "/" is pressed anywhere outside a text field. */
 const useSlashToFocus = (ref: RefObject<HTMLInputElement | null>) => {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

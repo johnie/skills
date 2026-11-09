@@ -1,6 +1,6 @@
 import { Container } from "@/components/container";
 import {
-  SideLabel,
+  SmallLabel,
   SkillBreadcrumb,
   SkillDescription,
   SkillFile,
@@ -31,7 +31,7 @@ export const SkillShell = ({
 
     <header className="mt-10">
       <h1 className="font-heading max-w-4xl text-4xl/tight tracking-tight text-balance sm:text-5xl/tight">
-        {skill.summary}
+        {skill.listing.summary}
       </h1>
       <SkillDescription skill={skill} className="mt-6 max-w-2xl" />
       <SkillGet skill={skill} className="mt-8" />
@@ -46,7 +46,7 @@ export const SkillShell = ({
         />
         {skill.argumentHint !== undefined && (
           <div>
-            <SideLabel>Arguments</SideLabel>
+            <SmallLabel>Arguments</SmallLabel>
             <p className="mt-3 font-mono text-xs">{skill.argumentHint}</p>
           </div>
         )}

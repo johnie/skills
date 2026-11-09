@@ -2,9 +2,9 @@ import path from "node:path";
 
 import type { Nodes, Root } from "mdast";
 
-import { site } from "./site.ts";
+import { isExternalLink } from "../../catalog/links.ts";
+import { referenceHref, skillHref, skillSourceUrl } from "./site.ts";
 
-const EXTERNAL_OR_ANCHOR = /^(?:[a-z][a-z\d+.-]*:|\/|#)/iu;
 const REFERENCE_FILE = /^references\/(?<slug>[^/]+)\.md$/u;
 
 /**
@@ -12,8 +12,9 @@ const REFERENCE_FILE = /^references\/(?<slug>[^/]+)\.md$/u;
  * are written for GitHub and for agents reading the files, so `references/foo.md` has to become the
  * reference page, and anything the site doesn't render (scripts, evals) the file on GitHub.
  */
-export const skillLinkHref = (url: string, skill: string, fromDir: string) => {
-  if (EXTERNAL_OR_ANCHOR.test(url)) {
+const skillLinkHref = (url: string, skill: string, fromDir: string) => {
+  // A bare `#fragment` already points into the page the file is rendered on.
+  if (isExternalLink(url) || url.startsWith("#")) {
     return url;
   }
 
@@ -23,16 +24,16 @@ export const skillLinkHref = (url: string, skill: string, fromDir: string) => {
   const resolved = path.posix.normalize(path.posix.join(fromDir, target));
 
   if (resolved === "SKILL.md") {
-    return `/${skill}${hash}`;
+    return `${skillHref(skill)}${hash}`;
   }
 
   const slug = REFERENCE_FILE.exec(resolved)?.groups?.["slug"];
 
   if (slug !== undefined) {
-    return `/${skill}/references/${slug}${hash}`;
+    return `${referenceHref(skill, slug)}${hash}`;
   }
 
-  return `${site.githubUrl}/blob/main/${path.posix.join("skills", skill, resolved)}${hash}`;
+  return `${skillSourceUrl(skill, resolved)}${hash}`;
 };
 
 const rewrite = (node: Nodes, href: (url: string) => string) => {

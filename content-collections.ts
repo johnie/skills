@@ -8,19 +8,18 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { z } from "zod";
 
+import { parseToolRule, SkillFrontmatter } from "./catalog/frontmatter.ts";
 import skillsConfig from "./skills.config.ts";
 import { remarkSkillLinks } from "./src/lib/remark-skill-links.ts";
-import {
-  SkillFrontmatter,
-  SkillsConfigSchema,
-} from "./src/lib/skill-schema.ts";
+import { bundleSkill } from "./src/lib/skill-bundle.ts";
+import { SkillsConfigSchema } from "./src/lib/skill-schema.ts";
 
 /**
- * `skills/<name>/SKILL.md` and `skills/<name>/references/*.md`, validated and rendered to HTML at build time, plus
- * every file a skill installs, verbatim, for its markdown bundle. Each skill's listing comes from
- * `skills.config.ts`, and skills it excludes are skipped in every collection. `pnpm dev` keeps
- * `.content-collections/generated` in sync; `src/lib/skills.ts` is the only importer. `<name>-workspace/` siblings
- * have no top-level SKILL.md, references/ or scripts/, so no glob reaches them.
+ * `skills/<name>/SKILL.md` and `skills/<name>/references/*.md`, validated and rendered to HTML at build time. Each
+ * skill document also carries its listing from `skills.config.ts` and its markdown bundle; skills the config
+ * excludes are skipped. `pnpm dev` keeps `.content-collections/generated` in sync; `src/lib/skills.ts` is the
+ * only importer. `<name>-workspace/` siblings have no top-level SKILL.md, references/ or scripts/, so no glob
+ * reaches them.
  */
 
 const config = SkillsConfigSchema.safeParse(skillsConfig);
@@ -89,51 +88,76 @@ const references = defineCollection({
   },
 });
 
-const skills = defineCollection({
-  directory: "skills",
-  include: "*/SKILL.md",
-  name: "skills",
-  schema: SkillFrontmatter.extend({ content: z.string() }),
-  transform: async (document, context) => {
-    if (excluded.has(document.name)) {
-      return context.skip(EXCLUDED);
-    }
-
-    const listing = config.data.skills[document.name];
-
-    if (listing === undefined) {
-      throw new Error(
-        `${document.name} has no entry in skills.config.ts: add its listing under skills, or its name under exclude`
-      );
-    }
-
-    return {
-      allowedTools: document["allowed-tools"] ?? [],
-      argumentHint: document["argument-hint"],
-      description: document.description,
-      html: await renderMarkdown(context, document, document.name),
-      name: document.name,
-      ...listing,
-    };
-  },
-});
-
-/** A skill's installable files as written, `evals/` excluded: what `Accept: text/markdown` on its page returns. */
+/**
+ * A skill's installable files as written, `evals/` excluded. Read by the `skills` collection for the markdown
+ * bundle, so it is defined ahead of it.
+ */
 const files = defineCollection({
   directory: "skills",
   include: ["*/SKILL.md", "*/references/*.md", "*/scripts/**"],
   name: "files",
   parser: { hasContent: false, parse: (source: string) => ({ source }) },
   schema: z.object({ source: z.string() }),
-  transform: ({ source, _meta }, context) => {
-    const [skill = "", ...rest] = _meta.filePath.split("/");
+});
 
-    if (excluded.has(skill)) {
+/** `allowed-tools` grouped by tool, in the order the tools first appear. */
+const groupPrivileges = (rules: string[]) => {
+  const scopesByTool = new Map<string, string[]>();
+
+  for (const { tool, scope } of rules.map(parseToolRule)) {
+    const scopes = scopesByTool.get(tool) ?? [];
+
+    if (scope !== undefined) {
+      scopes.push(scope);
+    }
+
+    scopesByTool.set(tool, scopes);
+  }
+
+  return Array.from(scopesByTool, ([tool, scopes]) => ({ scopes, tool }));
+};
+
+const skills = defineCollection({
+  directory: "skills",
+  include: "*/SKILL.md",
+  name: "skills",
+  schema: SkillFrontmatter.safeExtend({ content: z.string() }),
+  transform: async (document, context) => {
+    // The directory is the skill's identity, as in the other collections; the frontmatter suite keeps `name` equal to it.
+    const name = document._meta.directory;
+
+    if (excluded.has(name)) {
       return context.skip(EXCLUDED);
     }
 
-    return { path: rest.join("/"), skill, source };
+    const listing = config.data.skills[name];
+
+    if (listing === undefined) {
+      throw new Error(
+        `${name} has no entry in skills.config.ts: add its listing under skills, or its name under exclude`
+      );
+    }
+
+    const prefix = `${name}/`;
+
+    return {
+      argumentHint: document["argument-hint"],
+      bundle: bundleSkill(
+        context
+          .documents(files)
+          .filter(({ _meta }) => _meta.filePath.startsWith(prefix))
+          .map(({ _meta, source }) => ({
+            path: _meta.filePath.slice(prefix.length),
+            source,
+          }))
+      ),
+      description: document.description,
+      html: await renderMarkdown(context, document, name),
+      listing: { name, ...listing },
+      name,
+      privileges: groupPrivileges(document["allowed-tools"] ?? []),
+    };
   },
 });
 
-export default defineConfig({ content: [references, skills, files] });
+export default defineConfig({ content: [references, files, skills] });

@@ -403,7 +403,7 @@ Every skill page also answers `Accept: text/markdown` with the whole skill in on
 curl -H 'Accept: text/markdown' https://<site>/skills/commit
 ```
 
-Only `PUBLIC_`-prefixed environment variables reach the browser. `.env` and `.env.local` are read once at startup, so restart `pnpm dev` after editing them. `wrangler.jsonc` configures the Worker (`johnie-skills`); the build never overwrites it.
+Only `PUBLIC_`-prefixed environment variables reach the browser. `.env` and `.env.local` are read once at startup, so restart `pnpm dev` after editing them. `wrangler.jsonc` configures the Worker (`skills`), the custom domain `skills.johnie.se`, and enables preview URLs; the build never overwrites it. Run `pnpm run deploy` to apply these settings to Cloudflare.
 
 ## License
 

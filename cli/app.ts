@@ -2,20 +2,19 @@ import { buildApplication, buildRouteMap } from "@stricli/core";
 
 import packageJson from "../package.json" with { type: "json" };
 import { interactiveCommand } from "./commands/interactive";
-import { linkCommand } from "./commands/link";
+import { linkCommand, unlinkCommand } from "./commands/link";
 import { listCommand } from "./commands/list";
-import { unlinkCommand } from "./commands/unlink";
 
-export const routes = buildRouteMap({
+const routes = buildRouteMap({
+  aliases: { i: "interactive", ls: "list" },
+  defaultCommand: "interactive",
   docs: {
     brief: "Manage Claude skills",
   },
   routes: {
-    i: interactiveCommand,
     interactive: interactiveCommand,
     link: linkCommand,
     list: listCommand,
-    ls: listCommand,
     unlink: unlinkCommand,
   },
 });

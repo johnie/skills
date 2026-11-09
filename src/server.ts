@@ -45,15 +45,20 @@ for (const [from, to] of Object.entries(REDIRECTS)) {
   server.get(from, (c) => c.redirect(to, 301));
 }
 
+/** Skill pages lived under `/skills/` before they moved to the root: `/skills/commit` is now `/commit`. */
+server.get("/skills/:path{.+}", (c) =>
+  c.redirect(`/${c.req.param("path")}`, 301)
+);
+
 /** A JSON API route, with no page involved. The layout links to it. */
 server.get("/api/health", (c) => c.json({ status: "ok" }));
 
 /**
- * `/skills/:name` with `Accept: text/markdown` answers the whole skill as one markdown document (`skillMarkdown`):
+ * `/:name` with `Accept: text/markdown` answers the whole skill as one markdown document (`skillMarkdown`):
  * what an agent fetches to read or install it. Anything else, browsers included, falls through to the page.
  * `Vary: Accept` on both, so a cache never hands one to the other.
  */
-server.get("/skills/:name", async (c, downstream) => {
+server.get("/:name", async (c, downstream) => {
   const wanted = accepts(c, {
     default: "text/html",
     header: "Accept",

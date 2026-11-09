@@ -23,13 +23,13 @@ export const skillLinkHref = (url: string, skill: string, fromDir: string) => {
   const resolved = path.posix.normalize(path.posix.join(fromDir, target));
 
   if (resolved === "SKILL.md") {
-    return `/skills/${skill}${hash}`;
+    return `/${skill}${hash}`;
   }
 
   const slug = REFERENCE_FILE.exec(resolved)?.groups?.["slug"];
 
   if (slug !== undefined) {
-    return `/skills/${skill}/references/${slug}${hash}`;
+    return `/${skill}/references/${slug}${hash}`;
   }
 
   return `${site.githubUrl}/blob/main/${path.posix.join("skills", skill, resolved)}${hash}`;

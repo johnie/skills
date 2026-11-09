@@ -8,7 +8,7 @@ import { Layout } from "./layout";
 
 export default function ReferencePage({
   params,
-}: PageProps<"/skills/:name/references/:reference">) {
+}: PageProps<"/:name/references/:reference">) {
   const skill = getSkill(params.name);
   const references = referencesOf(params.name);
   const reference = references.find(({ slug }) => slug === params.reference);

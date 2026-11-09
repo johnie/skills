@@ -32,7 +32,7 @@ export const SkillRow = ({
         <div className="flex flex-wrap items-center gap-2.5">
           <h3 className="font-mono text-base font-medium">
             <a
-              href={`/skills/${skill.name}`}
+              href={`/${skill.name}`}
               className="flex items-center gap-1.5 no-underline decoration-1 underline-offset-4 group-hover:underline after:absolute after:inset-0"
             >
               {skill.name}

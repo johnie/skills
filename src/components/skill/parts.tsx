@@ -50,7 +50,7 @@ export const SkillBreadcrumb = ({
       <li aria-hidden>/</li>
       <li>
         <a
-          href={`/skills/${skill.name}`}
+          href={`/${skill.name}`}
           className="text-muted-foreground hover:text-foreground no-underline"
         >
           {skill.name}
@@ -85,10 +85,10 @@ export const SkillFileNav = ({
   fileName: string;
 }) => {
   const files = [
-    { fileName: "SKILL.md", href: `/skills/${skill.name}` },
+    { fileName: "SKILL.md", href: `/${skill.name}` },
     ...references.map((reference) => ({
       fileName: reference.fileName,
-      href: `/skills/${skill.name}/references/${reference.slug}`,
+      href: `/${skill.name}/references/${reference.slug}`,
     })),
   ];
 

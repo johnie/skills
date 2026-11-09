@@ -6,7 +6,7 @@ import { getSkill, referencesOf } from "@/lib/skills";
 
 import { Layout } from "./layout";
 
-export default function SkillPage({ params }: PageProps<"/skills/:name">) {
+export default function SkillPage({ params }: PageProps<"/:name">) {
   const skill = getSkill(params.name);
 
   if (skill === undefined) {

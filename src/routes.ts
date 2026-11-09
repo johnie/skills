@@ -9,13 +9,13 @@ export const routes = defineRoutes({
     { component: () => import("./components/home"), path: "/" },
     {
       component: () => import("./components/skill"),
-      path: "/skills/:name",
+      path: "/:name",
       render: "static",
       staticPaths: skillPaths,
     },
     {
       component: () => import("./components/reference"),
-      path: "/skills/:name/references/:reference",
+      path: "/:name/references/:reference",
       render: "static",
       staticPaths: referencePaths,
     },

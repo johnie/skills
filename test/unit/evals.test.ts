@@ -120,7 +120,7 @@ describe("Behavioral eval sets", () => {
       // SAFETY: this test validates each fixture's runtime shape before use.
       const set = JSON.parse(readFileSync(evalsPath, "utf-8")) as BehavioralSet;
       const skillFile = await readSkillFile(skillName);
-      const frontmatterName = skillFile.match(SKILL_NAME_RE)?.groups?.name;
+      const frontmatterName = skillFile.match(SKILL_NAME_RE)?.groups?.["name"];
       expect(set.skill_name).toBe(frontmatterName);
       expect(set.evals).toBeInstanceOf(Array);
       expect(set.evals.length).toBeGreaterThanOrEqual(MIN_EVALS);

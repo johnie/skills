@@ -9,7 +9,6 @@
       "skills": [
         "./skills/cleye",
         "./skills/commit",
-        "./skills/extract-spark-meetings",
         "./skills/gh-logs",
         "./skills/pr",
         "./skills/reshape",

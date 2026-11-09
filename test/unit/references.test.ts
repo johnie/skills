@@ -164,7 +164,7 @@ describe("Reference Validation", () => {
       ].filter((url) => !EXTERNAL_URL_RE.test(url));
 
       for (const target of new Set(targets)) {
-        const [filePart, fragment] = target.split("#");
+        const [filePart = "", fragment] = target.split("#");
 
         const resolved =
           filePart === ""

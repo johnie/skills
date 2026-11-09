@@ -305,42 +305,6 @@ Designs complex generic types, refactors `any` to strict alternatives, creates t
 </details>
 
 <details>
-<summary><b>/extract-spark-meetings</b> - Extract meeting summaries from Spark Mail</summary>
-
-<br>
-
-Extract structured meeting summaries and action items from Spark Mail shared links. Processes single URLs or batch processes unchecked links from links.md.
-
-**Features:**
-
-- Extracts meeting metadata (date, participants, duration)
-- Captures summary and key discussion points
-- Parses action items with owners and due dates
-- Records decisions and next steps
-- Outputs structured markdown with YAML frontmatter
-- Automatic tagging by meeting type and topics
-- Batch processing support with checkbox tracking
-
-**Commands:**
-
-- `/extract-spark-meetings <url>` - Process a single Spark Mail link
-- `/extract-spark-meetings` - Batch process all unchecked links from links.md
-
-**Output:**
-
-- Files saved to `spark-meetings/YYYY-MM-DD-{title}.md`
-- Rich frontmatter enables filtering by date, participant, or tag
-- Action item checkboxes for task tracking
-- Original Spark URL preserved for reference
-
-**Workflows:**
-
-- **Single URL**: Extracts one meeting and optionally updates links.md if URL is found
-- **Batch Mode**: Processes all unchecked (`- [ ]`) URLs from links.md sequentially, marking each as checked (`- [x]`) after successful extraction
-
-</details>
-
-<details>
 <summary><b>/reshape</b> - Structural codebase refactoring</summary>
 
 <br>
@@ -398,6 +362,20 @@ pnpm run skills --help
 
 **Frontmatter.** `name` (required, kebab-case, must equal the directory name) and `description` (required, 50–1024 chars, no HTML). Optional spec fields: `allowed-tools`, `license`, `metadata`, `compatibility`. Claude Code extensions are also permitted because this repo ships as a plugin — `when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `disallowed-tools`, `model`, `effort`, `context`, `agent`, `background`, `hooks`, `paths`, `shell`. Using any extension forfeits portability to claude.ai uploads and the Skills API, which accept only the six spec fields.
 
+**Website listing.** Every skill gets a row on the website and its own page, which renders `SKILL.md` and each `references/*.md` file through [content-collections](https://www.content-collections.dev) (`content-collections.ts`). The listing itself lives in `skills.config.ts`, not in the skill, so add an entry there keyed by the skill's directory name:
+
+```ts
+commit: {
+  category: "git", // one of categoryIds in src/lib/skill-metadata.ts
+  summary: "Turns your changes into small, conventional commits.",
+  reads: "git diff", // what it looks at
+  writes: "commits", // what it creates or changes
+  never: "bypass commit hooks", // what it won't do
+},
+```
+
+To keep a skill off the site (listing, pages and markdown bundle), put its name in `exclude` instead; it still installs from the repo. A test and the website build both fail when a skill has neither, or when a field is empty or the category unknown; the test also flags names with no skill on disk. A new category needs an entry in `categoryIds` and `categoryLabels` in `src/lib/skill-metadata.ts`; its tab appears once a skill uses it.
+
 **Scope `allowed-tools`.** It pre-approves tools for the invoking turn rather than restricting them, so a bare `Bash` entry lets every shell command run unprompted. A test rejects it. Write per-subcommand rules instead — `Bash(git commit *)`, not `Bash(git *)`, since Claude Code matches each subcommand of a chained command independently and `Bash(git *)` would also cover `git push --force`.
 
 **Body.** Keep `SKILL.md` under 500 lines (hard fail at 800) and move detail to `references/`; the body stays in context for the whole session. Don't restate the description in a "When to use" section — put trigger phrases in `when_to_use` and keep the body for guardrails and workflow. Reference files over 300 lines need a table of contents. All fenced code blocks need a language, headings can't skip levels, and every local link — including `#anchor` fragments in SKILL.md and reference files — must resolve.
@@ -405,6 +383,27 @@ pnpm run skills --help
 **Stay general.** A skill runs in other people's projects, so it must not mention this repo's toolchain, personal paths, or the author, and must not link to a sibling skill's files (`../other/SKILL.md`) — skills install independently. A test scans every skill file for these leaks.
 
 **Evals.** `evals/trigger-set.json` holds description-triggering cases as `{ query, should_trigger }`, at least 16 with 8+ in each class and no `/slash-command` queries (those bypass description matching). These feed skill-creator's description optimizer. `evals/evals.json` (optional) holds behavioral evals — `{ skill_name, evals: [{ id, prompt, expected_output, files, expectations }] }`, at least 2 evals with 3+ verifiable expectations each — for skill-creator's run/grade loop.
+
+### Website
+
+`src/` is an [rshono](https://www.rshono.com) app (Hono, Rspack, React Server Components, Tailwind) built for Cloudflare Workers. Needs Node 22.18 or newer. Skill content is generated by content-collections into `.content-collections/` (gitignored) before every dev, build and typecheck run.
+
+```bash
+pnpm dev         # content-collections watcher + dev server with HMR, http://localhost:3000
+pnpm build       # generate content, then the production build for Cloudflare
+pnpm preview     # build, then run it in workerd on port 8787
+pnpm run deploy  # build, then ship it to Cloudflare
+```
+
+`src/routes.ts` is the route table, `src/server.ts` the Hono app mounted ahead of the pages, `src/components/` the pages, `public/` the static files. Pages are server components; only `'use client'` components ship JavaScript.
+
+Every skill page also answers `Accept: text/markdown` with the whole skill in one response: `SKILL.md`, then `references/` and `scripts/`, each verbatim inside `<file path="…">` with paths relative to the skill directory, so the skill's own relative links still match. It carries an `ETag` (revalidation returns `304`) and `Vary: Accept`; browsers keep getting the page.
+
+```bash
+curl -H 'Accept: text/markdown' https://<site>/skills/commit
+```
+
+Only `PUBLIC_`-prefixed environment variables reach the browser. `.env` and `.env.local` are read once at startup, so restart `pnpm dev` after editing them. `wrangler.jsonc` configures the Worker (`johnie-skills`); the build never overwrites it.
 
 ## License
 

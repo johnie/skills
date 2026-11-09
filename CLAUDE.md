@@ -15,6 +15,13 @@ pnpm run skills list  # List all skills and their link status
 pnpm run skills link <name>    # Link a skill to ~/.claude/skills/
 pnpm run skills unlink <name>  # Unlink a skill
 
+# Website (rshono: Hono + Rspack + React Server Components, deployed to Cloudflare)
+pnpm dev              # content-collections watcher + dev server with HMR, http://localhost:3000 (Node >= 22.18)
+pnpm build            # Generate content collections, then the production build for Cloudflare
+pnpm preview          # Build, then run it in workerd on port 8787
+pnpm run deploy       # Build, then ship it to Cloudflare
+pnpm typecheck        # tsc --noEmit
+
 # Linting/Formatting (Ultracite + Biome)
 pnpm exec ultracite fix   # Auto-fix formatting and lint issues
 pnpm exec ultracite check # Check for issues without fixing
@@ -37,6 +44,22 @@ This is a **skills repository** for Claude Code. Skills are domain-specific prom
 - `cli/` - Stricli-based CLI (`pnpm run skills`) for symlinking skills to `~/.claude/skills/` where Claude Code discovers them
 - `test/unit/` - Validation suite for every skill: frontmatter schema, directory structure, markdown shape, link resolution, dangerous-pattern scan, marketplace sync, eval sets
 - `.claude-plugin/marketplace.json` - Hand-maintained plugin manifest. **Add every new skill here**; a test fails if it drifts from `skills/`
+- `src/` - Website (rshono). Read <https://www.rshono.com/llms.txt> before guessing at a framework convention
+  - `routes.ts` - Route table, the one file rshono requires
+  - `server.ts` - Hono app mounted ahead of the pages: middleware, API routes, redirects, error reporting. `GET /skills/:name` with `Accept: text/markdown` answers the skill bundle from `skillMarkdown` in `lib/skills.ts`; every other request falls through to the page
+  - `components/` - Pages (server components) and components; interactive parts are `'use client'`
+    - `home/` - Landing page sections; `skill-directory.tsx` (tabs + search) is the only client section
+    - `skill.tsx`, `reference.tsx` - Prerendered pages for each skill (`/skills/:name`) and reference file (`/skills/:name/references/:reference`); `skill/skill-shell.tsx` is their shared layout, built from the pieces in `skill/parts.tsx`
+  - `lib/site.ts` - Site links and install commands; `lib/github.ts` - The header's stargazer count, fetched unauthenticated and cached an hour per isolate (prerendered pages keep the build-time count)
+  - `lib/skills.ts` - The only importer of the generated collections (`.content-collections/generated`, gitignored). Imported by relative path, not the alias content-collections suggests: rshono's server build externalizes unknown bare specifiers. Server-only: documents carry rendered HTML, so client components get the trimmed `skills` listing
+  - `lib/skill-schema.ts` (zod schemas for the frontmatter and `skills.config.ts`, also run by `test/unit/skills-config.test.ts`), `lib/skill-metadata.ts` (categories, listing `Skill` type), `lib/remark-skill-links.ts` (rewrites GitHub-style relative links to site routes) - Loaded by `content-collections.ts` under plain Node: no `@/` aliases there
+  - `fonts/` - Vendored Geist Serif (OFL). Its only npm source, `geist`, is `next/font`-only and peers on Next; Geist and Geist Mono come from `@fontsource-variable`
+  - The site has no border radius: `--radius` is `0` in `src/styles.css`, and shadcn `base-lyra` components are already `rounded-none`. Don't add `rounded-*` classes
+- `public/` - Served verbatim at the web root
+- `content-collections.ts` - Collections for `skills/*/SKILL.md` and `skills/*/references/*.md` (validated, rendered to HTML: GFM, heading ids, Shiki with both themes as CSS variables), plus `files`: every installable skill file verbatim, for the markdown bundle. `content-collections build` exits non-zero on a validation error
+- `skills.config.ts` - The website listing per skill (category, summary, reads, writes, never), kept out of SKILL.md. Every skill needs an entry unless its name is in `exclude`, which keeps it off the site but still installable
+- `rshono.config.ts` - Deploy target (`cloudflare`) and the Rspack hook that runs Tailwind via `postcss.config.mjs`
+- `components.json` - shadcn/ui config (preset `b3XobElTus`: `base-lyra`, Base UI, Hugeicons, Geist). rshono isn't a framework the shadcn CLI detects, so `shadcn init` and `shadcn apply` fail with "could not detect a supported framework"; theme tokens live by hand in `src/styles.css` (dark tokens under `prefers-color-scheme`, not `.dark`). `pnpm dlx shadcn@latest add <component>` works and writes to `src/components/ui/`. Any added component that wraps a Base UI primitive or uses hooks needs `"use client"` at the top: `rshono dev` externalizes `node_modules` from the server-component layer, so Base UI's own `'use client'` is never seen and the page dies with "Invalid hook call"
 
 ### Skill Architecture
 

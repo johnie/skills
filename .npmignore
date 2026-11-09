@@ -14,6 +14,19 @@ biome.jsonc
 tsconfig.json
 .gitignore
 
+# Website (rshono app, deployed separately)
+src/
+public/
+rshono.config.ts
+postcss.config.mjs
+content-collections.ts
+.content-collections/
+wrangler.jsonc
+components.json
+.wrangler/
+.rshono/
+dist/
+
 # Lock files (not needed for libraries)
 bun.lock
 

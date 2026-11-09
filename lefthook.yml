@@ -1,22 +1,6 @@
 pre-commit:
   jobs:
-    - run: pnpm dlx ultracite fix
-      glob:
-        - "**/*.js"
-        - "**/*.jsx"
-        - "**/*.ts"
-        - "**/*.tsx"
-        - "**/*.json"
-        - "**/*.jsonc"
-        - "**/*.css"
-      stage_fixed: true
     - run: pnpm exec ultracite fix
-      glob:
-        - "*.js"
-        - "*.jsx"
-        - "*.ts"
-        - "*.tsx"
-        - "*.json"
-        - "*.jsonc"
-        - "*.css"
+      # lefthook's default matcher lets `*` cross directories, so this covers nested files too.
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
       stage_fixed: true

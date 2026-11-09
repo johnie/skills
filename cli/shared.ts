@@ -28,6 +28,7 @@ export const getAvailableSkills = (context: LocalContext): string[] => {
   }
 
   const entries = readdirSync(context.skillsDir, { withFileTypes: true });
+
   return (
     entries
       .filter((entry) => entry.isDirectory())
@@ -50,6 +51,7 @@ export const getSymlinkStatus = (
   const sourcePath = path.join(context.skillsDir, skillName);
 
   let stats: ReturnType<typeof lstatSync>;
+
   try {
     // lstat does not follow the link, so a dangling symlink still resolves here.
     stats = lstatSync(targetPath);
@@ -89,19 +91,23 @@ export const linkSkill = (skillName: string, context: LocalContext): void => {
         `Error: Skill '${skillName}' not found in ${context.skillsDir}\n`
       )
     );
+
     return;
   }
 
   if (existsSync(targetPath)) {
     const stats = lstatSync(targetPath);
+
     if (!stats.isSymbolicLink()) {
       context.process.stderr.write(
         context.colors.error(
           `Error: ${targetPath} exists but is not a symlink. Remove it manually first.\n`
         )
       );
+
       return;
     }
+
     unlinkSync(targetPath);
   }
 
@@ -118,16 +124,19 @@ export const unlinkSkill = (skillName: string, context: LocalContext): void => {
     context.process.stdout.write(
       context.colors.dim(`Skill '${skillName}' is not linked\n`)
     );
+
     return;
   }
 
   const stats = lstatSync(targetPath);
+
   if (!stats.isSymbolicLink()) {
     context.process.stderr.write(
       context.colors.error(
         `Error: ${targetPath} exists but is not a symlink. Remove it manually.\n`
       )
     );
+
     return;
   }
 
@@ -142,8 +151,10 @@ export const getIcon = (skill: Skill, context: LocalContext): string => {
   if (skill.isBroken) {
     return context.colors.icons.broken;
   }
+
   if (skill.isLinked) {
     return context.colors.icons.linked;
   }
+
   return context.colors.icons.unlinked;
 };

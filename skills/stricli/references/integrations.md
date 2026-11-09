@@ -38,6 +38,7 @@ Re-register all three whenever you add an integration of your own. Both factorie
 
 ```typescript
 import { buildApplication, help, version } from "@stricli/core";
+
 import { version as currentVersion } from "../package.json";
 
 const formatting = {

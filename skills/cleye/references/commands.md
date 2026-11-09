@@ -93,6 +93,7 @@ _npm.ts_ (entry file)
 
 ```typescript
 import { cli } from "cleye";
+
 import { installCommand } from "./install-command.js";
 
 cli({

@@ -50,6 +50,7 @@ Notes:
 
 ```typescript
 import { run } from "@stricli/core";
+
 import { app } from "./app";
 
 interface AppContext extends CommandContext {
@@ -93,6 +94,7 @@ Stricli is designed to make command testing easier by injecting context rather t
 
 ```typescript
 import { run } from "@stricli/core";
+
 import { app } from "../src/app";
 
 const context = buildContextForTest();

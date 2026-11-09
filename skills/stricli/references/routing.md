@@ -127,6 +127,7 @@ Route maps currently accept:
 
 ```typescript
 import { buildRouteMap } from "@stricli/core";
+
 import { createCommand } from "./create";
 import { listCommand } from "./list";
 
@@ -231,6 +232,7 @@ Do not use the older object form `buildApplication({ command, name, version })` 
 
 ```typescript
 import { buildApplication, help, version } from "@stricli/core";
+
 import { version as currentVersion } from "../package.json";
 import { rootRoutes } from "./routes";
 

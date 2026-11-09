@@ -105,6 +105,7 @@ export const greetCommand = buildCommand({
 
 ```typescript
 import { buildApplication, help, version } from "@stricli/core";
+
 import { version as currentVersion } from "../package.json";
 import { greetCommand } from "./commands/greet";
 
@@ -145,6 +146,7 @@ On 1.3.0+ the `version` integration is the primary way to enable `--version`; th
 
 ```typescript
 import { run } from "@stricli/core";
+
 import { app } from "./app";
 
 await run(app, process.argv.slice(2), { process });

@@ -47,11 +47,12 @@ The install command wires a target command (`my-cli`) to a bash completion comma
 Use them to add hidden install/uninstall commands to your own CLI.
 
 ```typescript
-import { buildApplication, buildRouteMap } from "@stricli/core";
 import {
   buildInstallCommand,
   buildUninstallCommand,
 } from "@stricli/auto-complete";
+import { buildApplication, buildRouteMap } from "@stricli/core";
+
 import { statusCommand } from "./commands/status";
 
 const routes = buildRouteMap({

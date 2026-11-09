@@ -305,42 +305,6 @@ Designs complex generic types, refactors `any` to strict alternatives, creates t
 </details>
 
 <details>
-<summary><b>/extract-spark-meetings</b> - Extract meeting summaries from Spark Mail</summary>
-
-<br>
-
-Extract structured meeting summaries and action items from Spark Mail shared links. Processes single URLs or batch processes unchecked links from links.md.
-
-**Features:**
-
-- Extracts meeting metadata (date, participants, duration)
-- Captures summary and key discussion points
-- Parses action items with owners and due dates
-- Records decisions and next steps
-- Outputs structured markdown with YAML frontmatter
-- Automatic tagging by meeting type and topics
-- Batch processing support with checkbox tracking
-
-**Commands:**
-
-- `/extract-spark-meetings <url>` - Process a single Spark Mail link
-- `/extract-spark-meetings` - Batch process all unchecked links from links.md
-
-**Output:**
-
-- Files saved to `spark-meetings/YYYY-MM-DD-{title}.md`
-- Rich frontmatter enables filtering by date, participant, or tag
-- Action item checkboxes for task tracking
-- Original Spark URL preserved for reference
-
-**Workflows:**
-
-- **Single URL**: Extracts one meeting and optionally updates links.md if URL is found
-- **Batch Mode**: Processes all unchecked (`- [ ]`) URLs from links.md sequentially, marking each as checked (`- [x]`) after successful extraction
-
-</details>
-
-<details>
 <summary><b>/reshape</b> - Structural codebase refactoring</summary>
 
 <br>

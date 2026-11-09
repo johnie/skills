@@ -1,414 +1,72 @@
 # Skills
 
-Opinionated dev workflows — commits, PRs, TypeScript, CLIs, and more. Each skill is a specialized prompt template that teaches AI agents domain-specific workflows and best practices.
+The agent skills I use every day. Each one is a markdown prompt an agent loads when your request matches its description, or when you type its slash command.
 
-## Installation
+Browse them at [skills.johnie.se](https://skills.johnie.se).
 
-### Claude Code Marketplace (recommended)
+## Install
 
 ```bash
-# Register the marketplace
+# Claude Code plugin
 /plugin marketplace add johnie/skills
-
-# Install all skills
 /plugin install skills@johnie
+
+# Or the skills.sh CLI, for any agent
+npx skills add johnie/skills                 # all skills
+npx skills add johnie/skills --skill commit  # one skill
+
+# Or read a skill without installing it
+curl -H "Accept: text/markdown" https://skills.johnie.se/commit
 ```
 
-### Alternative: skills.sh CLI
-
-```bash
-# Install all skills
-npx skills add johnie/skills
-
-# Install a specific skill
-npx skills add johnie/skills --skill <skillName>
-```
-
-## Skills
-
-<details>
-<summary><b>/commit</b> - Semantic git commit automation</summary>
-
-<br>
-
-Create semantically correct, granular git commits by analyzing staged and unstaged changes.
-
-**Features:**
-
-- Automatic staging of all tracked changes
-- Intelligent grouping of related changes into atomic commits
-- Conventional commit format with semantic types
-- Built-in safety checks for merge conflicts and protected branches
-
-**Commands:**
-
-- `/commit` - Auto-commit without confirmation
-- `/commit -v` or `/commit --verify` - Show plan and ask for confirmation
-- `/commit --dry-run` - Preview commit plan without executing
-- `/commit --amend` - Amend last commit (requires -v verification)
-- `/commit push` - Commit and push to remote branch
-- `/commit push -v` - Push with verification prompt
-
-**Commit Types:**
-
-- `feat` - New feature
-- `fix` - Bug fix
-- `refactor` - Code restructuring
-- `chore` - Maintenance, dependencies, config
-- `docs` - Documentation only
-- `test` - Adding/updating tests
-- `style` - Formatting, whitespace
-- `perf` - Performance improvement
-
-</details>
-
-<details>
-<summary><b>/pr</b> - GitHub PR management</summary>
-
-<br>
-
-Create, update, and review GitHub PRs with structured templates and comprehensive workflows.
-
-**Features:**
-
-- Structured PR templates with What/Why/How sections
-- Smart generation from commits and diffs
-- Update existing PRs while preserving user edits
-- Code review analysis with quality feedback
-- Draft PR support for work-in-progress changes
-
-**Commands:**
-
-- `/pr create` - Create PR with structured template
-- `/pr create -v` - Preview draft before creating
-- `/pr create --draft` - Create as draft PR (WIP)
-- `/pr update` - Update existing PR after new commits
-- `/pr update -v` - Preview changes before updating
-- `/pr review <pr>` - Review PR by number or URL
-
-**Workflows:**
-
-- **Create**: Analyzes commits and diffs to generate comprehensive PR descriptions with proper formatting
-- **Update**: Regenerates What/How/Changes sections while preserving Testing, Screenshots, and Deployment notes
-- **Review**: Provides structured feedback on code quality, testing, security, and performance
-
-**Template Sections:**
-
-- What - Concise summary of changes
-- Why - Context and motivation
-- How - Implementation approach
-- Changes - Bullet list of modifications
-- Testing - Checklist for test coverage
-- Deployment - Special deployment considerations
-- Screenshots - Visual proof for UI changes
-
-</details>
-
-<details>
-<summary><b>/gh-logs</b> - GitHub Actions log analysis</summary>
-
-<br>
-
-Fetch and analyze GitHub Actions logs via `gh` CLI. Diagnoses CI failures, detects flaky tests, profiles slow steps, and suggests fixes. Stop clicking through the web UI — the terminal is faster, searchable, and doesn't crash on large output.
-
-**Features:**
-
-- Automatic failure diagnosis with root cause analysis
-- Flaky test detection by comparing recent runs
-- Step timing profiling to find bottlenecks
-- Failure history and trend analysis
-- Real-time workflow monitoring
-- Pattern matching against 80+ known failure signatures
-
-**Commands:**
-
-- `/gh-logs` - Auto-detect repo + branch, diagnose latest failure
-- `/gh-logs <run-id>` - Analyze a specific run
-- `/gh-logs --flaky` - Detect flaky tests across recent runs
-- `/gh-logs --slow` - Profile step timing, find bottlenecks
-- `/gh-logs --history [n]` - Analyze last n failures (default 10)
-- `/gh-logs --watch` - Monitor a running workflow in real time
-
-**Failure Categories:**
-
-- Test failures (Jest, Vitest, pytest, Go, Rust)
-- Build errors (TypeScript, Webpack, esbuild, Docker)
-- Dependency issues (npm, pip, Docker registry)
-- Infrastructure (OOM, disk, runner shutdown, network)
-- Lint/format violations
-- Auth/permission failures
-- Timeouts and stuck steps
-
-**Output:**
-
-- Structured diagnosis with category, root cause, log excerpt, and actionable fix
-- Flaky test reports with pass/fail ratios and stabilization suggestions
-- Step timing tables sorted by duration with optimization advice
-- Failure trend analysis with recurring pattern detection
-
-</details>
-
-<details>
-<summary><b>/stricli</b> - TypeScript CLI framework expertise</summary>
-
-<br>
-
-Build type-safe CLI applications with Stricli, Bloomberg's TypeScript CLI framework.
-
-**Features:**
-
-- Compile-time type checking for command parameters
-- Automatic help generation
-- Flexible command routing for multi-command CLIs
-- Support for flags, positional arguments, and custom parsers
-
-**Use Cases:**
-
-- Creating command-line tools with TypeScript
-- Defining commands with typed flags and positional arguments
-- Organizing multi-command CLIs with route maps
-- Compile-time parameter validation
-
-**Core APIs:**
-
-- `buildCommand` - Create typed commands with parameters
-- `buildRouteMap` - Organize multiple commands with routing
-- `buildApplication` - Wrap commands into executable apps
-- `run` - Execute the application
-
-**Parameter Types:**
-
-- Boolean flags (`--verbose`)
-- Counter flags (`-vvv`)
-- Enum flags (`--format json|yaml|text`)
-- Parsed flags (String, Number, custom parsers)
-- Variadic flags (multiple values)
-- Positional parameters (tuple or array)
-
-</details>
-
-<details>
-<summary><b>/cleye</b> - Intuitive TypeScript CLI argv parser</summary>
-
-<br>
-
-Build type-safe CLIs with cleye, an intuitive argv parser that turns a declarative options object into strongly-typed parameters and flags with auto-generated help.
-
-**Features:**
-
-- Strongly-typed parameters and flags inferred from your config
-- Automatic `--help` and `--version` documentation generation
-- Subcommand support via `command()`
-- Powerful flag parsing (powered by `type-flag`)
-
-**Use Cases:**
-
-- Authoring a new cleye CLI with `cli({ ... })`
-- Defining typed flags and positional parameters
-- Organizing multi-command CLIs with `command()`
-- Validating input with custom type functions or `cleye/formats`
-
-**Core APIs:**
-
-- `cli(options, callback?, argvs?)` - Parse argv into typed parameters and flags
-- `command(options, callback?)` - Define and register subcommands
-- `cleye/formats` - Type helpers (`oneOf`, `commaList`, `integer`, `float`, `range`, `url`)
-
-**Parameter & Flag Types:**
-
-- Required `<param>`, optional `[param]`, and spread `[param...]` parameters
-- Type functions (String, Number, Boolean, custom)
-- Array flags for multiple values (`[Number]`)
-- Boolean negation (`--no-flag`) and strict-flag rejection
-- End-of-flags (`--`) passthrough
-
-</details>
-
-<details>
-<summary><b>/wp-cli</b> - WordPress CLI operations</summary>
-
-<br>
-
-WordPress CLI operations for database management, plugins, themes, users, content, and site configuration.
-
-**Features:**
-
-- Safe database migrations with automatic backups
-- Bulk plugin and theme updates
-- User management and audits
-- Content operations
-- Remote execution via SSH
-
-**Command Categories:**
-
-- `wp db` - Database operations (export, import, query, optimize)
-- `wp core` - WordPress core management (install, update, verify)
-- `wp plugin` / `wp theme` - Plugin and theme management
-- `wp user` - User operations (create, list, delete, update)
-- `wp post` / `wp comment` - Content management
-- `wp option` - Settings and configuration
-- `wp cache` / `wp transient` - Cache management
-- `wp cron` - Scheduled tasks
-- `wp config` - Configuration file management
-
-**Common Workflows:**
-
-- Site migration between environments
-- Bulk plugin updates with rollback support
-- User audits and cleanup
-- Search-replace for URL changes
-- Database backups and imports
-
-**Safety Features:**
-
-- Automatic backup reminders before destructive operations
-- Dry-run flags for testing commands
-- Explicit confirmation required for dangerous operations
-- Skip flags for performance optimization
-
-</details>
-
-<details>
-<summary><b>/typescript-engineer</b> - Advanced TypeScript type design and error resolution</summary>
-
-<br>
-
-Designs complex generic types, refactors `any` to strict alternatives, creates type guards and utility types, resolves TypeScript compiler errors, and explains type-level concepts.
-
-**Intent Paths:**
-
-- **Fix errors** - Run `tsc`, diagnose root cause, apply fix, verify
-- **Design types** - Clarify shape, pick technique, build incrementally
-- **Refactor for safety** - Audit `any` usage, plan replacements, apply file-by-file
-- **Explain/teach** - Identify concept, load relevant rule, explain with examples
-
-**Topics Covered:**
-
-- Generics, constraints, and type inference
-- Conditional types and `infer` keyword
-- Mapped types and template literal types
-- Brand/opaque types and nominal typing
-- `as const`, `typeof`, and `satisfies`
-- Type narrowing, type guards, and assertion functions
-- Inferred type predicates (TS 5.5+) and when to still annotate
-- Type-safe builder pattern and chainable APIs
-- Array element access and `[number]` indexing
-- Function overloads and declaration merging
-- Utility types including `NoInfer<T>` (TS 5.4+)
-- Deep inference with `const` type parameters (TS 5.0+)
-- Type testing with `Expect<Equal<A, B>>`
-- Error diagnosis strategies
-- Version notes for TypeScript 5.5 through 7.x
-
-**Rule Files:** 17 reference documents covering core patterns, advanced generics, type-level programming, type safety patterns, debugging, and version currency — with a keyword routing table for fast lookup.
-
-</details>
-
-<details>
-<summary><b>/reshape</b> - Structural codebase refactoring</summary>
-
-<br>
-
-Restructure a codebase around what changes together: expose hidden dependencies, separate unrelated concerns, and remove unnecessary layers.
-
-**Commands:**
-
-- `/reshape` - Review and refactor the codebase
-- `/reshape <area or concern>` - Limit the refactor to that focus and necessary caller updates
-
-Comment and test cleanup are optional; the skill asks which to include before making changes.
-
-Establishes a behavior baseline, verifies each coherent refactor, and retains justified exceptions. Similar code is shared only when it represents the same requirement.
-
-</details>
+## The skills
+
+| Skill | What it does |
+| --- | --- |
+| [`commit`](skills/commit/SKILL.md) | Turns your changes into small, conventional commits. |
+| [`pr`](skills/pr/SKILL.md) | Creates, updates, and reviews GitHub pull requests. |
+| [`gh-logs`](skills/gh-logs/SKILL.md) | Explains GitHub Actions failures and suggests fixes. |
+| [`reshape`](skills/reshape/SKILL.md) | Restructures code so agents read less per change. |
+| [`typescript-engineer`](skills/typescript-engineer/SKILL.md) | Fixes TypeScript errors and strengthens your types. |
+| [`stricli`](skills/stricli/SKILL.md) | Builds type-safe command-line tools with Stricli. |
+| [`cleye`](skills/cleye/SKILL.md) | Builds type-safe command-line tools with cleye. |
+| [`wp-cli`](skills/wp-cli/SKILL.md) | Manages WordPress sites from the command line. |
+
+Each `SKILL.md` lists its commands and flags.
 
 ## Development
 
-This repository includes a CLI for managing skill symlinks during local development. When developing or testing skills, you need to symlink them to `~/.claude/skills/` where Claude Code discovers them.
+Requires pnpm and the Node version in `.nvmrc`.
 
 ```bash
-# Interactive mode (default) - space to toggle, enter to apply
-pnpm run skills
-
-# List all skills with their link status
-pnpm run skills list
-
-# Link a specific skill
-pnpm run skills link <name>
-
-# Unlink a specific skill
-pnpm run skills unlink <name>
-
-# Show help
-pnpm run skills --help
+pnpm install
+pnpm test                      # validate every skill
+pnpm check                     # lint and format (pnpm fix repairs)
+pnpm run skills                # pick skills to symlink into ~/.claude/skills/
+pnpm run skills link <name>    # or link one; also: unlink, list
+pnpm dev                       # website at http://localhost:3000
 ```
 
-**Commands:**
+### Add a skill
 
-| Command         | Alias | Description                                     |
-| --------------- | ----- | ----------------------------------------------- |
-| `list`          | `ls`  | List all skills with their symlink status       |
-| `link <name>`   | -     | Create symlink for a skill to ~/.claude/skills/ |
-| `unlink <name>` | -     | Remove symlink for a skill                      |
-| `interactive`   | `i`   | Interactive TUI mode (default when no args)     |
+1. Create `skills/<name>/SKILL.md`. The directory name is kebab-case and equals the frontmatter `name`.
+2. Add `"./skills/<name>"` to `.claude-plugin/marketplace.json`.
+3. Add its listing to `skills.config.ts`, or its name to `exclude` to keep it off the website.
+4. Run `pnpm test`, then `pnpm run skills link <name>` and try it.
 
-### Authoring a skill
+### What `pnpm test` enforces
 
-`pnpm test` enforces the conventions below. Run it before pushing — CI runs `pnpm check` and `pnpm test`.
+- **Layout:** only `references/`, `scripts/`, `assets/` and `evals/` beside `SKILL.md`; scripts are executable.
+- **Frontmatter:** the contract in `catalog/frontmatter.ts`. `description` is 50 to 1024 characters; unknown fields fail.
+- **Tools:** no bare `Bash` in `allowed-tools`. It pre-approves every shell command, so scope it: `Bash(git commit *)`.
+- **`SKILL.md`:** at most 800 lines (aim for 500), a language on every code block, no skipped heading levels.
+- **Links:** every local link and `#anchor` resolves.
+- **Content:** nothing specific to this repo or its author, and no dangerous shell or prompt-injection patterns.
+- **Manifests:** `marketplace.json` and `skills.config.ts` name exactly the skills on disk.
+- **Evals:** `evals/trigger-set.json` has 8 or more cases per class and no `/slash` queries.
 
-**Layout.** A skill is `skills/<name>/SKILL.md` plus optional `references/`, `scripts/`, `assets/`, and `evals/` subdirectories. No other subdirectories, and no `README.md` / `LICENSE` / `package.json` / `CHANGELOG.md` inside a skill. Files in `scripts/` must be executable.
-
-**Add new skills to `.claude-plugin/marketplace.json`.** The manifest is hand-maintained; a skill missing from it is invisible to `/plugin install`. A test fails if the list and the `skills/` directory disagree.
-
-**Frontmatter.** `name` (required, kebab-case, must equal the directory name) and `description` (required, 50–1024 chars, no HTML). Optional spec fields: `allowed-tools`, `license`, `metadata`, `compatibility`. Claude Code extensions are also permitted because this repo ships as a plugin — `when_to_use`, `argument-hint`, `arguments`, `disable-model-invocation`, `user-invocable`, `disallowed-tools`, `model`, `effort`, `context`, `agent`, `background`, `hooks`, `paths`, `shell`. Using any extension forfeits portability to claude.ai uploads and the Skills API, which accept only the six spec fields.
-
-**Website listing.** Every skill gets a row on the website and its own page, which renders `SKILL.md` and each `references/*.md` file through [content-collections](https://www.content-collections.dev) (`content-collections.ts`). The listing itself lives in `skills.config.ts`, not in the skill, so add an entry there keyed by the skill's directory name:
-
-```ts
-commit: {
-  category: "git", // one of categoryIds in src/lib/skill-metadata.ts
-  summary: "Turns your changes into small, conventional commits.",
-  reads: "git diff", // what it looks at
-  writes: "commits", // what it creates or changes
-  never: "bypass commit hooks", // what it won't do
-},
-```
-
-To keep a skill off the site (listing, pages and markdown bundle), put its name in `exclude` instead; it still installs from the repo. A test and the website build both fail when a skill has neither, or when a field is empty or the category unknown; the test also flags names with no skill on disk. A new category needs an entry in `categoryIds` and `categoryLabels` in `src/lib/skill-metadata.ts`; its tab appears once a skill uses it.
-
-**Scope `allowed-tools`.** It pre-approves tools for the invoking turn rather than restricting them, so a bare `Bash` entry lets every shell command run unprompted. A test rejects it. Write per-subcommand rules instead — `Bash(git commit *)`, not `Bash(git *)`, since Claude Code matches each subcommand of a chained command independently and `Bash(git *)` would also cover `git push --force`.
-
-**Body.** Keep `SKILL.md` under 500 lines (hard fail at 800) and move detail to `references/`; the body stays in context for the whole session. Don't restate the description in a "When to use" section — put trigger phrases in `when_to_use` and keep the body for guardrails and workflow. Reference files over 300 lines need a table of contents. All fenced code blocks need a language, headings can't skip levels, and every local link — including `#anchor` fragments in SKILL.md and reference files — must resolve.
-
-**Stay general.** A skill runs in other people's projects, so it must not mention this repo's toolchain, personal paths, or the author, and must not link to a sibling skill's files (`../other/SKILL.md`) — skills install independently. A test scans every skill file for these leaks.
-
-**Evals.** `evals/trigger-set.json` holds description-triggering cases as `{ query, should_trigger }`, at least 16 with 8+ in each class and no `/slash-command` queries (those bypass description matching). These feed skill-creator's description optimizer. `evals/evals.json` (optional) holds behavioral evals — `{ skill_name, evals: [{ id, prompt, expected_output, files, expectations }] }`, at least 2 evals with 3+ verifiable expectations each — for skill-creator's run/grade loop.
-
-### Website
-
-`src/` is an [rshono](https://www.rshono.com) app (Hono, Rspack, React Server Components, Tailwind) built for Cloudflare Workers. Needs Node 22.18 or newer. Skill content is generated by content-collections into `.content-collections/` (gitignored) before every dev, build and typecheck run.
-
-```bash
-pnpm dev         # content-collections watcher + dev server with HMR, http://localhost:3000
-pnpm build       # generate content, then the production build for Cloudflare
-pnpm preview     # build, then run it in workerd on port 8787
-pnpm run deploy  # build, then ship it to Cloudflare
-```
-
-`src/routes.ts` is the route table, `src/server.ts` the Hono app mounted ahead of the pages, `src/components/` the pages, `public/` the static files. Pages are server components; only `'use client'` components ship JavaScript.
-
-Every skill page also answers `Accept: text/markdown` with the whole skill in one response: `SKILL.md`, then `references/` and `scripts/`, each verbatim inside `<file path="…">` with paths relative to the skill directory, so the skill's own relative links still match. It carries an `ETag` (revalidation returns `304`) and `Vary: Accept`; browsers keep getting the page.
-
-```bash
-curl -H 'Accept: text/markdown' https://<site>/commit
-```
-
-Only `PUBLIC_`-prefixed environment variables reach the browser. `.env` and `.env.local` are read once at startup, so restart `pnpm dev` after editing them. `wrangler.jsonc` configures the Worker (`skills`), the custom domain `skills.johnie.se`, and enables preview URLs; the build never overwrites it. Run `pnpm run deploy` to apply these settings to Cloudflare.
+`CLAUDE.md` describes the repository layout and the website in detail.
 
 ## License
 
-MIT
-
----
-
-Created by [@johnie](https://johnie.se)
+MIT. Created by [@johnie](https://johnie.se).

@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "johnie-skills",
+  // The worker bundle `rshono build` emits for the cloudflare target.
+  "main": "dist/server/main.mjs",
+  // Pinned: wrangler's bundled workerd refuses a date newer than its own, so `wrangler dev` would not start.
+  "compatibility_date": "2026-07-01",
+  // AsyncLocalStorage, which binds the request context behind rshono's `getRequestContext()`.
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    // Assembled by `rshono build`: the hashed client bundle, `public/`, and prerendered pages.
+    "directory": "dist/cloudflare/assets",
+    // Read by the worker for `public/` files and prerendered pages; the CDN still answers first.
+    "binding": "ASSETS",
+  },
+}

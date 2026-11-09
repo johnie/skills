@@ -65,6 +65,15 @@ const bundleBody = (name: string) =>
     )
     .join("\n");
 
+/** What the markdown bundle holds, for drawing it on the skill page: each file's path and line count, and its size. */
+export const skillBundleOutline = (name: string) => ({
+  bytes: new TextEncoder().encode(bundleBody(name)).byteLength,
+  files: bundleFiles(name).map(({ path, source }) => ({
+    lines: source.split("\n").length - Number(source.endsWith("\n")),
+    path,
+  })),
+});
+
 const buildMarkdown = async (name: string): Promise<SkillMarkdown> => {
   const body = bundleBody(name);
 

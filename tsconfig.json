@@ -20,7 +20,6 @@
     "noUnusedParameters": true,
     "noPropertyAccessFromIndexSignature": true
   },
-  // Without this, tsc also walks the gitignored skill-creator workspaces, whose fixtures are broken on purpose.
-  "include": ["src", "cli", "catalog", "test", "*.ts"],
+  "include": ["src", "cli", "catalog", "scripts", "test", "*.ts"],
   "exclude": ["node_modules", "dist"]
 }

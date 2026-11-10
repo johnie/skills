@@ -7,7 +7,7 @@ import { installCommand } from "@/lib/site";
 
 export const Hero = () => (
   <section aria-labelledby="hero-title">
-    <Container className="grid items-start gap-14 py-20 sm:py-24 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <Container className="grid grid-cols-[minmax(0,1fr)] items-start gap-14 py-20 sm:py-24 lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div>
         <h1
           id="hero-title"

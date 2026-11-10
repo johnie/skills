@@ -130,6 +130,19 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Grows towards, never reaching, the full width: how long a navigation takes is unknown. */
+  --animate-navigation-progress: navigation-progress 4s
+    cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+
+  @keyframes navigation-progress {
+    from {
+      transform: scaleX(0);
+    }
+
+    to {
+      transform: scaleX(0.9);
+    }
+  }
 }
 
 @layer base {

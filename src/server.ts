@@ -5,6 +5,7 @@ import { bodyLimit } from "hono/body-limit";
 import { csrf } from "hono/csrf";
 import { trimTrailingSlash } from "hono/trailing-slash";
 
+import { FLIGHT_HEADER, FLIGHT_HEADER_VALUE } from "./lib/flight";
 import { llmsTxt } from "./lib/llms-txt";
 import { getSkill } from "./lib/skills";
 
@@ -43,9 +44,16 @@ server.get("/llms.txt", (c) => c.text(llmsTxt));
 /**
  * `/:name` with `Accept: text/markdown` answers the whole skill as one markdown document (`bundleSkill`):
  * what an agent fetches to read or install it. Anything else, browsers included, falls through to the page.
- * `Vary: Accept` on both, so a cache never hands one to the other.
+ * `Vary: Accept` on both, so a cache never hands one to the other. A flight payload request (a soft navigation
+ * or a prefetch) is never answered with markdown, so it skips the negotiation and its `Vary: Accept`.
  */
 server.get("/:name", async (c, downstream) => {
+  if (c.req.header(FLIGHT_HEADER) === FLIGHT_HEADER_VALUE) {
+    await downstream();
+
+    return;
+  }
+
   const wanted = accepts(c, {
     default: "text/html",
     header: "Accept",

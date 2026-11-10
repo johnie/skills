@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { LinkPrefetch } from "@/components/link-prefetch";
+import { NavigationProgress } from "@/components/navigation-progress";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import type { Crumb } from "@/components/site-header";
@@ -45,6 +47,8 @@ export const Layout = ({
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
       </head>
       <body className="flex min-h-svh flex-col antialiased">
+        <NavigationProgress />
+        <LinkPrefetch />
         <SiteHeader crumbs={crumbs} />
         <main className="flex-1">{children}</main>
         <SiteFooter />

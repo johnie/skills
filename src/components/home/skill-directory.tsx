@@ -130,7 +130,7 @@ export const SkillDirectory = ({ skills }: { skills: readonly Skill[] }) => {
                 className="flex-none px-2 text-sm font-normal group-data-horizontal/tabs:after:-bottom-px"
               >
                 {tab.label}
-                <span className="text-muted-foreground font-mono text-[11px]">
+                <span className="text-muted-foreground font-mono text-xs">
                   {tab.count}
                 </span>
               </TabsTrigger>

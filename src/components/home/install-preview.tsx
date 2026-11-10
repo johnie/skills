@@ -6,7 +6,7 @@ import { skills } from "@/lib/skills";
 export const InstallPreview = () => (
   <figure aria-label="Example output of the install command">
     <Card className="gap-0 py-0 font-mono text-xs/relaxed">
-      <CardHeader className="text-muted-foreground flex items-center justify-between border-b py-3 text-[11px]">
+      <CardHeader className="text-muted-foreground flex items-center justify-between border-b py-3 text-xs">
         <span>~/dev/crip</span>
         <span>zsh</span>
       </CardHeader>

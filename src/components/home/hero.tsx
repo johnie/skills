@@ -32,7 +32,7 @@ export const Hero = () => (
         </div>
 
         <div className="mt-8 flex flex-wrap items-center gap-4">
-          <span className="text-muted-foreground font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-xs">
             Works with
           </span>
           <AgentLogos />

@@ -44,7 +44,7 @@ export const SkillRow = ({
           </h3>
           <Badge
             variant="outline"
-            className="text-muted-foreground h-4.5 px-2 font-mono text-[10px] font-normal"
+            className="text-muted-foreground px-2 font-mono text-xs font-normal"
           >
             {skill.category}
           </Badge>

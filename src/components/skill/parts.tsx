@@ -25,7 +25,7 @@ export const SkillDescription = ({
 );
 
 export const SmallLabel = ({ children }: { children: ReactNode }) => (
-  <p className="text-muted-foreground font-mono text-[11px] tracking-widest uppercase">
+  <p className="text-muted-foreground font-mono text-xs tracking-widest uppercase">
     {children}
   </p>
 );

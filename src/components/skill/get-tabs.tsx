@@ -35,13 +35,13 @@ export const GetTabs = ({
       onValueChange={(value: string) => setActive(value)}
       className={cn("gap-0 border", className)}
     >
-      <div className="bg-card flex items-center justify-between gap-4 border-b pr-1.5">
+      <div className="bg-card flex items-center justify-between gap-4 border-b pe-1.5">
         <TabsList variant="line" className="h-10 gap-0 p-0">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.value}
               value={tab.value}
-              className="h-full flex-none border-r px-4 font-mono font-normal group-data-horizontal/tabs:after:-bottom-px"
+              className="h-full flex-none border-e px-4 font-mono font-normal group-data-horizontal/tabs:after:-bottom-px"
             >
               {tab.label}
             </TabsTrigger>

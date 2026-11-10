@@ -14,7 +14,7 @@ export const InstallPreview = () => (
         <p>
           <span className="text-muted-foreground">$</span> {installCommand}
         </p>
-        <div className="text-muted-foreground space-y-5 pl-2.5">
+        <div className="text-muted-foreground space-y-5 ps-2.5">
           <p>
             Found {skills.length} skills in {site.repo}
           </p>

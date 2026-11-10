@@ -24,7 +24,7 @@ export const SkillRow = ({
     // The name's link stretches over the whole row (`after:inset-0`), so anywhere on it opens the skill; the copy
     // button sits above that layer.
     <li className="group relative grid grid-cols-[2rem_minmax(0,1fr)_auto] gap-x-4 gap-y-4 border-b py-6 md:grid-cols-[3rem_minmax(0,1fr)_16rem_auto] md:gap-x-6">
-      <span className="text-muted-foreground group-hover:text-foreground pt-1 font-mono text-xs tabular-nums transition-colors md:pl-2.5">
+      <span className="text-muted-foreground group-hover:text-foreground pt-1 font-mono text-xs tabular-nums transition-colors md:ps-2.5">
         {String(position).padStart(2, "0")}
       </span>
 
@@ -38,7 +38,7 @@ export const SkillRow = ({
               {skill.name}
               <HugeiconsIcon
                 icon={ArrowRight02Icon}
-                className="text-muted-foreground group-hover:text-foreground size-4 transition-[color,translate] group-hover:translate-x-0.5"
+                className="text-muted-foreground group-hover:text-foreground size-4 transition-[color,translate] group-hover:translate-x-0.5 rtl:-scale-x-100 rtl:group-hover:-translate-x-0.5"
               />
             </a>
           </h3>

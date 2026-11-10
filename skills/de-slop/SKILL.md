@@ -3,7 +3,6 @@ name: de-slop
 description: Rewrite prose so it stops reading as AI-generated. Cuts throat-clearing openers, "not X, it's Y" contrasts, dramatic fragments, em dashes, filler adverbs, vague declaratives, and inanimate things doing human verbs, while it keeps the writer's facts and voice. Use whenever the user asks to de-slop or humanize text, to make it sound less like ChatGPT, Claude, or "an AI", to remove AI tells or clichés, or to rate how AI-sounding a draft is, and before you deliver an essay, blog post, newsletter, social post, talk script, or landing page copy that you drafted, even if the user does not say "slop".
 when_to_use: Also applies to drafts in other languages and to reviews that want a score and a list of problems but no rewrite. Skip for code and code comments, translation, proofreading that must keep approved wording, quoted or legal text, and work text whose problem is order rather than phrasing, such as a PR description or status update that buries its conclusion.
 argument-hint: "[file or pasted text]"
-license: MIT. Adapted from stop-slop by Hardik Pandya (https://github.com/hardikpandya/stop-slop). Full terms in assets/LICENSE.txt.
 ---
 
 # De-slop

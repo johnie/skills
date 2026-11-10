@@ -31,7 +31,7 @@ curl -H "Accept: text/markdown" https://skills.johnie.se/commit
 | [`stricli`](skills/stricli/SKILL.md) | Builds type-safe command-line tools with Stricli. |
 | [`cleye`](skills/cleye/SKILL.md) | Builds type-safe command-line tools with cleye. |
 | [`bluf`](skills/bluf/SKILL.md) | Rewrites wordy text so the main point comes first. |
-| [`de-slop`](skills/de-slop/SKILL.md) | Strips AI tells from prose and keeps your voice. Adapted from [stop-slop](https://github.com/hardikpandya/stop-slop). |
+| [`de-slop`](skills/de-slop/SKILL.md) | Strips AI tells from prose and keeps your voice. |
 | [`wp-cli`](skills/wp-cli/SKILL.md) | Manages WordPress sites from the command line. |
 
 Each `SKILL.md` lists its commands and flags.

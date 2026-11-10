@@ -11,7 +11,7 @@ export const Hero = () => (
       <div>
         <h1
           id="hero-title"
-          className="font-heading mt-5 text-6xl/none tracking-tight text-balance sm:text-7xl/none"
+          className="font-heading mt-5 text-6xl/[1.1] tracking-tight text-balance sm:text-7xl/[1.1]"
         >
           My agent skills.
         </h1>

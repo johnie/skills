@@ -1,0 +1,11 @@
+feat(export): Implemented a comprehensive overhaul of the CSV export functionality to enhance robustness
+
+This commit introduces several significant improvements to the CSV export pipeline. During investigation of a customer-reported issue, it was discovered that exports containing more than approximately 100,000 rows were failing with an out-of-memory error, because the entire result set was being loaded into memory before being serialized. To address this, the export logic has been refactored to leverage a streaming approach, utilizing a database cursor with a batch size of 5000 rows and writing each batch directly to the response stream, ensuring that memory usage remains constant regardless of export size. Additionally, the Content-Length header is no longer sent for exports since the size isn't known upfront; chunked transfer encoding is used instead. These changes make the export feature significantly more scalable and maintainable going forward.
+
+Files changed:
+- src/export/csvExporter.ts
+- src/export/csvExporter.test.ts
+- src/db/cursor.ts
+
+Fixes #1873
+Co-authored-by: Maja Lindqvist <maja.lindqvist@example.com>

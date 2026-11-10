@@ -1,0 +1,162 @@
+{
+  "skill_name": "bluf",
+  "evals": [
+    {
+      "id": 1,
+      "name": "pr-description-warning-buried",
+      "prompt": "clean up this PR description, claude wrote it. It's in evals/files/pr-redis-cache.md",
+      "expected_output": "A short PR description with no emoji and few or no headings. The first sentence says that recommendation results are now cached in Redis and why. The REDIS_URL requirement and the 5-minute staleness come before the test details. The file-by-file list is gone or reduced to a pointer.",
+      "files": ["evals/files/pr-redis-cache.md"],
+      "expectations": [
+        "The first sentence states that recommendation results are cached (in Redis) and does not start with 'This PR' or 'This pull request'",
+        "The requirement to set `REDIS_URL` appears in the first half of the rewritten description",
+        "The stale-recommendations limit of 5 minutes (or 300 seconds) is stated",
+        "The benchmark numbers ~900ms and ~45ms are present and are described as local or cached-request results, not as production results",
+        "The output says that the change is not tested on staging",
+        "The output contains no emoji",
+        "The output does not contain the words 'robust', 'comprehensive', 'seamless', or 'leveraging'",
+        "`Closes NEWS-2291` is on its own line",
+        "The output does not contain a bullet for each of the four changed files",
+        "The rewritten description is at most 60% of the word count of the source"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "incident-update-keeps-uncertainty",
+      "prompt": "can you simplify this before I post it in #platform-incidents? chatgpt drafted it from my notes: evals/files/incident-update.md",
+      "expected_output": "A chat message that states the impact and the question for @dba-oncall in the first lines, keeps the cause marked as not confirmed, and drops the greeting and the closing.",
+      "files": ["evals/files/incident-update.md"],
+      "expectations": [
+        "The request to @dba-oncall (is it safe to route session validation reads to the primary) is in the first two sentences or the first paragraph",
+        "The impact (about 3% of login attempts fail, a retry usually succeeds) is in the first two paragraphs",
+        "The replication-lag cause is marked as not confirmed, possible, or suspected, and is not stated as a fact",
+        "The estimated 20–25% extra load on the primary is stated",
+        "The rollback of auth-gateway v2.14.0 at approximately 16:40 and its result (failures continued) are stated",
+        "The output does not contain 'Hi everyone', 'Thanks for your patience', 'diligently', or 'meaningful progress'",
+        "The message contains no markdown headings",
+        "The output does not state a deadline, a next-update time, or a root cause that the source does not give"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "commit-message-conventions",
+      "prompt": "tighten up this commit message before I amend it (evals/files/commit-message.txt)",
+      "expected_output": "A conventional commit with an imperative subject of at most 72 characters, a short body that gives the cause and the new behavior, and both trailers unchanged at the end.",
+      "files": ["evals/files/commit-message.txt"],
+      "expectations": [
+        "The subject line is at most 72 characters",
+        "The subject line keeps the `feat(export):` or a `fix(export):` conventional prefix and uses the imperative mood",
+        "The body states that exports of more than approximately 100,000 rows failed with an out-of-memory error",
+        "The body states that the export now streams with a cursor in batches of 5000 rows",
+        "The body states that `Content-Length` is no longer sent and chunked transfer encoding is used",
+        "The line `Fixes #1873` is present, unchanged, on its own line",
+        "The line `Co-authored-by: Maja Lindqvist <maja.lindqvist@example.com>` is present, unchanged, on its own line",
+        "The 'Files changed' list is removed",
+        "No body line is longer than 72 characters",
+        "The output does not contain 'comprehensive', 'significant', 'scalable', 'maintainable', 'leverage', or 'utilizing'"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "no-bottom-line-asks-instead",
+      "prompt": "Make evals/files/no-bottom-line.md punchier, I'm sending it to the mobile leads tomorrow",
+      "expected_output": "No rewrite of the body as if it had content. The answer says that the text has no finding, recommendation, or request, and asks the user what was measured, what they recommend, or what they need from the reader.",
+      "files": ["evals/files/no-bottom-line.md"],
+      "expectations": [
+        "The output tells the user that the text has no clear finding, conclusion, recommendation, or request",
+        "The output asks the user at least one specific question about what to say (for example measurements, a recommendation, or the action needed from the reader)",
+        "The output does not present a shortened version of the text as the finished deliverable",
+        "The output does not state a measurement, a root cause, or a recommendation that the source does not contain"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "pr-template-headings-kept",
+      "prompt": "Our repo has a PR template with fixed headings (What / Why / How to test / Screenshots / Checklist / Notes for reviewers) and CI checks that they exist. Simplify the description in evals/files/pr-with-template.md but keep it valid for the template.",
+      "expected_output": "All six template headings stay, in the same sequence. Each section is rewritten in short plain sentences. The test steps are a numbered list. The limit that iOS and Android can still hit the bug is easy to see.",
+      "files": ["evals/files/pr-with-template.md"],
+      "expectations": [
+        "The headings 'What', 'Why', 'How to test', 'Screenshots', 'Checklist', and 'Notes for reviewers' are all present, in that sequence",
+        "The 'What' section states in its first sentence that the save is debounced and/or that only the changed field is sent",
+        "The 'Why' section explains that two quick toggles sent two PATCH requests with the full object from stale state, and the second overwrote the first",
+        "The 'How to test' section is a numbered list with one action per step",
+        "The debounce value of 400ms is stated",
+        "The output states that the iOS and Android apps still send the full object and can still hit the bug, with the reference MOB-455",
+        "The references SUP-771 and `PreferencesController.patch` are present and unchanged",
+        "The three checklist items keep their checked or unchecked state",
+        "The output does not contain 'seamless', 'thorough investigation', 'in order to', or 'It's probably worth mentioning'"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "swedish-source-stays-swedish",
+      "prompt": "kan du korta ner och förenkla den här statusuppdateringen innan jag postar den i kanalen? evals/files/status-sv.md",
+      "expected_output": "A status update in Swedish. The first sentence says that the launch on 24 March will probably not hold because legal can review the terms in week 14 at the earliest. The decision for the product owner comes directly after.",
+      "files": ["evals/files/status-sv.md"],
+      "expectations": [
+        "The rewritten status update is written in Swedish",
+        "The first sentence or the first paragraph states that the launch on 24 mars is at risk or will probably not hold",
+        "The reason is stated: juridik must review the new prenumerationsvillkor and can do it in vecka 14 at the earliest",
+        "The decision for the produktägare (launch with the existing villkor or delay) is stated as a decision or a question, within the first two paragraphs",
+        "The uncertainty of the source ('sannolikt') is kept; the output does not say that the launch is cancelled or definitely delayed",
+        "The output states that the integration with the betalningsleverantör is complete",
+        "The output does not contain 'Hej allihopa', 'riktigt fina framsteg', or 'Hör gärna av er'",
+        "The output does not give a new launch date"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "instructions-one-step-per-line",
+      "prompt": "This README section came out of an LLM as one giant paragraph. Rewrite evals/files/setup-instructions.md so a new team member can follow it.",
+      "expected_output": "Prerequisites, then numbered steps with one action each and the commands in code. The warning about `ads_prod` comes before or in the config step, and starts with a command or a condition.",
+      "files": ["evals/files/setup-instructions.md"],
+      "expectations": [
+        "The setup steps are a numbered list",
+        "No numbered step contains more than one command",
+        "All five commands are present and unchanged: `python -m venv .venv`, `source .venv/bin/activate`, `pip install -r requirements.txt`, `gcloud auth application-default login`, `python -m exporter run --date 2026-03-01`",
+        "The prerequisites (Python 3.11 or newer, access to the `ads-prod` GCP project) are stated before the first step",
+        "The warning that `ads_prod` makes the exporter overwrite the live reporting tables appears before or inside the step that sets `dataset`, not after the run step",
+        "The warning starts with an imperative or a condition (for example 'Do not...', 'Keep...', 'If you set...')",
+        "The run time of approximately 10 minutes is stated",
+        "The output does not contain 'Welcome', 'powerful', 'seamlessly', or 'go ahead'",
+        "No sentence in the output is longer than 25 words"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "email-request-and-deadline-first",
+      "prompt": "Oskar asked me to look over his email to Karin (our CTO) before he sends it. He used Copilot for the draft. Can you fix it up? evals/files/email-approval.md",
+      "expected_output": "An email whose subject line and first sentence say that Karin must approve the Grafana Cloud contract by 28 March. The price comparison and the trade-off come next. The process narrative is short or gone.",
+      "files": ["evals/files/email-approval.md"],
+      "expectations": [
+        "The subject line states the request (approval of the Grafana Cloud contract) and the date 28 March",
+        "The first sentence of the body asks Karin to approve and gives the date 28 March",
+        "Both prices are stated: 412,000 SEK per year for Grafana Cloud and 690,000 SEK per year for Datadog",
+        "The reason that her sign-off is necessary (the contract exceeds 250,000 SEK) is stated",
+        "The drawback (APM tracing is less mature than Datadog's) is stated",
+        "The attachments (evaluation document and quote) are mentioned",
+        "The output does not contain 'I hope this email finds you well', 'circle back', 'don't hesitate', or 'in-depth'",
+        "The body of the email is at most 60% of the word count of the source body",
+        "The email is still signed by Oskar"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "unsupported-claims-not-invented",
+      "prompt": "de-slop this PR description: evals/files/unsupported-claims.md",
+      "expected_output": "A description that states what the change does (compress images above 2 MB in the browser before upload) with the concrete parameters. The unmeasured claims are removed, not replaced with invented numbers. A note asks the user for measurements and for what was tested.",
+      "files": ["evals/files/unsupported-claims.md"],
+      "expectations": [
+        "The first sentence states that images are compressed (or resized) in the browser before upload",
+        "The parameters are present: larger than 2 MB, maximum 2048px on the longest edge, JPEG at quality 0.85",
+        "The output states that HEIC files are not compressed",
+        "`compressImage()` and `upload/compress.ts` are present and unchanged",
+        "The rewritten description contains no number for upload time, file size reduction, bandwidth, or cost that is not in the source",
+        "The rewritten description does not say 'thoroughly tested' and does not say that the change works in all major browsers as a fact",
+        "A note to the user says that the source gives no measurement and/or does not say what was tested, and asks for it",
+        "The output does not contain 'significantly', 'crucial', 'dramatically', or 'greatly'",
+        "The 'Impact' list of three unmeasured benefits is removed"
+      ]
+    }
+  ]
+}

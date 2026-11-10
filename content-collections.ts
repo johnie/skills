@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { parseToolRule, SkillFrontmatter } from "./catalog/frontmatter.ts";
 import skillsConfig from "./skills.config.ts";
+import { rehypeTableScroll } from "./src/lib/rehype-table-scroll.ts";
 import { remarkSkillLinks } from "./src/lib/remark-skill-links.ts";
 import { bundleSkill } from "./src/lib/skill-bundle.ts";
 import { SkillsConfigSchema } from "./src/lib/skill-schema.ts";
@@ -31,7 +32,7 @@ if (!config.success) {
 const excluded = new Set(config.data.exclude);
 const EXCLUDED = "excluded in skills.config.ts";
 
-/** Markdown to HTML: links rewritten for the site, heading ids for `#anchor` links, code highlighted. */
+/** Markdown to HTML: links rewritten for the site, heading ids for `#anchor` links, code highlighted, tables scrollable. */
 const renderMarkdown = (
   context: Pick<Context, "cache">,
   document: { content: string; _meta: Meta },
@@ -50,6 +51,7 @@ const renderMarkdown = (
           themes: { dark: "vesper", light: "min-light" },
         },
       ],
+      rehypeTableScroll,
     ],
     remarkPlugins: [
       remarkGfm,

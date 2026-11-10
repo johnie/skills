@@ -184,6 +184,14 @@
     @apply border-0 bg-transparent p-0 text-[1em];
   }
 
+  /* Every rendered table sits in one of these (`src/lib/rehype-table-scroll.ts`), so a wide table scrolls instead of widening the page. */
+  .table-scroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 20%, transparent)
+      transparent;
+  }
+
   /* Code blocks are highlighted at build time by Shiki with both themes as CSS variables (`defaultColor: false`); this picks one per color scheme. */
   .shiki,
   .shiki span {

@@ -106,7 +106,7 @@ export const SkillDirectory = ({ skills }: { skills: readonly Skill[] }) => {
                   setQuery("");
                 }
               }}
-              className="text-sm md:text-sm"
+              className="text-base sm:text-sm"
             />
             <InputGroupAddon align="inline-end">
               <Kbd className="border bg-transparent font-mono">/</Kbd>

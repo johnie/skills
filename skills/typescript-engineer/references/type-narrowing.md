@@ -245,6 +245,23 @@ if (typeof data === "object" && data !== null && hasProperty(data, "name")) {
 }
 ```
 
+### Narrow an Unknown Response at the Boundary
+
+`in` proves the keys exist but says nothing about their types. The `value is` annotation below is therefore a promise the body does not keep. If the shape arrives over the network, validate it with Zod or Valibot instead.
+
+```typescript
+function isUser(value: unknown): value is { id: number; name: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    "name" in value
+  );
+}
+```
+
+Separately, on TS 5.5+ a guard like this often does not need the annotation at all; see [Inferred Type Predicates](#inferred-type-predicates-ts-55). For throwing variants, see [assertion-functions.md](assertion-functions.md).
+
 ## Narrowing with Opaque Types
 
 Combine type predicates with opaque types for validated data:

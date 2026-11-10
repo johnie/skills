@@ -2,22 +2,25 @@ import type { ReactNode } from "react";
 
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import type { Crumb } from "@/components/site-header";
 import { ogImageHref, site } from "@/lib/site";
 
 import "../styles.css";
 
 const appName = "johnie / skills";
 
-/** `image` is a root-relative `ogImageHref`; the site's own card unless a page has one. */
+/** `image` is a root-relative `ogImageHref`; the site's own card unless a page has one. `crumbs` trail the header. */
 export const Layout = ({
   title,
   description,
   image = ogImageHref(),
+  crumbs,
   children,
 }: {
   title?: string;
   description?: string;
   image?: string;
+  crumbs?: Crumb[];
   children: ReactNode;
 }) => {
   const heading = title ? `${title} · ${appName}` : appName;
@@ -42,7 +45,7 @@ export const Layout = ({
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
       </head>
       <body className="flex min-h-svh flex-col antialiased">
-        <SiteHeader />
+        <SiteHeader crumbs={crumbs} />
         <main className="flex-1">{children}</main>
         <SiteFooter />
       </body>

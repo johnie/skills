@@ -2,6 +2,58 @@
 
 Composite patterns that combine the building blocks covered in the other references ([parameters](parameters.md), [flags](flags.md), [formats](formats.md), [commands](commands.md), [help](help.md)).
 
+## Single-command CLI (basic)
+
+```typescript
+// greet.ts
+import { cli } from "cleye";
+
+const argv = cli({
+  name: "greet.js",
+  parameters: [
+    "<first name>", // required
+    "[last name]", // optional
+  ],
+  flags: {
+    time: {
+      type: String,
+      description: "Time of day to greet (morning or evening)",
+      default: "morning",
+    },
+  },
+});
+
+const name = [argv._.firstName, argv._.lastName].filter(Boolean).join(" ");
+
+if (argv.flags.time === "morning") {
+  console.log(`Good morning ${name}!`);
+} else {
+  console.log(`Good evening ${name}!`);
+}
+```
+
+Run it:
+
+```sh
+$ node greet.js John Doe --time evening
+Good evening John Doe!
+```
+
+Generated help (`--help` is handled automatically):
+
+```sh
+$ node greet.js --help
+
+greet.js
+
+Usage:
+  greet.js [flags...] <first name> [last name]
+
+Flags:
+  -h, --help                 Show help
+      --time <string>        Time of day to greet (morning or evening) (default: "morning")
+```
+
 ## Multi-command CLI (npm-style)
 
 ```typescript

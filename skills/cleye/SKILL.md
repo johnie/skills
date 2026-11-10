@@ -1,6 +1,7 @@
 ---
 name: cleye
-description: Build type-safe TypeScript CLIs with the cleye argv parser. Use when the project already depends on `cleye` or the user names cleye — authoring a `cli()` call, adding typed flags/parameters, defining subcommands with `command()`, handling parsed output in a callback, using `cleye/formats` helpers (oneOf/commaList/integer/float/range/url), customizing `--help` via `help.render`, or wiring `strictFlags`/`booleanFlagNegation`. For Bloomberg's Stricli framework use the stricli skill instead; skip for commander/yargs/oclif/minimist and for generic "which CLI framework should I use?" questions.
+description: Build type-safe TypeScript CLIs with the cleye argv parser. Use when the project already depends on `cleye` or the user names cleye. Covers authoring a `cli()` call, adding typed flags/parameters, defining subcommands with `command()`, handling parsed output in a callback, using `cleye/formats` helpers (oneOf/commaList/integer/float/range/url), customizing `--help` via `help.render`, and wiring `strictFlags`/`booleanFlagNegation`. For Bloomberg's Stricli framework use the stricli skill instead; skip for commander/yargs/oclif/minimist and for generic "which CLI framework should I use?" questions.
+when_to_use: Also applies to cleye 3.x beta projects (read the v3 migration reference first). Skip for migrating an existing commander, yargs, oclif, or minimist CLI (the APIs don't translate), for plain JavaScript CLIs where compile-time type inference is not wanted, and for runtime debugging of an installed CLI rather than developing it.
 allowed-tools:
   - Bash(npm install cleye)
   - Bash(npm i cleye)
@@ -16,23 +17,18 @@ allowed-tools:
 
 # cleye CLI Tool
 
-cleye is an intuitive argv-parsing tool for Node.js CLIs. It turns a declarative options object into strongly-typed parameters and flags, auto-generates `--help` and `--version` documentation, and supports nested commands. Flag parsing is powered by [`type-flag`](https://github.com/privatenumber/type-flag).
+Build cleye CLIs against the version installed in the project. This skill covers the **2.x** line (`cleye@latest`). If the project is on the 3.x beta (`3.0.0-beta.1`, `beta` dist-tag, `npm i cleye@beta`), read [`references/v3-migration.md`](references/v3-migration.md) before using the shapes below. That release has breaking changes.
 
-Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
-
-## When NOT to use
-
-- The user has an existing CLI on a different framework (commander, yargs, oclif, minimist) — this skill doesn't migrate, and the APIs don't translate.
-- The project uses Bloomberg's Stricli — different library, non-transferable API. Use the stricli skill.
-- Generic "which CLI framework should I use?" — that's a design conversation, not a cleye question.
-- Non-TypeScript CLIs — cleye works in plain JS, but its core value is compile-time type inference of flags and parameters.
-- Runtime debugging of an installed CLI (not developing it) — use shell/debugging tooling.
+cleye is an argv-parsing tool for Node.js CLIs. It turns a declarative options object into strongly-typed parameters and flags, generates `--help` and `--version` documentation, and supports nested commands. Flag parsing uses [`type-flag`](https://github.com/privatenumber/type-flag).
 
 ## Core API surface
 
-cleye's API is intentionally small. If something isn't listed here or in the references, assume it doesn't exist — checking the upstream repo is faster than guessing, and invented APIs compile until they don't.
+Check the installed version before using newer options:
 
-This skill targets the **2.x** line (`cleye@latest`). Check the installed version before reaching for newer options: `cleye/formats` needs ≥2.6 and `booleanFlagNegation` ≥2.3. A `3.0.0-beta.1` is published on the `beta` dist-tag (`npm i cleye@beta`) with breaking changes — if the project is on the 3.x beta, read [`references/v3-migration.md`](references/v3-migration.md) before trusting the shapes below.
+- `cleye/formats` needs ≥2.6.
+- `booleanFlagNegation` needs ≥2.3.
+
+If an API is not listed here or in the references, check the upstream docs before using it.
 
 | Entry point | Purpose |
 | --- | --- |
@@ -56,64 +52,16 @@ type ParsedArgv = {
 
 ## Installation
 
-Upstream docs are npm-first. Stay agnostic to the user's package manager — pnpm and bun work equally well.
+Use the project's package manager.
 
 ```bash
 npm i cleye
 # pnpm add cleye / bun add cleye work the same way
 ```
 
-## Quick start: single-command CLI
+For a complete single-command example with run output and generated help, see [`references/examples.md`](references/examples.md#single-command-cli-basic).
 
-```typescript
-// greet.ts
-import { cli } from "cleye";
-
-const argv = cli({
-  name: "greet.js",
-  parameters: [
-    "<first name>", // required
-    "[last name]", // optional
-  ],
-  flags: {
-    time: {
-      type: String,
-      description: "Time of day to greet (morning or evening)",
-      default: "morning",
-    },
-  },
-});
-
-const name = [argv._.firstName, argv._.lastName].filter(Boolean).join(" ");
-
-if (argv.flags.time === "morning") {
-  console.log(`Good morning ${name}!`);
-} else {
-  console.log(`Good evening ${name}!`);
-}
-```
-
-Run it:
-
-```sh
-$ node greet.js John Doe --time evening
-Good evening John Doe!
-```
-
-Generated help (`--help` is handled automatically):
-
-```sh
-$ node greet.js --help
-
-greet.js
-
-Usage:
-  greet.js [flags...] <first name> [last name]
-
-Flags:
-  -h, --help                 Show help
-      --time <string>        Time of day to greet (morning or evening) (default: "morning")
-```
+To keep handling co-located, pass a callback as the second argument to `cli()`. Return a Promise from the callback to `await cli(...)`.
 
 ## Parameter & flag model
 
@@ -143,22 +91,12 @@ const argv = cli({
 
 ## Help & version
 
-`--help`/`-h` is automatic (disable with `help: false`, print manually with `argv.showHelp()`), `--version` is automatic only when `version` is set, and `help.render(nodes, renderers)` plus `usage`/`examples`/`description` shape the document. Details in [`references/help.md`](references/help.md).
-
-## Recommended workflow
-
-### Single-command CLI
-
-`cli({ name, parameters, flags })` → read `argv._` / `argv.flags`. Pass a callback as the second argument when you prefer to keep handling co-located, and return a Promise from it to `await cli(...)`.
-
-### Multi-command CLI
-
-Define each command with `command()` (ideally one per file with its own callback), register them in `commands`, then branch on `argv.command` if you handle output centrally. See [`references/commands.md`](references/commands.md).
+`--help`/`-h` is automatic. Disable it with `help: false`, and print it manually with `argv.showHelp()`. `--version` is automatic only when `version` is set. To customize the document, use `help.render(nodes, renderers)` plus `usage`/`examples`/`description`. Details in [`references/help.md`](references/help.md).
 
 ## Conventions worth keeping
 
 - Define flag keys in **camelCase**; cleye automatically parses the kebab-case equivalent (`--saveDev` ⇄ `--save-dev`).
-- Use `strict: true` in `tsconfig.json` — cleye's flag/parameter inference is the whole point, and loose mode weakens it.
+- Use `strict: true` in `tsconfig.json`. Loose mode weakens cleye's flag/parameter inference.
 - Type functions **throw** on invalid input; never return `Error` values.
 - Reserve `-h`/`--help` and `--version`; cleye handles them unless told otherwise.
 - Enable `strictFlags` to reject unknown flags (with did-you-mean suggestions); otherwise they land in `argv.unknownFlags`.
@@ -166,16 +104,16 @@ Define each command with `command()` (ideally one per file with its own callback
 
 ## References
 
-- [`parameters.md`](references/parameters.md) — positional args: required/optional/spread, ordering, `argv._`, end-of-flags `--`
-- [`flags.md`](references/flags.md) — flag type functions, arrays, descriptors, delimiters, boolean negation/inversion, strict flags, unknown flags
-- [`formats.md`](references/formats.md) — `cleye/formats` helpers and custom type functions
-- [`commands.md`](references/commands.md) — `command()`, registration, type narrowing, callbacks, aliases, option inheritance
-- [`help.md`](references/help.md) — auto docs, `help` options, `render` customization, responsive tables
-- [`examples.md`](references/examples.md) — composite end-to-end patterns (multi-command, async, validation, `ignoreArgv`, manual `showHelp`)
-- [`v3-migration.md`](references/v3-migration.md) — 3.x beta breaking changes: `commands` record, callback/return changes, PascalCase formats, atom-based help, `group()`, `strictCommands`, `CleyeExit`
+- [`parameters.md`](references/parameters.md): positional args (required/optional/spread, ordering, `argv._`, end-of-flags `--`)
+- [`flags.md`](references/flags.md): flag type functions, arrays, descriptors, delimiters, boolean negation/inversion, strict flags, unknown flags
+- [`formats.md`](references/formats.md): `cleye/formats` helpers and custom type functions
+- [`commands.md`](references/commands.md): `command()`, registration, type narrowing, callbacks, aliases, option inheritance
+- [`help.md`](references/help.md): auto docs, `help` options, `render` customization, responsive tables
+- [`examples.md`](references/examples.md): end-to-end patterns (single-command, multi-command, async, validation, `ignoreArgv`, manual `showHelp`)
+- [`v3-migration.md`](references/v3-migration.md): 3.x beta breaking changes (`commands` record, callback/return changes, PascalCase formats, atom-based help, `group()`, `strictCommands`, `CleyeExit`)
 
 ## External
 
 - [cleye GitHub](https://github.com/privatenumber/cleye)
 - [`cleye` on npm](https://www.npmjs.com/package/cleye)
-- [`type-flag`](https://github.com/privatenumber/type-flag) — underlying flag parser
+- [`type-flag`](https://github.com/privatenumber/type-flag): underlying flag parser

@@ -153,9 +153,9 @@ export const SkillFile = ({
       </a>
     </div>
     <article
-      // `prose-sm` for the text; code blocks keep the base `prose` spacing at 12px, which reads better. `prose-sm`
-      // shrinks every `code` to 0.857em, so code inside a block is reset to the block's size.
-      className="prose prose-sm prose-neutral dark:prose-invert prose-headings:font-heading prose-headings:font-normal prose-headings:tracking-tight prose-table:font-mono prose-th:font-mono prose-th:font-medium prose-th:tracking-normal prose-code:font-normal prose-code:wrap-break-word prose-code:before:content-none prose-code:after:content-none prose-pre:bg-card prose-pre:my-[1.7142857em] prose-pre:rounded-none prose-pre:px-[1.1428571em] prose-pre:py-[0.8571429em] prose-pre:text-xs max-w-none px-5 py-8 sm:px-10 [&_pre_code]:text-[1em]"
+      // Long-form text at the 16px body size, each text block capped at 32rem: 65–72 characters of Geist per line, where
+      // `ch` (Geist's wide `0`) would let lines run past 80. Tables and code blocks keep the full column, at 12px.
+      className="prose prose-neutral dark:prose-invert prose-headings:font-heading prose-headings:font-normal prose-headings:tracking-tight prose-h1:text-3xl prose-table:font-mono prose-th:font-mono prose-th:font-medium prose-th:tracking-normal prose-code:font-normal prose-code:wrap-break-word prose-code:before:content-none prose-code:after:content-none prose-pre:bg-card prose-pre:rounded-none prose-pre:text-xs max-w-none px-5 py-8 sm:px-10 [&>:is(p,ul,ol,blockquote)]:max-w-lg"
       // Rendered at build time from this repo's own markdown, with raw HTML disabled (content-collections.ts).
       dangerouslySetInnerHTML={{ __html: html }}
     />

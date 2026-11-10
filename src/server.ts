@@ -5,6 +5,7 @@ import { bodyLimit } from "hono/body-limit";
 import { csrf } from "hono/csrf";
 import { trimTrailingSlash } from "hono/trailing-slash";
 
+import { llmsTxt } from "./lib/llms-txt";
 import { getSkill } from "./lib/skills";
 
 /**
@@ -35,6 +36,9 @@ server.get("/skills/:path{.+}", (c) =>
 );
 
 server.get("/api/health", (c) => c.json({ status: "ok" }));
+
+/** Ahead of `/:name`, which would match it. Plain text, not markdown, so a browser shows it instead of downloading it. */
+server.get("/llms.txt", (c) => c.text(llmsTxt));
 
 /**
  * `/:name` with `Accept: text/markdown` answers the whole skill as one markdown document (`bundleSkill`):

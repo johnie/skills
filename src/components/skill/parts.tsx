@@ -28,47 +28,6 @@ export const SkillDescription = ({
   </p>
 );
 
-export const SkillBreadcrumb = ({
-  skill,
-  fileName,
-}: {
-  skill: SkillDocument;
-  fileName: string;
-}) => (
-  <nav
-    aria-label="Breadcrumb"
-    className="text-muted-foreground font-mono text-xs"
-  >
-    <ol className="flex flex-wrap items-center gap-2">
-      <li>
-        <a
-          href="/#skills"
-          className="text-muted-foreground hover:text-foreground no-underline"
-        >
-          skills
-        </a>
-      </li>
-      <li aria-hidden>/</li>
-      <li>
-        <a
-          href={skillHref(skill.name)}
-          className="text-muted-foreground hover:text-foreground no-underline"
-        >
-          {skill.name}
-        </a>
-      </li>
-      {fileName !== "SKILL.md" && (
-        <>
-          <li aria-hidden>/</li>
-          <li aria-current="page" className="text-foreground">
-            {fileName}
-          </li>
-        </>
-      )}
-    </ol>
-  </nav>
-);
-
 export const SmallLabel = ({ children }: { children: ReactNode }) => (
   <p className="text-muted-foreground font-mono text-[11px] tracking-widest uppercase">
     {children}

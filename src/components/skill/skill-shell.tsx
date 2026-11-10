@@ -1,7 +1,6 @@
 import { Container } from "@/components/container";
 import {
   SmallLabel,
-  SkillBreadcrumb,
   SkillDescription,
   SkillFile,
   SkillFileNav,
@@ -26,10 +25,8 @@ export const SkillShell = ({
   fileName: string;
   html: string;
 }) => (
-  <Container className="py-12 sm:py-16">
-    <SkillBreadcrumb skill={skill} fileName={fileName} />
-
-    <header className="mt-10">
+  <Container className="py-8 sm:py-10">
+    <header>
       <h1 className="font-heading max-w-4xl text-4xl/tight tracking-tight text-balance sm:text-5xl/tight">
         {skill.listing.summary}
       </h1>

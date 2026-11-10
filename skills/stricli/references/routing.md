@@ -64,7 +64,27 @@ export const echoCommand = buildCommand<Flags, [text: string], CommandContext>({
 
 ### Lazy `loader`
 
-Use `loader` when the implementation is heavy or should be code-split: `loader: async () => import("./impl")` in place of `func`. The SKILL.md "Large CLIs" section has the full example. The loaded module can export either a default command implementation or a named implementation returned explicitly from the loader.
+Use `loader` when the implementation is heavy or should be code-split. Stricli resolves the loader only when that command is invoked, so its imports stay off the startup path. The loaded module can export either a default command implementation or a named implementation returned explicitly from the loader.
+
+```typescript
+import { buildCommand, numberParser } from "@stricli/core";
+
+export const analyzeCommand = buildCommand({
+  docs: { brief: "Analyze a report" },
+  parameters: {
+    flags: {
+      depth: {
+        kind: "parsed",
+        parse: numberParser,
+        brief: "Traversal depth",
+        optional: true,
+        default: "1",
+      },
+    },
+  },
+  loader: async () => import("./impl"),
+});
+```
 
 ### Command Documentation
 

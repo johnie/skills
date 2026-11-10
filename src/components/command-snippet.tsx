@@ -8,8 +8,8 @@ export const CommandSnippet = ({
   /** Screen-reader context for the copy button, e.g. "install command". */
   label: string;
 }) => (
-  <div className="bg-card flex h-11 max-w-full items-center gap-4 border pr-1.5 pl-3.5 font-mono text-xs whitespace-nowrap sm:text-sm">
-    <span className="overflow-x-auto">
+  <div className="bg-card flex min-h-11 max-w-full items-center gap-4 border py-1.5 ps-3.5 pe-1.5 font-mono text-xs sm:text-sm">
+    <span className="min-w-0">
       <span className="text-muted-foreground">$</span> {command}
     </span>
     <CopyButton

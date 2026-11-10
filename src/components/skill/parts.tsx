@@ -64,7 +64,7 @@ export const SkillFileNav = ({
                 href={file.href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "block truncate border-l py-1 pl-3 no-underline transition-colors",
+                  "block border-s py-1 ps-3 break-all no-underline transition-colors",
                   current
                     ? "border-foreground text-foreground"
                     : "text-muted-foreground hover:text-foreground border-transparent"
@@ -116,7 +116,7 @@ export const SkillPrivileges = ({ skill }: { skill: SkillDocument }) => {
             {scoped.map(({ tool, scopes }) => (
               <div key={tool}>
                 <dt>{tool}</dt>
-                <dd className="text-muted-foreground mt-1.5 border-l pl-3">
+                <dd className="text-muted-foreground mt-1.5 border-s ps-3">
                   <ul className="space-y-1">
                     {scopes.map((scope) => (
                       <li key={scope} className="break-all">
@@ -145,7 +145,7 @@ export const SkillFile = ({
 }) => (
   <section aria-label={fileName} className="min-w-0 border">
     <div className="bg-card text-muted-foreground flex items-center justify-between gap-4 border-b px-5 py-3 font-mono text-xs">
-      <span className="truncate">
+      <span className="min-w-0 break-all">
         skills/{skill.name}/{fileName}
       </span>
       <a
@@ -159,7 +159,7 @@ export const SkillFile = ({
     <article
       // `prose-sm` for the text; code blocks keep the base `prose` spacing at 12px, which reads better. `prose-sm`
       // shrinks every `code` to 0.857em, so code inside a block is reset to the block's size.
-      className="prose prose-sm prose-neutral dark:prose-invert prose-headings:font-heading prose-headings:font-normal prose-headings:tracking-tight prose-table:font-mono prose-th:font-mono prose-th:font-medium prose-th:tracking-normal prose-code:font-normal prose-code:before:content-none prose-code:after:content-none prose-pre:bg-card prose-pre:my-[1.7142857em] prose-pre:rounded-none prose-pre:px-[1.1428571em] prose-pre:py-[0.8571429em] prose-pre:text-xs max-w-none px-5 py-8 sm:px-10 [&_pre_code]:text-[1em]"
+      className="prose prose-sm prose-neutral dark:prose-invert prose-headings:font-heading prose-headings:font-normal prose-headings:tracking-tight prose-table:font-mono prose-th:font-mono prose-th:font-medium prose-th:tracking-normal prose-code:font-normal prose-code:wrap-break-word prose-code:before:content-none prose-code:after:content-none prose-pre:bg-card prose-pre:my-[1.7142857em] prose-pre:rounded-none prose-pre:px-[1.1428571em] prose-pre:py-[0.8571429em] prose-pre:text-xs max-w-none px-5 py-8 sm:px-10 [&_pre_code]:text-[1em]"
       // Rendered at build time from this repo's own markdown, with raw HTML disabled (content-collections.ts).
       dangerouslySetInnerHTML={{ __html: html }}
     />

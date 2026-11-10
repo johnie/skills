@@ -60,7 +60,7 @@ export const SkillFileNav = ({
                 href={file.href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "block border-s py-1 ps-3 break-all no-underline transition-colors",
+                  "block border-s py-1 ps-3 wrap-break-word no-underline transition-colors",
                   current
                     ? "border-foreground text-foreground"
                     : "text-muted-foreground hover:text-foreground border-transparent"
@@ -115,7 +115,7 @@ export const SkillPrivileges = ({ skill }: { skill: SkillDocument }) => {
                 <dd className="text-muted-foreground mt-1.5 border-s ps-3">
                   <ul className="space-y-1">
                     {scopes.map((scope) => (
-                      <li key={scope} className="break-all">
+                      <li key={scope} className="wrap-break-word">
                         {scope}
                       </li>
                     ))}
@@ -141,7 +141,7 @@ export const SkillFile = ({
 }) => (
   <section aria-label={fileName} className="min-w-0 border">
     <div className="bg-card text-muted-foreground flex items-center justify-between gap-4 border-b px-5 py-3 font-mono text-xs">
-      <span className="min-w-0 break-all">
+      <span className="min-w-0 wrap-break-word">
         skills/{skill.name}/{fileName}
       </span>
       <a

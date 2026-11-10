@@ -75,7 +75,7 @@ const CurlPanel = ({ skill }: { skill: SkillDocument }) => {
                 key={path}
                 className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 sm:grid-cols-[15rem_minmax(0,1fr)_5rem]"
               >
-                <span className="break-all">{path}</span>
+                <span className="wrap-break-word">{path}</span>
                 <span
                   aria-hidden
                   className="bg-muted order-last col-span-2 h-1.5 sm:order-none sm:col-span-1"

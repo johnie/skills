@@ -6,7 +6,7 @@ import { referenceHref, skillHref, skillSourceUrl } from "@/lib/site";
 import type { Reference, SkillDocument } from "@/lib/skills";
 import { cn } from "@/lib/utils";
 
-/** The skill's `description` frontmatter; backticked spans are the only markdown it uses. */
+/** The skill's `description` frontmatter, rendered with typographic punctuation; backticked spans are the only markdown it uses. */
 export const SkillDescription = ({
   skill,
   className,
@@ -14,18 +14,14 @@ export const SkillDescription = ({
   skill: SkillDocument;
   className?: string;
 }) => (
-  <p
+  <div
     className={cn(
       "text-muted-foreground text-sm/relaxed text-pretty",
       className
     )}
-  >
-    {skill.description
-      .split(/`(?<code>[^`]+)`/u)
-      .map((part, index) =>
-        index % 2 === 1 ? <code key={part}>{part}</code> : part
-      )}
-  </p>
+    // Rendered at build time from this repo's own frontmatter, with raw HTML disabled (content-collections.ts).
+    dangerouslySetInnerHTML={{ __html: skill.descriptionHtml }}
+  />
 );
 
 export const SmallLabel = ({ children }: { children: ReactNode }) => (

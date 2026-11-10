@@ -6,6 +6,7 @@ import { compileMarkdown } from "@content-collections/markdown";
 import rehypeShiki from "@shikijs/rehype";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
+import remarkSmartypants from "remark-smartypants";
 import { z } from "zod";
 
 import { parseToolRule, SkillFrontmatter } from "./catalog/frontmatter.ts";
@@ -32,7 +33,16 @@ if (!config.success) {
 const excluded = new Set(config.data.exclude);
 const EXCLUDED = "excluded in skills.config.ts";
 
-/** Markdown to HTML: links rewritten for the site, heading ids for `#anchor` links, code highlighted, tables scrollable. */
+/**
+ * Curly quotes, apostrophes and `…` in rendered prose; code keeps its straight characters. Dashes stay as written:
+ * the skills write no `--` as a dash, only as an arrow (`-->`) or a flag.
+ */
+const smartPunctuation: [typeof remarkSmartypants, { dashes: false }] = [
+  remarkSmartypants,
+  { dashes: false },
+];
+
+/** Markdown to HTML: links rewritten for the site, typographic punctuation, heading ids for `#anchor` links, code highlighted, tables scrollable. */
 const renderMarkdown = (
   context: Pick<Context, "cache">,
   document: { content: string; _meta: Meta },
@@ -55,6 +65,7 @@ const renderMarkdown = (
     ],
     remarkPlugins: [
       remarkGfm,
+      smartPunctuation,
       [
         remarkSkillLinks,
         {
@@ -154,6 +165,12 @@ const skills = defineCollection({
           }))
       ),
       description: document.description,
+      // For the page; `description` stays as written, for agents (`/llms.txt`).
+      descriptionHtml: await compileMarkdown(
+        context,
+        { _meta: document._meta, content: document.description },
+        { remarkPlugins: [smartPunctuation] }
+      ),
       html: await renderMarkdown(context, document, name),
       listing: { name, ...listing },
       name,

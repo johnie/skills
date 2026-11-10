@@ -49,6 +49,8 @@ pnpm run skills link <name>    # or link one; also: unlink, list
 pnpm dev                       # website at http://localhost:3000
 ```
 
+The header's GitHub star count needs a token on shared IPs. Copy `.env.example` to `.env.local` and set `GITHUB_TOKEN`; `pnpm dev`, `pnpm build` and `pnpm preview` all read it.
+
 ### Add a skill
 
 1. Create `skills/<name>/SKILL.md`. The directory name is kebab-case and equals the frontmatter `name`.

@@ -6,7 +6,11 @@ export const routes = defineRoutes({
   error: { component: () => import("./components/500") },
   notFound: { component: () => import("./components/404") },
   routes: [
-    { component: () => import("./components/home"), path: "/" },
+    {
+      component: () => import("./components/home"),
+      path: "/",
+      render: "static",
+    },
     {
       component: () => import("./components/skill"),
       path: "/:name",

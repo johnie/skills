@@ -8,6 +8,7 @@ export const categoryIds = [
   "github",
   "codebase",
   "cli",
+  "writing",
   "wordpress",
 ] as const;
 
@@ -20,4 +21,5 @@ export const categoryLabels: Record<CategoryId, string> = {
   git: "Git",
   github: "GitHub",
   wordpress: "WordPress",
+  writing: "Writing",
 };

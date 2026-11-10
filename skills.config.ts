@@ -11,6 +11,13 @@ import type { SkillsConfig } from "./src/lib/skill-schema.ts";
 export default {
   exclude: ["wp-cli"],
   skills: {
+    bluf: {
+      category: "writing",
+      never: "invent missing facts",
+      reads: "drafts, PR bodies",
+      summary: "Rewrites wordy text so the main point comes first.",
+      writes: "short, plain rewrites",
+    },
     cleye: {
       category: "cli",
       never: "migrate other frameworks",

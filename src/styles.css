@@ -168,8 +168,10 @@
     @apply text-foreground underline decoration-1 underline-offset-2;
   }
 
+  /* Code runs a step smaller than the text around it, but never below 12px: inside `text-xs` it would drop to 10.5px. */
   code {
-    @apply bg-muted border px-1.5 py-0.5 font-mono text-[0.875em];
+    @apply bg-muted border px-1.5 py-0.5 font-mono;
+    font-size: max(0.875em, 0.75rem);
   }
 
   /* A neutral border a step above `--border`, and a thin scrollbar in the same tone for long lines. */

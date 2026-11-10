@@ -47,6 +47,36 @@ When a run has multiple failed jobs, report each separately:
 
 Lead with the most likely root cause — often one failure causes cascading failures in other jobs.
 
+## Example: auto-diagnose
+
+Use the session below as the model for a default diagnose run.
+
+```text
+User: /gh-logs
+
+Claude: Checking CI for branch feat/auth-flow...
+Found failed run #4521 (CI / test) from 3 minutes ago.
+
+## Diagnosis
+
+Category: test
+Failed step: Run tests (job: test-ubuntu)
+Root cause: Snapshot mismatch in LoginForm: expected output changed after adding the "Remember me" checkbox.
+
+Log excerpt:
+  FAIL src/components/LoginForm.test.tsx
+  - renders login form (2ms)
+    Expected: "<form>..."
+    Received: "<form>...<label>Remember me</label>..."
+  1 snapshot failed.
+
+Fix:
+  <test-runner> -u src/components/LoginForm.test.tsx   # e.g. vitest -u / jest -u, via the project's package manager
+
+Verify:
+  Commit the updated snapshot (hand off to /commit), push, then `gh run watch`.
+```
+
 ## Flaky Test Report
 
 Use for `--flaky` mode.

@@ -10,7 +10,7 @@ export const SiteFooter = () => (
   <footer className="border-t">
     <Container className="text-muted-foreground flex items-center justify-between gap-6 py-8 font-mono text-xs">
       <p>{site.author}</p>
-      <ul className="flex items-center gap-4">
+      <ul className="flex items-center gap-6">
         {links.map((link) => (
           <li key={link.href}>
             <a

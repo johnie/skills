@@ -86,7 +86,7 @@ export const SiteHeader = async ({ crumbs = [] }: { crumbs?: Crumb[] }) => {
           </ol>
         </nav>
         <nav aria-label="Main" className="shrink-0">
-          <ul className="flex items-center gap-4 text-sm sm:gap-6">
+          <ul className="flex items-center gap-6 text-sm">
             <li>
               <a href={site.skillsShUrl} className={linkClass}>
                 skills.sh

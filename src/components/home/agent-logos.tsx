@@ -42,7 +42,7 @@ const agents = [
 ] as const;
 
 export const AgentLogos = () => (
-  <ul className="flex items-center gap-5">
+  <ul className="flex items-center gap-6">
     {agents.map((agent) => (
       <li key={agent.name}>
         <a

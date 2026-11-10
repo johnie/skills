@@ -1,6 +1,6 @@
 ---
 name: bluf
-description: Rewrite wordy or AI-generated work text so the main point comes first and every sentence is short and plain, using Bottom Line Up Front (BLUF) order and Simplified Technical English (STE) sentence rules. Use whenever the user asks to clean up, simplify, shorten, tighten, de-slop, or "BLUF" a pull request description, commit message, issue, status update, Slack message, email, release note, README section, or other work text, and before you publish such text that an AI wrote, even if the user does not say "BLUF".
+description: Rewrite wordy or AI-generated work text so the main point comes first and every sentence is short and plain, using Bottom Line Up Front (BLUF) order and Simplified Technical English (STE) sentence rules. Use whenever the user asks to clean up, simplify, shorten, tighten, or "BLUF" a pull request description, commit message, issue, status update, Slack message, email, release note, README section, or other work text, and before you publish such text that an AI wrote, even if the user does not say "BLUF".
 when_to_use: Also applies to work text in other languages, for example a Swedish PR description, and to a draft with a decision or a warning buried at the end. Skip for translation, typo fixes that must keep the approved wording, creative or personal writing that must keep its voice, summaries of long documents, and certification against the ASD-STE100 dictionary.
 argument-hint: "[file, PR number, or pasted text]"
 ---

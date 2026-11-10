@@ -137,6 +137,48 @@ Combining both test files into one `test:` commit is acceptable only when the te
 
 ---
 
+## Interaction: auto-commit
+
+```text
+User: /commit
+
+Claude: Analyzing 7 changed files...
+
+Grouping rationale:
+- preferences route + types are one feature
+- test file is a separate commit (different type)
+- zod was added to validate the feature -> groups with feature
+- the lockfile always goes with package.json
+
+feat(api): add user preferences endpoint
+  - src/routes/preferences.ts, src/types/preferences.ts, package.json, pnpm-lock.yaml
+
+test(api): add preferences endpoint tests
+  - tests/preferences.test.ts
+
+2 commits created.
+```
+
+## Interaction: verify
+
+```text
+User: /commit -v
+
+Claude: Commit plan:
+
+1. fix(auth): handle expired refresh tokens gracefully
+   - src/auth/refresh.ts, src/auth/errors.ts
+
+2. chore(deps): upgrade vitest to 2.0
+   - package.json, pnpm-lock.yaml
+
+Proceed? (y/n/edit)
+```
+
+`--dry-run` stops after the plan. `--amend -v` shows the current last commit + the proposed amended state. `push` appends `Pushing to origin/<branch>... Pushed.`
+
+---
+
 ## Edge Cases
 
 ### Test Files Alongside Feature Files

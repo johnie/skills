@@ -32,6 +32,13 @@ export default {
       summary: "Turns your changes into small, conventional commits.",
       writes: "commits",
     },
+    "de-slop": {
+      category: "writing",
+      never: "change facts or quotes",
+      reads: "essays, posts, drafts",
+      summary: "Strips AI tells from prose and keeps your voice.",
+      writes: "rewrites, slop scores",
+    },
     "gh-logs": {
       category: "github",
       never: "edit workflow YAML",

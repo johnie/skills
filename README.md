@@ -30,6 +30,7 @@ curl -H "Accept: text/markdown" https://skills.johnie.se/commit
 | [`typescript-engineer`](skills/typescript-engineer/SKILL.md) | Fixes TypeScript errors and strengthens your types. |
 | [`stricli`](skills/stricli/SKILL.md) | Builds type-safe command-line tools with Stricli. |
 | [`cleye`](skills/cleye/SKILL.md) | Builds type-safe command-line tools with cleye. |
+| [`bluf`](skills/bluf/SKILL.md) | Rewrites wordy text so the main point comes first. |
 | [`wp-cli`](skills/wp-cli/SKILL.md) | Manages WordPress sites from the command line. |
 
 Each `SKILL.md` lists its commands and flags.

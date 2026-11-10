@@ -1,7 +1,7 @@
 ---
 name: typescript-engineer
 description: Resolve TypeScript errors, eliminate `any`, and design complex types (generics, conditional, mapped, template literal, branded/opaque). Use for type-inference problems, `infer` / `extends` questions, utility types (`Partial`, `Record`, `ReturnType`, `Awaited`, `NoInfer`), `satisfies`, function overloads, declaration merging, and strict-mode refactors.
-when_to_use: Also use to explain or teach a type-level concept with before/after examples, when migrating JavaScript files to TypeScript, and when migrating a module toward stricter types. Covers TypeScript 5.x through 7.x, including inferred type predicates, `erasableSyntaxOnly`, and 6.0/7.0 upgrade breakage.
+when_to_use: Also applies to explaining or teaching a type-level concept with before/after examples, and to migrating JavaScript files to TypeScript. Covers TypeScript 5.x through 7.x, including inferred type predicates, `erasableSyntaxOnly`, and type-checking or inference breakage after a 6.0/7.0 upgrade. Skip for runtime validation of unknown input (use Zod, io-ts, or Valibot), refactors that change runtime behavior, build tooling and config issues (`tsc` not found, wrong `tsconfig` paths, module resolution not finding files), and JavaScript-only questions where types are not involved.
 allowed-tools:
   - Bash(tsc *)
   - Bash(npx tsc *)
@@ -15,16 +15,9 @@ allowed-tools:
 
 # TypeScript Engineer
 
-Type-level design, compiler-error diagnosis, and strict-safety refactoring. This skill routes the user's intent to a set of focused rule files in `references/`; don't try to answer from SKILL.md alone on anything non-trivial.
+Type-level design, compiler-error diagnosis, and strict-safety refactoring that preserves runtime behavior. Load the matching rule file in `references/` before diagnosing an error or recommending a type design.
 
 Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
-
-## When NOT to use
-
-- Runtime validation — use Zod / io-ts / Valibot (separate concern; types won't validate unknown input at the boundary).
-- Refactors that change runtime behavior — this skill preserves behavior. If the change is behavioral, use a refactoring / testing skill.
-- Build tooling issues (`tsc` not found, wrong `tsconfig` paths, module resolution not finding files) — that's config, not type-level design.
-- JavaScript-only questions where types aren't involved.
 
 ## Decision tree
 
@@ -75,64 +68,8 @@ Match keywords in the user's request to load the right rule file.
 
 ## Working style
 
-- **Check the version.** Read `typescript` in `package.json` (or run `npx tsc --version`) before recommending anything version-gated. TypeScript 5.5 infers type predicates and 5.8 can ban `enum` outright, so the same advice is right or wrong depending on the target. [typescript-versions.md](references/typescript-versions.md) lists what changed.
-- **Reproduce first.** Run `tsc --noEmit` on the user's code before proposing a fix so you're reasoning about the real error, not a guess. Since 7.0 the compiler is a native binary and whole-project checks are fast — prefer a real run over reasoning from a snippet.
+- **Check the version.** Read `typescript` in `package.json` (or run `npx tsc --version`) before recommending anything version-gated. [typescript-versions.md](references/typescript-versions.md) lists what changed.
+- **Reproduce first.** Run `tsc --noEmit` on the user's code before proposing a fix so you're reasoning about the real error, not a guess. Prefer a real run over reasoning from a snippet.
 - **Simplest type that works.** Don't reach for conditional/mapped/template-literal machinery when a plain generic or utility type would do. Complexity has a cost to everyone who reads the code later.
-- **Validate type-level code.** Use the `Expect<Equal<A, B>>` pattern (or similar) to prove the types are what you claim — see [type-testing.md](references/type-testing.md). Types that compile but are wrong are worse than runtime bugs — they silently lie.
-- **Explain why the type works.** Dense types are hard to read; a one-line comment naming the technique (`// distributive conditional over UnionKey`) pays for itself.
-
-## One snippet per category
-
-These are smell-tests — read them, then jump to the reference file for the full pattern.
-
-### Eliminate `any` with a generic
-
-```ts
-function getProperty<T, K extends keyof T>(obj: T, key: K): T[K] {
-  return obj[key];
-}
-// getProperty({ name: "Alice" }, "name") → inferred as string
-```
-
-See [generics-basics.md](references/generics-basics.md).
-
-### Narrow an unknown response at the boundary
-
-```ts
-function isUser(value: unknown): value is { id: number; name: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "id" in value &&
-    "name" in value
-  );
-}
-```
-
-Two things to flag when you write one of these. `in` proves the keys exist but says nothing about their types, so the annotation is a promise the body doesn't keep — if the shape arrives over the network, validate it with Zod/Valibot instead. And on TS 5.5+ a guard like this often doesn't need the annotation at all; see [typescript-versions.md](references/typescript-versions.md).
-
-See [type-narrowing.md](references/type-narrowing.md) and [assertion-functions.md](references/assertion-functions.md).
-
-### Preserve literals while enforcing shape
-
-```ts
-const palette = {
-  red: [255, 0, 0],
-  green: [0, 255, 0],
-} as const satisfies Record<string, readonly [number, number, number]>;
-// palette.red → readonly [255, 0, 0]
-```
-
-See [as-const-typeof.md](references/as-const-typeof.md).
-
-## Reference map
-
-Core patterns — [as-const-typeof](references/as-const-typeof.md) · [array-index-access](references/array-index-access.md) · [utility-types](references/utility-types.md)
-
-Generics — [generics-basics](references/generics-basics.md) · [builder-pattern](references/builder-pattern.md) · [deep-inference](references/deep-inference.md)
-
-Type-level programming — [conditional-types](references/conditional-types.md) · [infer-keyword](references/infer-keyword.md) · [template-literal-types](references/template-literal-types.md) · [mapped-types](references/mapped-types.md)
-
-Safety — [opaque-types](references/opaque-types.md) · [type-narrowing](references/type-narrowing.md) · [assertion-functions](references/assertion-functions.md) · [function-overloads](references/function-overloads.md)
-
-Debugging — [error-diagnosis](references/error-diagnosis.md) · [type-testing](references/type-testing.md) · [typescript-versions](references/typescript-versions.md)
+- **Validate type-level code.** Compiling alone does not prove that a type models the intended behavior. Use the `Expect<Equal<A, B>>` pattern (or similar) to prove the types are what you claim; see [type-testing.md](references/type-testing.md).
+- **Explain why the type works.** When a type is hard to read, add a one-line comment naming the technique (`// distributive conditional over UnionKey`).

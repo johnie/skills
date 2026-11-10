@@ -32,7 +32,13 @@
 - [Group related changes together]
 ```
 
-**Conditional sections** (include ONLY when applicable - omit entirely otherwise):
+**Conditional sections** (include ONLY when applicable, omit entirely otherwise). Include a section only when the diff meets its trigger:
+
+| Section | Include when the diff includes… |
+| --- | --- |
+| `## Testing` | test files (`*.test.*`, `*.spec.*`, `__tests__/`) OR the change needs manual verification (UI, side effects) |
+| `## Deployment` | DB migrations, config, env vars, feature flags, CI workflow changes, infra |
+| `## Screenshots` | UI files: `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.css`, design assets |
 
 ```markdown
 ## Testing

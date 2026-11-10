@@ -1,6 +1,7 @@
 ---
 name: stricli
-description: Build type-safe TypeScript CLIs with Bloomberg's Stricli framework. Use when the project already depends on `@stricli/core` or the user names Stricli — authoring a new CLI, changing typed flags/positionals/parsers, wiring subcommand routing via `buildRouteMap`, testing via `run(app, argv, context)`, or configuring bash auto-complete via `@stricli/auto-complete`. For the `cleye` argv parser use the cleye skill instead; skip for commander/yargs/oclif/minimist and for generic "which CLI framework should I use?" questions.
+description: Build type-safe TypeScript CLIs with Bloomberg's Stricli framework. Use when the project already depends on `@stricli/core` or the user names Stricli. Covers authoring a new CLI, changing typed flags, positionals, and parsers, wiring subcommand routing via `buildRouteMap`, testing via `run(app, argv, context)`, and configuring bash auto-complete via `@stricli/auto-complete`. For the `cleye` argv parser use the cleye skill instead; skip for commander/yargs/oclif/minimist and for generic "which CLI framework should I use?" questions.
+when_to_use: "Also applies to adding commands, integrations, or lifecycle hooks to an existing Stricli app. Skip for migrating a CLI from another framework (the APIs don't translate), for non-TypeScript CLIs, and for runtime debugging of an installed CLI rather than developing it."
 allowed-tools:
   - Bash(npx @stricli/create-app*)
   - Bash(npm install @stricli/*)
@@ -16,21 +17,13 @@ allowed-tools:
 
 # Stricli CLI Framework
 
-Stricli is Bloomberg's type-safe CLI framework for TypeScript. Strongly-typed flags and positional arguments, explicit command routing, automatic help generation, and an isolated `CommandContext` per run.
+Use this skill to build or change Stricli CLIs in TypeScript. Check the installed `@stricli/core` version first, because the integrations API depends on it.
 
 Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
-## When NOT to use
-
-- The user has an existing CLI on a different framework (commander, yargs, oclif, minimist) — this skill doesn't migrate, and the APIs don't translate.
-- The project uses `cleye` — different library, non-transferable API. Use the cleye skill.
-- Generic "which CLI framework should I use?" — that's a design conversation, not a Stricli question.
-- Non-TypeScript CLIs — Stricli's core value is its compile-time type safety.
-- Runtime debugging of an installed CLI (not developing it) — use shell/debugging tooling.
-
 ## Core API surface
 
-Stricli's public API is intentionally narrow. If something isn't listed here or in the references, assume it doesn't exist — checking the upstream repo is faster than guessing, and invented APIs compile until they don't.
+The table and the references cover the public API this skill relies on. They are not exhaustive. Before using an API that is not listed here, verify it in the upstream repo or docs.
 
 | Entry point | Purpose |
 | --- | --- |
@@ -43,11 +36,16 @@ Stricli's public API is intentionally narrow. If something isn't listed here or 
 
 ## Version awareness
 
-Check the installed `@stricli/core` before using version-gated API. The `integrations` argument, lifecycle hooks, and the exported `help`/`version` factories arrived in **1.3.0**; `withNegated` on boolean flags and defaults on variadic flags arrived in **1.2.5**. The rest of this skill applies across the 1.x line. Details in [`references/integrations.md`](references/integrations.md).
+Check the installed `@stricli/core` before using version-gated API.
+
+- **1.3.0** added the `integrations` argument, lifecycle hooks, and the exported `help`/`version` factories.
+- **1.2.5** added `withNegated` on boolean flags and defaults on variadic flags.
+
+The rest of this skill applies across the 1.x line. Details in [`references/integrations.md`](references/integrations.md).
 
 ## Installation
 
-Upstream docs assume Node + npm. Stay agnostic to the user's package manager — pnpm and bun work equally well.
+Use the user's package manager. Upstream docs are npm-first; pnpm and bun work the same way.
 
 ```bash
 npm install @stricli/core              # required
@@ -62,7 +60,7 @@ npx @stricli/create-app@latest my-app
 # pnpm dlx / bunx work the same way
 ```
 
-The generator produces the reference directory layout. For hand-written apps, follow the quick start below.
+For hand-written apps, follow the quick start below.
 
 ## Quick start: single-command CLI
 
@@ -103,44 +101,17 @@ export const greetCommand = buildCommand({
 
 ### 2. Build the application
 
-```typescript
-import { buildApplication, help, version } from "@stricli/core";
+On 1.3.0+, passing a third argument (integrations) to `buildApplication` replaces every default. Re-register `help`, `helpAll`, and `version`, or the CLI loses those flags. The full setup, including `--version` and custom integrations, is in [`references/integrations.md`](references/integrations.md#the-gotcha-passing-integrations-replaces-the-defaults).
 
-import { version as currentVersion } from "../package.json";
+```typescript
+import { buildApplication } from "@stricli/core";
+
 import { greetCommand } from "./commands/greet";
 
-const formatting = {
-  useAliasInUsageLine: false,
-  onlyRequiredInUsageLine: false,
-  caseStyle: "original",
-} as const;
-
-export const app = buildApplication(
-  greetCommand,
-  { name: "my-cli" },
-  {
-    help: help({
-      brief: "Print help information and exit",
-      defaultForRouteMap: true,
-      formatting,
-    }),
-    helpAll: help({
-      brief:
-        "Print help information (including hidden commands/flags) and exit",
-      alias: "H",
-      hidden: true,
-      includeHidden: true,
-      formatting,
-    }),
-    version: version({
-      brief: "Print version information and exit",
-      info: { currentVersion },
-    }),
-  }
-);
+export const app = buildApplication(greetCommand, { name: "my-cli" });
 ```
 
-On 1.3.0+ the `version` integration is the primary way to enable `--version`; the config key `versionInfo: { currentVersion }` (with no third argument) is the legacy 1.2.x form and is `@deprecated` on 1.3.0, though it still works. Passing the third argument replaces every default, which is why `help` and `helpAll` are re-registered above.
+On 1.2.x, enable `--version` with the config key `versionInfo: { currentVersion }`. That key is `@deprecated` on 1.3.0 but still works.
 
 ### 3. Run it
 
@@ -168,37 +139,15 @@ Full details in [`references/parameters.md`](references/parameters.md). Parser s
 
 ### Multi-command CLI
 
-Define commands independently, compose with `buildRouteMap`, add `aliases` / `defaultCommand` where UX benefits. See [`references/routing.md`](references/routing.md).
+Define each command independently with `buildCommand`. Compose them with `buildRouteMap`. Add `aliases` when users need short names for subcommands. Set `defaultCommand` when a route map should run one command when no subcommand is given. See [`references/routing.md`](references/routing.md).
 
-### Large CLIs — prefer the `loader` pattern
+### Large CLIs: prefer the `loader` pattern
 
-For commands whose implementation is expensive to import (heavy transitive deps, slow module-level work), use `loader` instead of inline `func`. Stricli resolves the loader only when that command is actually invoked, keeping startup fast.
-
-```typescript
-import { buildCommand, numberParser } from "@stricli/core";
-
-export const analyzeCommand = buildCommand({
-  docs: { brief: "Analyze a report" },
-  parameters: {
-    flags: {
-      depth: {
-        kind: "parsed",
-        parse: numberParser,
-        brief: "Traversal depth",
-        optional: true,
-        default: "1",
-      },
-    },
-  },
-  loader: async () => import("./impl"),
-});
-```
-
-Rule of thumb: `func` for a few-line handler you don't mind parsing at app start; `loader` when the implementation (or its imports) would dominate cold start for unrelated commands. See [`references/routing.md`](references/routing.md).
+Use inline `func` for a short handler with cheap imports. Use `loader` when a command's implementation or its imports are expensive to load (heavy transitive deps, slow module-level work), so unrelated commands start fast. Example in [`references/routing.md`](references/routing.md#lazy-loader).
 
 ## Context and testing
 
-- Runtime context extends `CommandContext`. Inject logger / clients / clocks there — not module-level singletons — so tests can swap them.
+- Runtime context extends `CommandContext`. Inject logger / clients / clocks there, not as module-level singletons, so tests can swap them.
 - Command handlers receive context through `this`.
 - Test either end-to-end via `run(app, inputs, ctx)` with a fake context, or import the command's implementation directly for pure unit tests.
 
@@ -210,22 +159,20 @@ See [`references/context.md`](references/context.md) and [`references/examples.m
 
 ## Upstream conventions worth keeping
 
-- `strict: true` in `tsconfig.json`. Stricli leans on inference — loose mode loses the whole value proposition.
+- `strict: true` in `tsconfig.json`. Stricli relies on type inference for flags and positionals, and loose mode weakens it.
 - `--version` appears only when a `version` integration is registered (1.3.0+) or the legacy `versionInfo` config key is set (1.2.x; deprecated on 1.3.0).
 - `--helpAll` is built-in and surfaces hidden commands and flags.
 - Reserved short flags: `-h` (help), `-H` (helpAll), `-v` (version, when enabled).
-- On 1.3.0+, passing the `integrations` argument to `buildApplication` **replaces** the defaults — re-register `help`, `helpAll`, and `version` or you lose those flags. See [`references/integrations.md`](references/integrations.md).
-- Upstream docs are npm-first; show `pnpm` / `bun` equivalents when the user uses them.
 
 ## References
 
-- [`routing.md`](references/routing.md) — `buildCommand`, `buildRouteMap`, `buildApplication`, `run`, lazy loaders, aliases, default commands
-- [`parameters.md`](references/parameters.md) — flag kinds and positional modes
-- [`parsers.md`](references/parsers.md) — built-in / custom / async parsers
-- [`context.md`](references/context.md) — `CommandContext`, custom context, testing, exit codes
-- [`integrations.md`](references/integrations.md) — integrations, lifecycle hooks, application flags, customizing `help`/`version` (1.3.0+)
-- [`auto-complete.md`](references/auto-complete.md) — bash auto-complete integration
-- [`examples.md`](references/examples.md) — composite patterns, end-to-end apps, **testing error paths**
+- [`routing.md`](references/routing.md): `buildCommand`, `buildRouteMap`, `buildApplication`, `run`, lazy loaders, aliases, default commands
+- [`parameters.md`](references/parameters.md): flag kinds and positional modes
+- [`parsers.md`](references/parsers.md): built-in / custom / async parsers
+- [`context.md`](references/context.md): `CommandContext`, custom context, testing, exit codes
+- [`integrations.md`](references/integrations.md): integrations, lifecycle hooks, application flags, customizing `help`/`version` (1.3.0+)
+- [`auto-complete.md`](references/auto-complete.md): bash auto-complete integration
+- [`examples.md`](references/examples.md): composite patterns, end-to-end apps, **testing error paths**
 
 ## External
 

@@ -1,20 +1,17 @@
 ---
 name: bluf
-description: Rewrite wordy or AI-generated work text so the main point comes first and every sentence is short and plain, using Bottom Line Up Front (BLUF) order and Simplified Technical English (STE) sentence rules. Use whenever the user asks to clean up, simplify, shorten, tighten, or "BLUF" a pull request description, commit message, issue, status update, Slack message, email, release note, README section, or other work text, and before you publish such text that an AI wrote, even if the user does not say "BLUF".
-when_to_use: Also applies to work text in other languages, for example a Swedish PR description, and to a draft with a decision or a warning buried at the end. Skip for translation, typo fixes that must keep the approved wording, creative or personal writing that must keep its voice, summaries of long documents, and certification against the ASD-STE100 dictionary.
+description: Rewrite wordy or AI-generated work text so the main point comes first and every sentence is short and plain, using Bottom Line Up Front (BLUF) order and Simplified Technical English (STE) sentence rules. Use when the user asks to clean up, simplify, shorten, tighten, check, or "BLUF" a pull request description, commit message, issue, status update, Slack message, email, release note, README section, or other work text. Also use to check work text that you wrote before you publish it, even if the user does not say "BLUF".
+when_to_use: Also applies to work text in other languages, for example a Swedish PR description, and to a draft with a decision or a warning buried at the end. For work text that also has stock AI phrasing (fake contrasts, filler, dramatic fragments), apply BLUF first, then the de-slop pattern checks if that skill is available. Skip for translation, typo fixes that must keep the approved wording, creative or personal writing that must keep its voice, summaries of long documents, and certification against the ASD-STE100 dictionary.
 argument-hint: "[file, PR number, or pasted text]"
 ---
 
 # BLUF
 
-Rewrite text so that a busy reader gets the main point from the first sentence and can stop there.
+Rewrite text so that a busy reader gets the main point from the first sentence and can stop there. Facts, uncertainty, literals, and required structure must survive the rewrite.
 
-The skill uses two sources:
+BLUF (Bottom Line Up Front) controls the order, and rules adapted from Simplified Technical English (ASD-STE100) control the sentences. These adapted rules do not make text conform to STE. See [Limits](#limits).
 
-- **BLUF (Bottom Line Up Front)** controls the order. The conclusion and the necessary action come first. The context that supports them comes after.
-- **Simplified Technical English (ASD-STE100)** controls the sentences. Sentences are short and active, and each word has one meaning.
-
-AI-generated text usually fails both. It gives the background first and the conclusion last, and it uses many words where few are sufficient. A reader who skims such text misses the point. A reader whose first language is not English must work to find it.
+If the user asks you to check, audit, or review text, do not rewrite or edit it. List each problem with its fix.
 
 ## Procedure
 
@@ -28,9 +25,7 @@ Read the full text. Then answer these questions in one or two sentences, for you
 - **So what?** Why is this important to this reader?
 - **What must the reader do?** Approve, review, decide, answer, or nothing?
 
-This answer is the bottom line. It is frequently in the last paragraph of the source text, or divided between several paragraphs.
-
-If you cannot answer from the text, the text has no bottom line. Do not invent one. Tell the user what is missing and ask. A BLUF is only as good as the writer's knowledge of the subject.
+If you cannot answer from the text, the text has no bottom line. Do not invent one. Tell the user what is missing and ask.
 
 ### 2. Put the bottom line first
 
@@ -78,7 +73,7 @@ Read the result as the reader, and check:
 - Does the first sentence give the bottom line? If the reader stops there, do they know what occurred and what to do?
 - Is each fact in the result also in the source? Is each important fact in the source also in the result?
 - Is there a sentence that you can delete with no loss? Delete it.
-- Is there a sentence longer than 25 words? Divide it.
+- Is there an instruction longer than 20 words, or a description longer than 25 words? Divide it.
 
 ## What you must not change
 
@@ -87,7 +82,7 @@ A rewrite that changes the meaning is worse than wordy text.
 - **Facts.** Do not add facts, numbers, causes, or claims that are not in the source. Do not make an uncertain statement certain. If the source says "probably", keep the uncertainty in one plain word. If you delete a hedge, you change a fact.
 - **Technical terms and literals.** Keep code, commands, file paths, identifiers, error messages, version numbers, URLs, and issue references exactly as they are. STE permits technical names in addition to its general vocabulary. Simplify the words around them, not the terms.
 - **Lines that tools read.** Keep lines such as `Closes #123`, `Fixes NEWS-2291`, `Co-authored-by:`, and `BREAKING CHANGE:` on their own line, in the position that the convention requires. A mention (`@dba-oncall`) stays with the request that it belongs to.
-- **Required structure.** If the text follows a template (for example a PR template with fixed headings), keep the headings and apply the rules in each section. Put the bottom line in the first section.
+- **Required structure.** If the text follows a template (for example a PR template with fixed headings), keep the headings. Apply the rules in each section. Put the bottom line in the first section.
 - **Language.** Write the result in the language of the source text. The structure rules apply to all languages. The word lists apply to English only.
 - **Voice of a human writer.** If a person wrote the text and wants only a light edit, change the order and the length. Do not make their sentences uniform.
 
@@ -97,19 +92,19 @@ The bottom line is different for each type of text. Read [references/formats.md]
 
 ## Output
 
-Give the rewritten text only, in a form that the user can paste. Do not put an introduction before it or a list of your changes after it.
+For a check, audit, or review request, give the list of problems and fixes only. Do not change the source.
+
+Otherwise, give the rewritten text only, in a form that the user can paste. Do not put an introduction before it or a list of your changes after it.
 
 Add a short note after the text only in these cases:
 
 - You removed something that the user possibly wants to keep. Name it in one line.
 - The source has no clear bottom line, or it is missing a fact that the reader needs (for example, how the change was tested). Ask for it. Do not fill the gap.
 
-If the user gives a file or a PR to edit, make the change there and report the bottom line of what you changed.
-
-## Examples
+If the user gives a file or a PR to edit, make the change there. Then report the bottom line of what you changed.
 
 See [references/examples.md](references/examples.md) for before-and-after rewrites.
 
 ## Limits
 
-This skill does not make text conform to ASD-STE100. The standard has 53 rules and a dictionary of approximately 900 approved words, and it is written for maintenance documentation. This skill uses the rules that apply to everyday work text and does not use the dictionary. If the user needs text that conforms to STE, tell them that they need the standard and a trained writer.
+This skill does not make text conform to ASD-STE100. The standard has 53 rules and a dictionary of approximately 900 approved words. This skill uses the rules that apply to everyday work text and does not use the dictionary. If the user needs text that conforms to STE, tell them that they need the standard and a trained writer.

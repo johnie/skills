@@ -74,7 +74,7 @@ const routes = buildRouteMap({
   },
 });
 
-// Register help/helpAll/version integrations as in the SKILL.md quick start;
+// Register help/helpAll/version integrations as in integrations.md;
 // `versionInfo` in the config object is the deprecated 1.2.x form.
 export const app = buildApplication(routes, { name: "my-cli" });
 ```

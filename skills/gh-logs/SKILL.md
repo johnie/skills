@@ -1,6 +1,7 @@
 ---
 name: gh-logs
-description: Diagnose GitHub Actions failures via the `gh` CLI — fetch logs, classify the root cause, and recommend a fix. Use when a workflow run failed and the user needs to know why, when detecting flaky tests across recent runs, profiling slow steps, analyzing failure history, or watching a live run. Stop clicking through the GitHub UI.
+description: Analyze GitHub Actions runs via the `gh` CLI. By default, diagnose a failed run. Fetch its logs, classify the root cause, and recommend a fix. Use when a workflow run failed and the user needs to know why, when detecting flaky tests across recent runs, profiling slow steps, analyzing failure history, or watching a live run.
+when_to_use: "Also applies to a bare run ID or run URL. Skip for viewing logs of passing runs (use `gh run view <id> --log` directly), for editing workflow YAML (this skill reads runs and does not author workflows), and for running or re-running workflows (use `gh workflow run` or `gh run rerun`)."
 argument-hint: "[run-id] [--flaky|--slow|--history N|--watch]"
 context: fork
 background: false
@@ -17,11 +18,9 @@ allowed-tools:
 
 # gh-logs
 
-CI log analyst. Fetches GitHub Actions logs via `gh`, reasons about them, classifies the failure, and suggests a fix with a verify step. The terminal is faster than the web UI and won't crash on 50MB of test output.
+Diagnose GitHub Actions runs: fetch logs via `gh`, classify the failure, and suggest a fix with a verify step. This skill runs in a forked context with no conversation history, and only your finished diagnosis returns. Raw logs stay out of the main conversation. Your inputs are these instructions, `$ARGUMENTS`, and the linked references.
 
-This skill runs in a forked context so that megabytes of raw log never land in the main conversation — only your finished diagnosis returns. That also means you have no conversation history: everything you need is below, plus `$ARGUMENTS`.
-
-Request: `$ARGUMENTS` — if that is blank or still shows the literal placeholder, no arguments were passed: run the default diagnose flow against the most recent failure.
+Request: `$ARGUMENTS`. If it is blank or contains the literal placeholder, diagnose the most recent failure.
 
 ## Preflight
 
@@ -31,8 +30,6 @@ Request: `$ARGUMENTS` — if that is blank or still shows the literal placeholde
 - Recent failures (all branches): !`gh run list --status failure --limit 5 --json databaseId,displayTitle,workflowName,headBranch,createdAt`
 
 If auth failed above, tell the user to run `gh auth login` and stop. If the repo lookup failed, ask which repo to target. Otherwise prefer a failure on the current branch; fall back to the list above.
-
-Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 ## Modes
 
@@ -46,12 +43,6 @@ Reference files live in `${CLAUDE_SKILL_DIR}/references/`.
 
 Every mode reports through a template in [`references/analysis-templates.md`](references/analysis-templates.md). A `<workflow-name>` argument narrows any mode to one workflow. Full `gh` invocation cookbook: [`references/gh-commands.md`](references/gh-commands.md).
 
-## When NOT to use
-
-- Viewing passing-run logs for debugging successful runs — use `gh run view <id> --log` directly.
-- Editing workflow YAML — this skill reads runs, it doesn't author workflows.
-- Running or re-running workflows — that's `gh workflow run` / `gh run rerun`.
-
 ## Default workflow (diagnose)
 
 ### 1. Find the run
@@ -64,7 +55,7 @@ gh run list --branch "$BRANCH" --status failure --limit 1 \
   --json databaseId,displayTitle,conclusion,event,headBranch,workflowName,createdAt
 ```
 
-If that is empty, fall back to the all-branches list from Preflight. With a workflow name — add `--workflow <name>`.
+If that is empty, fall back to the all-branches list from Preflight. With a workflow name, add `--workflow <name>`.
 
 ### 2. Get the overview
 
@@ -82,13 +73,15 @@ gh run view <run-id> --log-failed > /tmp/run-<run-id>.log
 ${CLAUDE_SKILL_DIR}/scripts/classify-log.sh /tmp/run-<run-id>.log
 ```
 
-Run the classifier before reading the log by hand: failed-step output is routinely 5000+ lines, and the script greps it against one signature regex per category, printing the hit count and the first five matching lines (with line numbers) for each, then `primary: <category>` — the most upstream category that matched. That narrows a wall of text to the lines that matter and tells you where to `sed -n` next.
+Run the classifier before reading the log by hand. Failed-step output often runs past 5000 lines.
+
+The script matches one signature regex per category. For each category it prints the hit count and the first five matching lines with line numbers. It ends with `primary: <category>`, the most upstream category that matched. Use the line numbers to pick where to `sed -n` next.
 
 If the log is still unwieldy, narrow to one job: `gh run view <run-id> --job <job-id> --log-failed`. If even that is too large, `gh api` the raw log and grep for `error`/`FAIL`/`fatal`.
 
 ### 4. Classify
 
-Start from the classifier's `primary:` line, then confirm against the surrounding log and [`references/failure-patterns.md`](references/failure-patterns.md) — the script only sees signatures, not causality. Pick one primary category:
+The script sees signatures, not causality. Start from its `primary:` line. Confirm it against the surrounding log and [`references/failure-patterns.md`](references/failure-patterns.md). Pick one primary category:
 
 | Category | Strongest signals |
 | --- | --- |
@@ -100,21 +93,19 @@ Start from the classifier's `primary:` line, then confirm against the surroundin
 | **infra** | `Killed` (137), `No space left`, `heap out of memory`, runner shutdown |
 | **timeout** | `exceeded maximum execution time`, stuck for 10+ min |
 
-**When multiple categories match** (common — e.g., an OOM during tests looks like both `infra` and `test`): pick the most _upstream_ cause, because that's what needs to be fixed. Priority: `auth` > `deps` > `build` > `infra` > `lint` > `test` > `timeout`. A test failing _because_ deps didn't install is a deps bug, not a test bug. When it's genuinely ambiguous, surface both and ask the user which feels right — a wrong classification leads to a wrong fix.
+**When multiple categories match, pick the most _upstream_ cause.** That is the one to fix. For example, an OOM during tests matches both `infra` and `test`.
+
+Priority: `auth` > `deps` > `build` > `infra` > `lint` > `test` > `timeout`. A test that fails because deps did not install is a deps failure.
+
+If the evidence still fits two causes, report both. Ask the user for the evidence or context that separates them, because a wrong classification leads to a wrong fix.
 
 ### 5. Report
 
-Use the diagnosis template in [`references/analysis-templates.md`](references/analysis-templates.md). Always include:
-
-1. **Category** and the failed step / job name
-2. **Root cause** — 1–2 sentences, specific
-3. **Log excerpt** — the lines that proved it, truncated if long
-4. **Suggested fix** — actionable, with commands or code
-5. **Verify command** — how to re-run and confirm the fix worked
+Fill in every field of the diagnosis template in [`references/analysis-templates.md`](references/analysis-templates.md#diagnosis-report-default). A worked example is in [Example: auto-diagnose](references/analysis-templates.md#example-auto-diagnose).
 
 ## Other modes
 
-### Flaky test detection — `--flaky`
+### Flaky test detection: `--flaky`
 
 ```bash
 gh run list --branch "$BRANCH" --limit 20 --json databaseId,conclusion
@@ -122,7 +113,7 @@ gh run list --branch "$BRANCH" --limit 20 --json databaseId,conclusion
 
 For each failed run, extract failed test names from the log. Tests that fail in some runs but pass in others are flaky. Report with pass/fail ratio and the suspected mechanism (race condition, timing dependency, shared port, external service, test ordering). See `references/analysis-templates.md` for the output shape.
 
-### Slow step profiling — `--slow`
+### Slow step profiling: `--slow`
 
 `gh run view --json jobs` returns `startedAt` / `completedAt` on every step (gh 2.60+, camelCase):
 
@@ -133,9 +124,11 @@ gh run view <run-id> --json jobs --jq '
   sort_by(-.duration) | .[] | "\(.duration)s\t\(.name)"'
 ```
 
-Durations come back sorted descending — identify bottlenecks and suggest cache, parallelism, or dropping the step. On gh older than 2.60 the steps carry no timestamps; use the REST fallback in [`references/gh-commands.md`](references/gh-commands.md) (same filter, snake_case fields).
+Durations come back sorted descending. Identify bottlenecks and suggest cache, parallelism, or dropping the step.
 
-### History — `--history [n]`
+On gh older than 2.60 the steps carry no timestamps. Use the REST fallback in [`references/gh-commands.md`](references/gh-commands.md) (same filter, snake_case fields).
+
+### History: `--history [n]`
 
 ```bash
 gh run list --status failure --limit <n> \
@@ -144,43 +137,13 @@ gh run list --status failure --limit <n> \
 
 For each, pull failed job/step names. Surface recurring patterns: same step, specific branch, time-of-day correlation.
 
-### Watch — `--watch`
+### Watch: `--watch`
 
 ```bash
 gh run watch --exit-status
 ```
 
 When it finishes, if it failed, drop into diagnose mode on the resulting run ID.
-
-## Example — auto-diagnose
-
-```text
-User: /gh-logs
-
-Claude: Checking CI for branch feat/auth-flow...
-Found failed run #4521 (CI / test) from 3 minutes ago.
-
-## Diagnosis
-
-Category: test
-Failed step: Run tests (job: test-ubuntu)
-Root cause: Snapshot mismatch in LoginForm — expected output changed after adding the "Remember me" checkbox.
-
-Log excerpt:
-  FAIL src/components/LoginForm.test.tsx
-  - renders login form (2ms)
-    Expected: "<form>..."
-    Received: "<form>...<label>Remember me</label>..."
-  1 snapshot failed.
-
-Fix:
-  <test-runner> -u src/components/LoginForm.test.tsx   # e.g. vitest -u / jest -u, via the project's package manager
-
-Verify:
-  Commit the updated snapshot (hand off to /commit), push, then `gh run watch`.
-```
-
-More session shapes (flaky / slow / history) are in [`references/analysis-templates.md`](references/analysis-templates.md).
 
 ## Edge cases
 
@@ -193,10 +156,4 @@ More session shapes (flaky / slow / history) are in [`references/analysis-templa
 | Not authenticated | `gh auth login`. |
 | Private repo / no access | `gh` returns 404; explain required permissions. |
 | Multiple failed jobs | Diagnose each; lead the report with the most upstream cause. |
-| Cancelled runs | Infra category, unless the log carries a timeout signature (`exceeded the maximum execution time`, `The operation was canceled` after a long silent step) — then it's `timeout`. Check whether cancellation was manual, concurrency, or timeout. |
-
-## Reference index
-
-- [`references/failure-patterns.md`](references/failure-patterns.md) — log signature database by language / category
-- [`references/analysis-templates.md`](references/analysis-templates.md) — output templates for each mode
-- [`references/gh-commands.md`](references/gh-commands.md) — complete `gh` CLI command cookbook with jq filters
+| Cancelled runs | First check whether cancellation was manual, concurrency, or timeout. Default to `infra`. If the log carries a timeout signature (`exceeded the maximum execution time`, `The operation was canceled` after a long silent step), classify as `timeout`. |

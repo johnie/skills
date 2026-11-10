@@ -48,7 +48,7 @@ This is a **skills repository** for Claude Code. Skills are domain-specific prom
 - `.claude-plugin/marketplace.json` - Hand-maintained plugin manifest. **Add every new skill here**; a test fails if it drifts from `skills/`
 - `src/` - Website (rshono). Read <https://www.rshono.com/llms.txt> before guessing at a framework convention
   - `routes.ts` - Route table, the one file rshono requires
-  - `server.ts` - Hono app mounted ahead of the pages: middleware, API routes, redirects, error reporting. `GET /:name` with `Accept: text/markdown` answers the skill's prebuilt `bundle` (body and ETag); every other request falls through to the page. The old `/skills/*` paths 301 to the same path without the prefix
+  - `server.ts` - Hono app mounted ahead of the pages: middleware, API routes, redirects, error reporting. `GET /llms.txt` answers the agent index built by `lib/llms-txt.ts`: how to fetch a skill with curl, then every listed skill by category with its frontmatter `description` and fetch command. `GET /:name` with `Accept: text/markdown` answers the skill's prebuilt `bundle` (body and ETag); every other request falls through to the page. The old `/skills/*` paths 301 to the same path without the prefix
   - `components/` - Pages (server components) and components; interactive parts are `'use client'`
     - `home/` - Landing page sections; `skill-directory.tsx` (tabs + search) is the only client section
     - `skill.tsx`, `reference.tsx` - Prerendered pages for each skill (`/:name`) and reference file (`/:name/references/:reference`); `skill/skill-shell.tsx` is their shared layout, built from the pieces in `skill/parts.tsx`

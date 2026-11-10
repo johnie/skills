@@ -17,6 +17,9 @@ npx skills add johnie/skills --skill commit  # one skill
 
 # Or read a skill without installing it
 curl -H "Accept: text/markdown" https://skills.johnie.se/commit
+
+# Or point an agent at the index: every skill and the curl command to fetch it
+curl https://skills.johnie.se/llms.txt
 ```
 
 ## The skills

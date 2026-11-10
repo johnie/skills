@@ -1,0 +1,78 @@
+{
+  "skill_name": "de-slop",
+  "evals": [
+    {
+      "id": 1,
+      "name": "blog-intro-keeps-facts",
+      "prompt": "chatgpt wrote this intro for our eng blog and it reads like a LinkedIn post. de-slop it: evals/files/blog-intro.md",
+      "expected_output": "A shorter blog intro with the heading kept, no opener, no em dashes, no 'not because X, because Y' reversal, and no closing moral. All numbers, the `integration-db` literal, the 'probably' hedge, and Maria's quote survive unchanged.",
+      "files": ["evals/files/blog-intro.md"],
+      "expectations": [
+        "The output contains no em dash (—)",
+        "The output does not contain 'Here's the thing', 'Let that sink in', 'embarked on a journey', or 'game-changing'",
+        "The output keeps the numbers 38 minutes, 14 repositories, six weeks, and 9 minutes",
+        "The output keeps `integration-db` exactly as written",
+        "The output keeps the uncertainty about the flaky job causing most reruns (for example 'probably' or 'likely')",
+        "Maria's quote appears word for word: \"I stopped checking Slack while I waited for builds.\"",
+        "The output does not end with the 'It wasn't easy. It wasn't fast. But it was worth it.' fragment sequence or a similar moral",
+        "The answer gives the rewritten text without an introduction or a list of changes"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "review-mode-scores-without-rewrite",
+      "prompt": "how AI does this sound? don't rewrite it, I want to fix it myself. just tell me what gives it away and score it. evals/files/linkedin-post.md",
+      "expected_output": "A list of patterns, each with the quoted text and a short fix, followed by a five-row score table (Directness, Rhythm, Trust, Authenticity, Density) with a total out of 50. No full rewrite of the post.",
+      "files": ["evals/files/linkedin-post.md"],
+      "expectations": [
+        "The answer quotes 'This isn't just a new job. It's a new chapter.' or 'great software isn't about code. It's about people.' and names it as a binary contrast",
+        "The answer flags at least three of: 'thrilled to share', 'embark on a new adventure', 'testament to', 'lean into', the emoji, 'The best is yet to come'",
+        "The answer has a score table with the five dimensions Directness, Rhythm, Trust, Authenticity, and Density",
+        "The answer states a total out of 50, and the total is below 35",
+        "The answer does not contain a full rewritten version of the post"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "light-pass-keeps-voice",
+      "prompt": "I wrote this newsletter bit myself, it's supposed to be funny. Can you do a light pass and only fix the parts that sound like AI? evals/files/human-newsletter.md",
+      "expected_output": "Nearly the same text: the opener 'Here's the thing about dark mode:' goes, 'genuinely, deeply' and the em dash go, and every joke and fact stays.",
+      "files": ["evals/files/human-newsletter.md"],
+      "expectations": [
+        "The output removes 'Here's the thing' and the em dash",
+        "The output keeps the 'charcoal' joke, 'It does not. I lost.', the cinnamon buns line, and 'a kind of tea if you squint'",
+        "The output keeps 'eleven months', 'two redesigns', and '4%'",
+        "The output keeps the opening sentence about three things and the coffee machine unchanged",
+        "Sentences without an AI pattern are left word for word, and the output is within 15% of the source length"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "false-agency-without-actor",
+      "prompt": "clean the AI-speak out of this retro summary before I send it to the leadership group: evals/files/retro-summary.md",
+      "expected_output": "A rewrite that removes 'surfaced something important', 'the decision emerged', 'the data tells us', and 'the culture has shifted', and that does not invent who paged, who rolled back, who decided, or who analyzed the data. A short note asks for the missing actors and for what changed in incident reviews.",
+      "files": ["evals/files/retro-summary.md"],
+      "expectations": [
+        "The output keeps 12 September, two minutes, twenty minutes, and roughly 1,800 failed orders, including 'roughly'",
+        "The output does not contain 'the decision emerged' or 'the data tells us'",
+        "The output does not name a person, team, or role as the one who decided to add a second provider, because the source names none",
+        "A note after the rewrite asks who made the decision or who did the analysis",
+        "The output does not keep 'The culture around incident reviews has shifted' as a vague declarative; it either asks what changed or removes the sentence"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "swedish-stays-swedish",
+      "prompt": "kan du ta bort AI-tonen från det här inlägget innan det går ut i nyhetsbrevet? evals/files/post-sv.md",
+      "expected_output": "A Swedish rewrite without the opener, the 'inte bara X, det är Y' and 'handlar inte om X, det handlar om Y' contrasts, the 'Resultatet?' setup, and the reassurance at the end. The four-hour target and the lead times 3,2 and 1,1 days stay.",
+      "files": ["evals/files/post-sv.md"],
+      "expectations": [
+        "The output is in Swedish",
+        "The output does not contain 'Låt oss vara ärliga' or 'Och det är faktiskt helt okej'",
+        "The output does not keep 'Det handlar inte om verktyg. Det handlar om människor.' as a two-sentence contrast",
+        "The output keeps 'fyra timmar', '3,2 dagar', and '1,1 dagar' with Swedish decimal commas",
+        "The output does not add facts, such as a team name or a reason for the speed-up, that are not in the source"
+      ]
+    }
+  ]
+}

@@ -10,7 +10,9 @@ export const HowItWorks = () => (
   >
     <Container className="pb-8">
       <Card className="flex-row flex-wrap items-center justify-between gap-4 bg-transparent px-6 py-5">
-        <p className="text-sm">Install a single skill</p>
+        <h2 id="how-it-works-title" className="text-sm">
+          Only need one? Install it by name.
+        </h2>
         <p className="font-mono text-sm">
           <span className="text-muted-foreground">$</span>{" "}
           {skillInstallCommand("commit")}

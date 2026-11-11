@@ -16,7 +16,8 @@ export const Hero = () => (
           My agent skills.
         </h1>
         <p className="text-muted-foreground mt-6 max-w-md text-base/relaxed text-pretty sm:text-lg/relaxed">
-          The skills I use every day.
+          The skills I use every day. Each one lists what it reads, what it
+          writes and what it never does.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">

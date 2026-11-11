@@ -6,7 +6,7 @@ import { Container } from "@/components/container";
 import { Logo } from "@/components/logo";
 import { repoStars } from "@/lib/github";
 import { site } from "@/lib/site";
-import { cn } from "@/lib/utils";
+import { cn, plural } from "@/lib/utils";
 
 /** A page below the site root, shown after `/ skills` in the header. The last one is the current page. */
 export interface Crumb {
@@ -107,7 +107,12 @@ export const SiteHeader = async ({ crumbs = [] }: { crumbs?: Crumb[] }) => {
                 href={site.githubUrl}
                 title="GitHub"
                 aria-label={
-                  stars === undefined ? "GitHub" : `GitHub, ${stars} stars`
+                  stars === undefined
+                    ? "GitHub"
+                    : plural(stars, {
+                        one: "GitHub, # star",
+                        other: "GitHub, # stars",
+                      })
                 }
                 className={linkClass}
               >

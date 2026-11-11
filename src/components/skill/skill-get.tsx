@@ -4,6 +4,7 @@ import { GetTabs } from "@/components/skill/get-tabs";
 import { SmallLabel } from "@/components/skill/parts";
 import { site, skillFetchCommand, skillInstallCommand } from "@/lib/site";
 import type { SkillDocument } from "@/lib/skills";
+import { plural } from "@/lib/utils";
 
 const kilobytes = new Intl.NumberFormat("en", {
   maximumFractionDigits: 1,
@@ -43,8 +44,9 @@ const CliPanel = ({ skill }: { skill: SkillDocument }) => (
         </span>
       </CommandLine>
       <p className="text-muted-foreground text-xs">
-        Installs in this repo. Add <code className="text-foreground">-g</code>{" "}
-        to install it for your user, in every project.
+        Installs into this project. Add{" "}
+        <code className="text-foreground">-g</code> to install it in every
+        project.
       </p>
     </div>
     <Caption>
@@ -65,8 +67,8 @@ const CurlPanel = ({ skill }: { skill: SkillDocument }) => {
         <CommandLine command={skillFetchCommand(skill.name)} />
         <section aria-label="Response body">
           <SmallLabel>
-            text/markdown · {files.length}{" "}
-            {files.length === 1 ? "file" : "files"} ·{" "}
+            text/markdown ·{" "}
+            {plural(files.length, { one: "# file", other: "# files" })} ·{" "}
             {kilobytes.format(bytes / 1000)}
           </SmallLabel>
           <ol className="mt-3 space-y-2.5 font-mono text-xs">
@@ -86,7 +88,7 @@ const CurlPanel = ({ skill }: { skill: SkillDocument }) => {
                   />
                 </span>
                 <span className="text-muted-foreground text-end tabular-nums">
-                  {lines} lines
+                  {plural(lines, { one: "# line", other: "# lines" })}
                 </span>
               </li>
             ))}

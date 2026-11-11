@@ -90,14 +90,14 @@ export const SkillPrivileges = ({ skill }: { skill: SkillDocument }) => {
 
   return (
     <div>
-      <SmallLabel>Agent privileges</SmallLabel>
+      <SmallLabel>Pre-approved tools</SmallLabel>
       <p className="text-muted-foreground mt-2 text-xs">
-        Pre-approved, so the agent runs these without asking.
+        The agent runs these without asking.
       </p>
       <div className="mt-4 space-y-4 font-mono text-xs">
         {unscoped.length > 0 && (
           <ul
-            aria-label="Tools allowed without a scope"
+            aria-label="Tools pre-approved for any use"
             className="flex flex-wrap gap-1.5"
           >
             {unscoped.map(({ tool }) => (

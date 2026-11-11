@@ -10,10 +10,10 @@ export default function NotFound({ url }: PageProps) {
       <Container className="space-y-4 py-24">
         <h1 className="font-heading text-6xl tracking-tight">404</h1>
         <p className="text-muted-foreground">
-          Nothing at <code>{url.pathname}</code>.
+          No page at <code>{url.pathname}</code>. Check the address for typos.
         </p>
         <p>
-          <a href="/">Back home</a>
+          <a href="/#skills">Browse skills</a>
         </p>
       </Container>
     </Layout>

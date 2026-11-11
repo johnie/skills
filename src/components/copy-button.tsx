@@ -10,6 +10,14 @@ import { cn } from "@/lib/utils";
 
 const RESET_AFTER_MS = 2000;
 
+type Status = "idle" | "copied" | "failed";
+
+const statusText: Record<Status, string> = {
+  copied: "Copied",
+  failed: "Copy failed",
+  idle: "Copy",
+};
+
 type CopyButtonProps = Omit<
   ComponentProps<typeof Button>,
   "children" | "onClick" | "value"
@@ -25,21 +33,26 @@ export const CopyButton = ({
   className,
   ...props
 }: CopyButtonProps) => {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<Status>("idle");
 
   useEffect(() => {
-    if (!copied) {
+    if (status === "idle") {
       return;
     }
 
-    const timer = setTimeout(() => setCopied(false), RESET_AFTER_MS);
+    const timer = setTimeout(() => setStatus("idle"), RESET_AFTER_MS);
 
     return () => clearTimeout(timer);
-  }, [copied]);
+  }, [status]);
 
   const copy = async () => {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
+    try {
+      await navigator.clipboard.writeText(value);
+      setStatus("copied");
+    } catch {
+      // Denied permission or an insecure context: say so, then fall back to "Copy" so the retry is obvious.
+      setStatus("failed");
+    }
   };
 
   return (
@@ -50,11 +63,11 @@ export const CopyButton = ({
       {...props}
     >
       <HugeiconsIcon
-        icon={copied ? Tick02Icon : Copy01Icon}
+        icon={status === "copied" ? Tick02Icon : Copy01Icon}
         data-icon="inline-start"
       />
       <span aria-live="polite">
-        {copied ? "Copied" : "Copy"}
+        {statusText[status]}
         <span className="sr-only"> {label}</span>
       </span>
     </Button>

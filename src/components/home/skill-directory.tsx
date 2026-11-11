@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { RefObject } from "react";
 
 import { Container } from "@/components/container";
 import { SkillRow } from "@/components/home/skill-row";
+import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
@@ -15,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { categoryIds, categoryLabels } from "@/lib/skill-metadata";
 import type { CategoryId } from "@/lib/skill-metadata";
 import type { Skill } from "@/lib/skill-schema";
+import { plural } from "@/lib/utils";
 
 type Filter = CategoryId | "all";
 
@@ -68,6 +70,7 @@ export const SkillDirectory = ({ skills }: { skills: readonly Skill[] }) => {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const searchId = useId();
   useSlashToFocus(searchRef);
 
   const tabs: { value: Filter; label: string; count: number }[] = [
@@ -82,6 +85,14 @@ export const SkillDirectory = ({ skills }: { skills: readonly Skill[] }) => {
   ];
 
   const visible = skills.filter((skill) => matches(skill, filter, query));
+  const trimmed = query.trim();
+  const scope = filter === "all" ? undefined : categoryLabels[filter];
+
+  // A tab can hide skills the query does match; then the way out is the "All" tab, not an empty search box.
+  const elsewhere =
+    scope === undefined
+      ? 0
+      : skills.filter((skill) => matches(skill, "all", query)).length;
 
   return (
     <section id="skills" aria-labelledby="skills-title" className="scroll-mt-6">
@@ -94,11 +105,16 @@ export const SkillDirectory = ({ skills }: { skills: readonly Skill[] }) => {
             Skills
           </h2>
           <InputGroup className="bg-card h-9 w-full sm:w-72">
+            <InputGroupAddon>
+              <label htmlFor={searchId} className="font-mono">
+                Search
+              </label>
+            </InputGroupAddon>
             <InputGroupInput
+              id={searchId}
               ref={searchRef}
               type="search"
-              placeholder="Search"
-              aria-label="Search skills"
+              placeholder="pull requests"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
@@ -148,9 +164,36 @@ export const SkillDirectory = ({ skills }: { skills: readonly Skill[] }) => {
                 ))}
               </ol>
             ) : (
-              <p className="text-muted-foreground border-b py-12 text-center text-sm">
-                No skills match “{query.trim()}”.
-              </p>
+              <div className="border-b py-12 text-center text-sm">
+                <p>
+                  {scope === undefined
+                    ? `No skills match “${trimmed}”.`
+                    : `No ${scope} skills match “${trimmed}”.`}
+                </p>
+                <p className="text-muted-foreground mt-1.5 text-pretty">
+                  {scope !== undefined && elsewhere > 0
+                    ? plural(elsewhere, {
+                        one: `# skill outside ${scope} matches.`,
+                        other: `# skills outside ${scope} match.`,
+                      })
+                    : "Search looks through names, summaries and what each skill reads, writes and never does."}
+                </p>
+                <Button
+                  variant="outline"
+                  className="mt-5"
+                  onClick={() => {
+                    if (elsewhere > 0) {
+                      setFilter("all");
+                    } else {
+                      setQuery("");
+                    }
+
+                    searchRef.current?.focus();
+                  }}
+                >
+                  {elsewhere > 0 ? "Search all skills" : "Clear search"}
+                </Button>
+              </div>
             )}
           </TabsContent>
         </Tabs>
